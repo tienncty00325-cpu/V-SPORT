@@ -589,7 +589,7 @@ body { font-family: 'Inter', sans-serif; }
     fetch('${pageContext.request.contextPath}/owner/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'email=' + encodeURIComponent(email)
+      body: 'email=' + encodeURIComponent(email) + '&phone=' + encodeURIComponent(phone)
     })
     .then(r => r.json())
     .then(data => {
@@ -709,10 +709,11 @@ body { font-family: 'Inter', sans-serif; }
       return;
     }
     const email = document.getElementById('adminEmail').value.trim();
+    const phone = document.getElementById('adminPhone').value.trim();
     fetch('${pageContext.request.contextPath}/owner/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'email=' + encodeURIComponent(email)
+      body: 'email=' + encodeURIComponent(email) + '&phone=' + encodeURIComponent(phone)
     }).then(r => r.json()).then(data => {
       if (data.success) {
         document.querySelectorAll('.adm-otp').forEach(b => b.value = '');

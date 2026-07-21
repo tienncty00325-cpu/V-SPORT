@@ -17,4 +17,5 @@ node_modules/
 .claude/settings.local.json
 src/main/webapp/uploads/*
 !src/main/webapp/uploads/.gitkeep
+.worktrees/
 

@@ -660,13 +660,24 @@
     // Server là source of truth cho thời gian - mọi đồng hồ đếm ngược trên trang tính theo
     // offset này thay vì tin đồng hồ thiết bị. Được resync mỗi lần poll dữ liệu (30s) và khi
     // tab quay lại foreground, nên không lệch nhiều theo thời gian.
-    let serverTimeOffsetMs = new Date("${serverNow}").getTime() - Date.now();
+    let serverTimeOffsetMs = 0;
+    try {
+        const sNowStr = "${serverNow}";
+        if (sNowStr) {
+            const parsedTime = new Date(sNowStr).getTime();
+            if (!isNaN(parsedTime)) {
+                serverTimeOffsetMs = parsedTime - Date.now();
+            }
+        }
+    } catch (e) {
+        console.error("Lỗi đồng bộ thời gian máy chủ:", e);
+    }
     function getServerNow() { return new Date(Date.now() + serverTimeOffsetMs); }
 
-    const UPCOMING_BOOKING_WARNING_MINUTES = ${upcomingBookingWarningMinutes};
-    const ENDING_SOON_MINUTES = ${endingSoonMinutes};
+    const UPCOMING_BOOKING_WARNING_MINUTES = ${not empty upcomingBookingWarningMinutes ? upcomingBookingWarningMinutes : 15};
+    const ENDING_SOON_MINUTES = ${not empty endingSoonMinutes ? endingSoonMinutes : 15};
 
-    const isManager = ${isManager};
+    const isManager = ${isManager ? 'true' : 'false'};
     const themeBg = '${themeBg}';
     const themeBgHover = '${themeBgHover}';
     const themeText = '${themeText}';
@@ -1034,13 +1045,10 @@
                                     \${checkinBtnText}
                                 </button>
                             </form>
-                            <form action="${pageContext.request.contextPath}/staff/checkin" method="post" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch đặt này do khách bùng không?');">
-                                <input type="hidden" name="action" value="cancelNoShow">
-                                <input type="hidden" name="datSanId" value="\${b.datSanId}">
-                                <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-[10.5px] px-2.5 py-2 rounded-lg transition-all active:scale-95 flex items-center justify-center" title="Hủy ca do khách không đến">
-                                    <span class="material-symbols-outlined text-[15px]">cancel</span>
-                                </button>
-                            </form>
+                            <button type="button" onclick="openNoShowModal(\${b.datSanId}, '\${escapeForInlineOnclickJsString(b.tenKhachHang)}', \${b.reputationScore != null ? b.reputationScore : 'null'})"
+                                    class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-[10.5px] px-2.5 py-2 rounded-lg transition-all active:scale-95 flex items-center justify-center" title="Hủy ca do khách không đến">
+                                <span class="material-symbols-outlined text-[15px]">cancel</span>
+                            </button>
                         </div>
                     </div>
                 `);
@@ -1610,6 +1618,36 @@
     });
 </script>
 
+<div id="noShowModal" role="dialog" aria-modal="true" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm scale-95 transition-transform duration-300">
+        <div class="bg-rose-600 rounded-t-2xl px-5 py-4 flex items-center justify-between">
+            <h3 class="text-white font-bold text-sm">Xác nhận đánh dấu Không đến</h3>
+            <button onclick="closeNoShowModal()" class="text-white/80 hover:text-white transition-colors p-1">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-3">
+            <p class="text-sm text-zinc-700">Khách hàng <strong id="noShowCustomerName">-</strong> sẽ được đánh dấu <strong>Không đến (No Show)</strong> cho đơn <strong id="noShowDatSanLabel">-</strong>.</p>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[12px] text-amber-800 font-semibold leading-snug">
+                Thao tác này sẽ trừ điểm uy tín của khách và không thể hoàn tác. Vui lòng kiểm tra kỹ trước khi xác nhận.
+            </div>
+            <p id="noShowCurrentReputation" class="text-[11px] text-zinc-500 hidden"></p>
+        </div>
+        <div class="px-5 pb-5 flex items-center justify-end gap-2">
+            <button type="button" onclick="closeNoShowModal()" class="px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-sm">
+                Hủy thao tác
+            </button>
+            <form id="noShowForm" action="${pageContext.request.contextPath}/staff/checkin" method="post">
+                <input type="hidden" name="action" value="cancelNoShow">
+                <input type="hidden" name="datSanId" id="noShowDatSanId" value="">
+                <button type="submit" class="px-4 py-2 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors text-sm">
+                    Xác nhận Không đến
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- STAFF INVOICE & SERVICE MODAL -->
 <div id="staffInvoiceModal" role="dialog" aria-modal="true" aria-labelledby="staffInvoiceModalTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300 p-2 sm:p-4">
     <div class="bg-white w-full max-w-[1400px] rounded-lg sm:rounded-xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300 relative flex flex-col" style="max-height: 96vh;">
@@ -1768,6 +1806,50 @@
                                 Áp dụng giảm trừ trả sân sớm
                             </button>
                         </c:if>
+                    </div>
+
+                    <!-- Gia hạn thời gian chơi -->
+                    <div id="staff-extension-panel" class="bg-white rounded-xl border border-[#ccc3d8] p-3.5 shrink-0 hidden">
+                        <h4 class="text-[11px] text-[#5d5d67] uppercase font-semibold tracking-wide mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[15px] ${isManager ? 'text-purple-600' : 'text-orange-600'}">more_time</span>
+                            Gia hạn thời gian chơi
+                        </h4>
+                        <div class="space-y-2.5">
+                            <!-- Nút nhanh -->
+                            <div class="flex gap-2">
+                                <button type="button" onclick="previewExtensionByMinutes(15)" class="flex-1 py-1.5 rounded-lg border border-zinc-200 hover:border-violet-600 hover:bg-violet-50 text-xs font-bold text-zinc-700 hover:text-violet-700 transition-all select-none">
+                                    +15 Phút
+                                </button>
+                                <button type="button" onclick="previewExtensionByMinutes(30)" class="flex-1 py-1.5 rounded-lg border border-zinc-200 hover:border-violet-600 hover:bg-violet-50 text-xs font-bold text-zinc-700 hover:text-violet-700 transition-all select-none">
+                                    +30 Phút
+                                </button>
+                                <button type="button" onclick="previewExtensionByMinutes(60)" class="flex-1 py-1.5 rounded-lg border border-zinc-200 hover:border-violet-600 hover:bg-violet-50 text-xs font-bold text-zinc-700 hover:text-violet-700 transition-all select-none">
+                                    +60 Phút
+                                </button>
+                            </div>
+                            <!-- Chọn giờ cụ thể -->
+                            <div class="flex items-center gap-2">
+                                <label for="extension-new-time" class="text-xs text-[#5d5d67] font-medium whitespace-nowrap">Đến giờ:</label>
+                                <input type="time" id="extension-new-time" class="flex-1 text-xs border border-zinc-200 rounded-lg p-1 focus:outline-none focus:border-violet-600" onchange="previewExtensionByTime(this.value)">
+                            </div>
+                            <!-- Phí phát sinh preview -->
+                            <div id="extension-preview-result" class="hidden text-[11px] p-2 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-650">Giờ kết thúc mới:</span>
+                                    <span class="font-bold text-zinc-800" id="extension-preview-new-end">--:--</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-650">Phí phát sinh:</span>
+                                    <span class="font-bold text-red-650" id="extension-preview-fee">0 đ</span>
+                                </div>
+                                <div class="text-zinc-550 italic mt-0.5 text-[10px] leading-tight" id="extension-preview-note"></div>
+                            </div>
+                            <!-- Nút Xác nhận -->
+                            <button type="button" id="extension-confirm-btn" onclick="confirmExtension()" disabled class="w-full bg-zinc-300 text-white font-extrabold text-[10.5px] py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-1 select-none cursor-not-allowed">
+                                <span class="material-symbols-outlined text-[14px]">done</span>
+                                Xác nhận gia hạn
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Tổng kết -->
@@ -2592,6 +2674,8 @@
         if (discountEl) { discountEl.textContent = formatCurrency(data.giamGia || 0); discountEl.setAttribute('data-val', data.giamGia || 0); }
         const parkingEl = document.getElementById("staff-summary-parking");
         if (parkingEl) { parkingEl.textContent = formatCurrency(data.phiGuiXe || 0); parkingEl.setAttribute('data-val', data.phiGuiXe || 0); }
+
+        renderExtensionPanel(data);
 
         if (opts.isInitialLoad) {
             // Reset search/category chỉ khi mở modal lần đầu - không reset giữa lúc đang thao tác.
@@ -3978,6 +4062,46 @@
         }, 300);
     }
 
+    function escapeForInlineOnclickJsString(str) {
+        return String(str == null ? '' : str)
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function openNoShowModal(datSanId, tenKhachHang, reputationScore) {
+        document.getElementById("noShowDatSanId").value = datSanId;
+        document.getElementById("noShowCustomerName").textContent = tenKhachHang || "Khách vãng lai";
+        document.getElementById("noShowDatSanLabel").textContent = "#" + datSanId;
+
+        var repEl = document.getElementById("noShowCurrentReputation");
+        if (reputationScore !== null && reputationScore !== undefined) {
+            repEl.textContent = "Điểm uy tín hiện tại: " + reputationScore + "/100";
+            repEl.classList.remove("hidden");
+        } else {
+            repEl.classList.add("hidden");
+        }
+
+        var modal = document.getElementById("noShowModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        requestAnimationFrame(function () {
+            modal.classList.remove("opacity-0");
+            modal.querySelector(".bg-white").classList.remove("scale-95");
+        });
+    }
+
+    function closeNoShowModal() {
+        var modal = document.getElementById("noShowModal");
+        modal.classList.add("opacity-0");
+        modal.querySelector(".bg-white").classList.add("scale-95");
+        setTimeout(function () {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }, 300);
+    }
+
 
     // --- Side Drawer Functions ---
     let activeDrawerSanId = null;
@@ -4715,6 +4839,157 @@
             });
         }
     });
+
+    let currentExtensionMinutes = null;
+    let currentExtensionNewTime = null;
+    let currentExtensionPreviewData = null;
+
+    function renderExtensionPanel(data) {
+        const panel = document.getElementById("staff-extension-panel");
+        if (!panel) return;
+        const confirmBtn = document.getElementById("extension-confirm-btn");
+        const previewResult = document.getElementById("extension-preview-result");
+        
+        currentExtensionMinutes = null;
+        currentExtensionNewTime = null;
+        currentExtensionPreviewData = null;
+        const timeInput = document.getElementById("extension-new-time");
+        if (timeInput) timeInput.value = "";
+        if (previewResult) previewResult.classList.add("hidden");
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.className = "w-full bg-zinc-300 text-white font-extrabold text-[10.5px] py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-1 select-none cursor-not-allowed";
+        }
+
+        if (data.bookingTrangThai === "Đang sử dụng" && data.timeMode !== "OPEN_ENDED") {
+            panel.classList.remove("hidden");
+        } else {
+            panel.classList.add("hidden");
+        }
+    }
+
+    function previewExtensionByMinutes(mins) {
+        currentExtensionMinutes = mins;
+        currentExtensionNewTime = null;
+        const timeInput = document.getElementById("extension-new-time");
+        if (timeInput) timeInput.value = "";
+        runExtensionPreview({ extendMinutes: mins });
+    }
+
+    function previewExtensionByTime(timeStr) {
+        if (!timeStr) return;
+        currentExtensionMinutes = null;
+        currentExtensionNewTime = timeStr;
+        runExtensionPreview({ newEndTime: timeStr });
+    }
+
+    function runExtensionPreview(params) {
+        const confirmBtn = document.getElementById("extension-confirm-btn");
+        const previewResult = document.getElementById("extension-preview-result");
+        const newEndEl = document.getElementById("extension-preview-new-end");
+        const feeEl = document.getElementById("extension-preview-fee");
+        const noteEl = document.getElementById("extension-preview-note");
+
+        params.datSanId = currentStaffDatSanId;
+
+        const urlParams = new URLSearchParams(params).toString();
+        fetch('${pageContext.request.contextPath}/staff/checkin?action=previewSessionExtension&' + urlParams, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(preview => {
+            currentExtensionPreviewData = preview;
+            if (previewResult) previewResult.classList.remove("hidden");
+            if (preview.canExtend) {
+                if (newEndEl) newEndEl.textContent = preview.newGioKetThuc ? preview.newGioKetThuc.substring(0, 5) : "--:--";
+                if (feeEl) {
+                    feeEl.textContent = formatCurrency(preview.additionalAmount || 0);
+                    feeEl.className = "font-bold text-red-655";
+                }
+                if (noteEl) {
+                    noteEl.textContent = preview.maxExtendableMinutes > 0 ? ("Khung giờ khả dụng tiếp theo tối đa: " + preview.maxExtendableMinutes + " phút.") : "";
+                    noteEl.className = "text-zinc-550 italic mt-0.5 text-[10px] leading-tight";
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.className = "w-full bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-[10.5px] py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-1 select-none";
+                }
+            } else {
+                if (newEndEl) newEndEl.textContent = "--:--";
+                if (feeEl) {
+                    feeEl.textContent = "Không khả dụng";
+                    feeEl.className = "font-bold text-red-500";
+                }
+                if (noteEl) {
+                    noteEl.textContent = preview.message || "Không thể gia hạn chơi.";
+                    noteEl.className = "text-red-500 font-bold mt-0.5 text-[10px] leading-tight";
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.className = "w-full bg-zinc-300 text-white font-extrabold text-[10.5px] py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-1 select-none cursor-not-allowed";
+                }
+            }
+        })
+        .catch(err => {
+            console.error("Preview extension failed", err);
+            if (newEndEl) newEndEl.textContent = "--:--";
+            if (feeEl) {
+                feeEl.textContent = "Lỗi";
+                feeEl.className = "font-bold text-red-500";
+            }
+            if (noteEl) {
+                noteEl.textContent = "Lỗi kết nối hoặc hệ thống khi tải xem trước.";
+                noteEl.className = "text-red-500 font-bold mt-0.5 text-[10px] leading-tight";
+            }
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.className = "w-full bg-zinc-300 text-white font-extrabold text-[10.5px] py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-1 select-none cursor-not-allowed";
+            }
+        });
+    }
+
+    function confirmExtension() {
+        if (!currentExtensionPreviewData || !currentExtensionPreviewData.canExtend) return;
+        
+        const confirmBtn = document.getElementById("extension-confirm-btn");
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = "Đang xử lý...";
+        }
+
+        const params = {
+            datSanId: currentStaffDatSanId
+        };
+        if (currentExtensionMinutes) params.extendMinutes = currentExtensionMinutes;
+        if (currentExtensionNewTime) params.newEndTime = currentExtensionNewTime;
+
+        const urlParams = new URLSearchParams(params).toString();
+        fetch('${pageContext.request.contextPath}/staff/checkin?action=extendSession&' + urlParams, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success) {
+                showStaffToast(result.message);
+                fetchAndRenderInvoiceDetails(currentStaffDatSanId);
+                pollUpdates();
+            } else {
+                showStaffToast("Gia hạn thất bại: " + result.message);
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">done</span> Xác nhận gia hạn';
+                }
+            }
+        })
+        .catch(err => {
+            console.error("Confirm extension failed", err);
+            showStaffToast("Lỗi kết nối khi gửi yêu cầu gia hạn.");
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">done</span> Xác nhận gia hạn';
+            }
+        });
+    }
 </script>
 
 <c:if test="${not empty autoOpenInvoiceDatSanId}">

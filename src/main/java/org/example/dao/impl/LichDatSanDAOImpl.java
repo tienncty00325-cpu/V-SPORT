@@ -183,6 +183,24 @@ public class LichDatSanDAOImpl implements LichDatSanDAO {
     }
 
     @Override
+    public int cancelByCustomer(Connection conn, int datSanId, int accountId, String cancelType, String cancelReason) throws SQLException {
+        String sql = "UPDATE LichDatSan SET TrangThai = N'Đã hủy', CancelType = ?, CancelReason = ?, " +
+                "CancelledAt = GETDATE(), CancelledBy = ? " +
+                "WHERE DatSanID = ? AND AccountID = ? AND (" +
+                "TrangThai = N'Chờ xác nhận' " +
+                "OR TrangThai = N'Đã xác nhận' " +
+                "OR (TrangThai = N'Chờ thanh toán' AND (HoldExpiresAt IS NULL OR HoldExpiresAt > SYSUTCDATETIME())))";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, cancelType);
+            ps.setString(2, cancelReason);
+            ps.setInt(3, accountId);
+            ps.setInt(4, datSanId);
+            ps.setInt(5, accountId);
+            return ps.executeUpdate();
+        }
+    }
+
+    @Override
     public boolean updateGhiChu(int id, String ghiChu) {
         String sql = "UPDATE LichDatSan SET GhiChu = ? WHERE DatSanID = ?";
         try (Connection conn = DBUtil.getConnection();
@@ -330,6 +348,26 @@ public class LichDatSanDAOImpl implements LichDatSanDAO {
             if (earlyDisc != null) {
                 lich.setEarlyCheckoutDiscount(earlyDisc);
             }
+            java.sql.Timestamp holdExpiresTs = rs.getTimestamp("HoldExpiresAt");
+            if (holdExpiresTs != null) {
+                lich.setHoldExpiresAt(holdExpiresTs.toLocalDateTime());
+            }
+        } catch (SQLException e) {
+            // New columns might not be present in some select statements
+        }
+
+        try {
+            lich.setCancelType(rs.getNString("CancelType"));
+            lich.setCancelReason(rs.getNString("CancelReason"));
+            java.sql.Timestamp cancelledAtTs = rs.getTimestamp("CancelledAt");
+            if (cancelledAtTs != null) {
+                lich.setCancelledAt(cancelledAtTs.toLocalDateTime());
+            }
+            int cancelledBy = rs.getInt("CancelledBy");
+            if (!rs.wasNull()) {
+                lich.setCancelledBy(cancelledBy);
+            }
+            lich.setRequiresRefundReview(rs.getBoolean("RequiresRefundReview"));
         } catch (SQLException e) {
             // New columns might not be present in some select statements
         }
@@ -355,6 +393,13 @@ public class LichDatSanDAOImpl implements LichDatSanDAO {
                 acc.setFullName(fullName);
                 acc.setPhoneNumber(rs.getString("PhoneNumber"));
                 acc.setEmail(rs.getString("Email"));
+                try {
+                    acc.setDiemUyTin(rs.getInt("DiemUyTin"));
+                    acc.setLateCancelCount(rs.getInt("LateCancelCount"));
+                    acc.setNoShowCount(rs.getInt("NoShowCount"));
+                } catch (SQLException ignoredReputationCols) {
+                    // Query didn't select reputation columns (e.g. getLichDatSanTodayByCoSo) — leave defaults
+                }
                 lich.setAccount(acc);
             }
         } catch (SQLException e) {
@@ -394,12 +439,15 @@ public class LichDatSanDAOImpl implements LichDatSanDAO {
         updateExpiredBookingsAndFields();
         org.example.service.BookingLifecycleService.runExpirySweep();
         List<Lichdatsan> list = new ArrayList<>();
-        String sql = "SELECT l.*, s.TenSan, s.CoSoID, a.FullName, a.PhoneNumber, a.Email " +
+        String sql = "SELECT l.*, s.TenSan, s.CoSoID, a.FullName, a.PhoneNumber, a.Email, " +
+                     "a.DiemUyTin, a.LateCancelCount, a.NoShowCount " +
                      "FROM LichDatSan l " +
                      "JOIN San s ON l.SanID = s.SanID " +
                      "LEFT JOIN Accounts a ON l.AccountID = a.AccountID " +
                      "WHERE s.CoSoID = ? AND l.IsDeleted = 0 " +
-                     "ORDER BY l.NgayDat DESC, l.GioBatDau DESC";
+                     // Sắp xếp theo thời điểm TẠO đơn (CreatedTime), không phải ngày/giờ SÂN được đặt (NgayDat/GioBatDau) —
+                     // hai khái niệm khác nhau: đơn tạo gần đây cho slot tuần sau phải hiện trên đơn tạo hôm qua cho slot hôm nay.
+                     "ORDER BY ISNULL(l.CreatedTime, CAST('1900-01-01' AS DATETIME)) DESC, l.DatSanID DESC";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, coSoId);

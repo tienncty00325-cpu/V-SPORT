@@ -144,14 +144,8 @@ public class CheckInServlet extends HttpServlet {
             return;
         }
 
-        // 2. Láº¥y dá»¯ liá»‡u hiá»ƒn thá»‹ lÃªn Dashboard
-        req.setAttribute("danhSachSan", checkInDAO.getDanhSachSan(user.getCoSoId()));
-        req.setAttribute("danhSachLich", checkInDAO.getDanhSachLichCheckInHomNay(user.getCoSoId()));
-        // Source of truth cho mọi đồng hồ đếm ngược trên trang - frontend tính offset so với
-        // Date.now() của client thay vì tin tưởng đồng hồ thiết bị (xem CheckIn.jsp).
-        req.setAttribute("serverNow", java.time.LocalDateTime.now());
-        req.setAttribute("upcomingBookingWarningMinutes", org.example.service.checkin.CheckInWindow.MAX_EARLY_MINUTES);
-        req.setAttribute("endingSoonMinutes", org.example.util.Constants.ENDING_SOON_MINUTES);
+        // 2. Lấy dữ liệu hiển thị lên Dashboard
+        setupDashboardAttributes(req, user);
 
         // 3. Forward tá»›i giao diá»‡n JSP
         req.getRequestDispatcher("/staff/CheckIn.jsp").forward(req, resp);
@@ -226,6 +220,14 @@ public class CheckInServlet extends HttpServlet {
         }
         if ("createPayOSPayment".equals(action)) {
             handleCreatePayOSPayment(req, resp, user);
+            return;
+        }
+        if ("previewSessionExtension".equals(action)) {
+            handlePreviewSessionExtension(req, resp, user);
+            return;
+        }
+        if ("extendSession".equals(action)) {
+            handleExtendSession(req, resp, user);
             return;
         }
 
@@ -338,13 +340,14 @@ public class CheckInServlet extends HttpServlet {
                     throw new CheckInException("Thiáº¿u ID Ä‘Æ¡n Ä‘áº·t sÃ¢n Ä‘á»ƒ há»§y.");
                 }
                 int datSanId = Integer.parseInt(datSanIdStr);
-                checkInDAO.huyLichKhachBung(datSanId, user.getAccountId(), user.getCoSoId());
+                checkInDAO.huyLichKhachBung(datSanId, user.getAccountId(), user.getCoSoId(),
+                        org.example.service.AuditLogService.getClientIp(req));
                 org.example.service.AuditLogService.log(req, user,
-                    "NO_SHOW",
-                    "LichDatSan",
+                    org.example.service.AuditLogService.ACTION_NO_SHOW,
+                    org.example.service.AuditLogService.ENTITY_DAT_SAN,
                     String.valueOf(datSanId),
-                    "Don dat san #" + datSanId,
-                    "Da danh dau khach khong den (no-show)");
+                    "Đơn đặt sân #" + datSanId,
+                    "Đã đánh dấu khách không đến (No Show) - đã trừ điểm uy tín");
                 successMsg = "Ä Ã£ há»§y thÃ nh cÃ´ng Ä‘Æ¡n Ä‘áº·t sÃ¢n #" + datSanId + " (KhÃ¡ch bÃ¹ng)!";
             } else if ("payInvoice".equals(action)) {
                 String hoaDonIdStr = req.getParameter("hoaDonId");
@@ -437,8 +440,7 @@ public class CheckInServlet extends HttpServlet {
         }
 
         // Tải lại dữ liệu lên trang dashboard
-        req.setAttribute("danhSachSan", checkInDAO.getDanhSachSan(user.getCoSoId()));
-        req.setAttribute("danhSachLich", checkInDAO.getDanhSachLichCheckInHomNay(user.getCoSoId()));
+        setupDashboardAttributes(req, user);
 
         // Forward lại trang JSP
         req.getRequestDispatcher("/staff/CheckIn.jsp").forward(req, resp);
@@ -1290,5 +1292,98 @@ public class CheckInServlet extends HttpServlet {
             result.add(m);
         }
         return result;
+    }
+
+    private void handlePreviewSessionExtension(HttpServletRequest req, HttpServletResponse resp, TaiKhoan user) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        try {
+            String datSanIdStr = req.getParameter("datSanId");
+            String extendMinutesStr = req.getParameter("extendMinutes");
+            String newEndTimeStr = req.getParameter("newEndTime");
+
+            if (datSanIdStr == null || datSanIdStr.isEmpty()) {
+                writeJsonResponse(resp, HttpServletResponse.SC_BAD_REQUEST, errorJson("MISSING_PARAMS", "Thiếu ID đơn đặt sân."));
+                return;
+            }
+
+            int datSanId = Integer.parseInt(datSanIdStr);
+            Integer extendMinutes = (extendMinutesStr != null && !extendMinutesStr.isEmpty()) ? Integer.parseInt(extendMinutesStr) : null;
+            java.time.LocalTime newEndTime = null;
+            if (newEndTimeStr != null && !newEndTimeStr.trim().isEmpty()) {
+                try {
+                    newEndTime = java.time.LocalTime.parse(newEndTimeStr.trim());
+                } catch (Exception ex) {
+                    writeJsonResponse(resp, HttpServletResponse.SC_BAD_REQUEST, errorJson("INVALID_TIME", "Giờ kết thúc không hợp lệ (định dạng HH:mm)."));
+                    return;
+                }
+            }
+
+            org.example.service.checkin.BookingExtensionService extensionService = new org.example.service.checkin.BookingExtensionService();
+            org.example.service.checkin.BookingExtensionService.ExtensionPreview preview = extensionService.previewExtension(datSanId, extendMinutes, newEndTime, user.getCoSoId());
+
+            writeJsonResponse(resp, HttpServletResponse.SC_OK, gson.toJsonTree(preview).getAsJsonObject());
+        } catch (Exception e) {
+            logger.error("Error previewing session extension", e);
+            writeJsonResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorJson("SYSTEM_ERROR", e.getMessage()));
+        }
+    }
+
+    private void handleExtendSession(HttpServletRequest req, HttpServletResponse resp, TaiKhoan user) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        try {
+            String datSanIdStr = req.getParameter("datSanId");
+            String extendMinutesStr = req.getParameter("extendMinutes");
+            String newEndTimeStr = req.getParameter("newEndTime");
+
+            if (datSanIdStr == null || datSanIdStr.isEmpty()) {
+                writeJsonResponse(resp, HttpServletResponse.SC_BAD_REQUEST, errorJson("MISSING_PARAMS", "Thiếu ID đơn đặt sân."));
+                return;
+            }
+
+            int datSanId = Integer.parseInt(datSanIdStr);
+            Integer extendMinutes = (extendMinutesStr != null && !extendMinutesStr.isEmpty()) ? Integer.parseInt(extendMinutesStr) : null;
+            java.time.LocalTime newEndTime = null;
+            if (newEndTimeStr != null && !newEndTimeStr.trim().isEmpty()) {
+                try {
+                    newEndTime = java.time.LocalTime.parse(newEndTimeStr.trim());
+                } catch (Exception ex) {
+                    writeJsonResponse(resp, HttpServletResponse.SC_BAD_REQUEST, errorJson("INVALID_TIME", "Giờ kết thúc không hợp lệ (định dạng HH:mm)."));
+                    return;
+                }
+            }
+
+            org.example.service.checkin.BookingExtensionService extensionService = new org.example.service.checkin.BookingExtensionService();
+            org.example.service.checkin.BookingExtensionService.ExtensionResult result = extensionService.extendSession(datSanId, extendMinutes, newEndTime, user.getAccountId(), user.getCoSoId());
+
+            if (result.success) {
+                String extensionMsg = (extendMinutes != null) ? "Gia hạn thêm " + extendMinutes + " phút" : "Gia hạn đến giờ " + newEndTime;
+                org.example.service.AuditLogService.log(req, user,
+                    "EXTEND_SESSION",
+                    "LichDatSan",
+                    String.valueOf(datSanId),
+                    "Đơn đặt sân #" + datSanId,
+                    "Gia hạn chơi thành công cho ca đặt sân #" + datSanId + ": " + extensionMsg + ". Phí phát sinh: " + result.additionalAmount + "đ");
+
+                com.google.gson.JsonObject responseJson = new com.google.gson.JsonObject();
+                responseJson.addProperty("success", true);
+                responseJson.addProperty("message", result.message);
+                responseJson.addProperty("additionalAmount", result.additionalAmount);
+                responseJson.addProperty("newGioKetThuc", result.newGioKetThuc != null ? result.newGioKetThuc.toString() : "");
+                writeJsonResponse(resp, HttpServletResponse.SC_OK, responseJson);
+            } else {
+                writeJsonResponse(resp, HttpServletResponse.SC_BAD_REQUEST, errorJson("EXTENSION_FAILED", result.message));
+            }
+        } catch (Exception e) {
+            logger.error("Error extending session", e);
+            writeJsonResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorJson("SYSTEM_ERROR", e.getMessage()));
+        }
+    }
+
+    private void setupDashboardAttributes(HttpServletRequest req, TaiKhoan user) {
+        req.setAttribute("danhSachSan", checkInDAO.getDanhSachSan(user.getCoSoId()));
+        req.setAttribute("danhSachLich", checkInDAO.getDanhSachLichCheckInHomNay(user.getCoSoId()));
+        req.setAttribute("serverNow", java.time.LocalDateTime.now());
+        req.setAttribute("upcomingBookingWarningMinutes", org.example.service.checkin.CheckInWindow.MAX_EARLY_MINUTES);
+        req.setAttribute("endingSoonMinutes", org.example.util.Constants.ENDING_SOON_MINUTES);
     }
 }

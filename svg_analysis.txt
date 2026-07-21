@@ -1,0 +1,135 @@
+RECT: y=0.0, w=1440.0x10812.4, fill=white, rx=
+RECT: y=0.0, w=394.656x193.453, fill=#F3F4F6, rx=
+RECT: y=0.0, w=394.672x193.469, fill=#F3F4F6, rx=
+RECT: y=0.0, w=394.672x193.469, fill=#F3F4F6, rx=
+RECT: y=0.0, w=1440.0x1038.0, fill=white, rx=
+RECT: y=0.0, w=383.328x240.0, fill=white, rx=
+RECT: y=0.0, w=383.328x240.0, fill=white, rx=
+RECT: y=0.0, w=383.344x240.0, fill=white, rx=
+RECT: y=0.0, w=1440.0x1071.0, fill=black, rx=
+RECT: y=0.0, w=1440.0x975.469, fill=white, rx=
+RECT: y=0.0, w=1440.0x1024.0, fill=white, rx=
+RECT: y=0.0, w=129.986x128.297, fill=white, rx=
+RECT: y=0.0, w=394.656x187.453, fill=white, rx=
+RECT: y=0.0, w=394.672x187.469, fill=white, rx=
+RECT: y=0.0, w=394.672x187.469, fill=white, rx=
+RECT: y=0.0, w=249.061x560.0, fill=white, rx=
+RECT: y=0.0, w=1440.0x789.0, fill=white, rx=
+RECT: y=0.0, w=1440.0x992.0, fill=white, rx=
+RECT: y=0.0, w=784.813x792.0, fill=white, rx=
+RECT: y=0.0, w=484.0x680.0, fill=white, rx=
+RECT: y=0.0, w=1440.0x772.0, fill=white, rx=
+RECT: y=0.0, w=1248.0x446.0, fill=white, rx=
+RECT: y=0.0, w=572.0x610.0, fill=white, rx=
+RECT: y=0.0, w=210.0x472.172, fill=white, rx=
+RECT: y=0.0, w=612.0x800.0, fill=white, rx=
+RECT: y=0.0, w=138.0x130.0, fill=white, rx=
+RECT: y=0.0, w=128.0x128.0, fill=white, rx=
+IMAGE: y=0.0, w=740.0x1492.0
+IMAGE: y=0.0, w=640.0x299.0
+IMAGE: y=0.0, w=640.0x299.0
+IMAGE: y=0.0, w=640.0x299.0
+IMAGE: y=0.0, w=129.0x98.0
+IMAGE: y=0.0, w=525.0x1053.0
+IMAGE: y=0.0, w=525.0x1054.0
+IMAGE: y=0.0, w=525.0x1053.0
+IMAGE: y=0.0, w=525.0x1053.0
+IMAGE: y=0.0, w=496.0x502.0
+IMAGE: y=0.0, w=656.0x502.0
+IMAGE: y=0.0, w=528.0x502.0
+IMAGE: y=0.0, w=528.0x502.0
+IMAGE: y=0.0, w=752.0x502.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=48.0x48.0
+IMAGE: y=0.0, w=1600.0x900.0
+IMAGE: y=0.0, w=2484.0x1400.0
+IMAGE: y=0.0, w=2484.0x1400.0
+IMAGE: y=0.0, w=664.0x800.0
+IMAGE: y=0.0, w=42.0x48.0
+RECT: y=36.0, w=440.953x56.0, fill=white, rx=28
+RECT: y=312.0, w=259.359x64.0, fill=#0C513F, rx=8
+RECT: y=312.5, w=277.188x64.0, fill=#0C513F, rx=8
+RECT: y=1447.47, w=398.0x802.453, fill=url(#pattern0_4_2015), rx=
+RECT: y=2465.92, w=402.656x483.453, fill=white, rx=16
+RECT: y=2465.92, w=402.672x483.469, fill=white, rx=16
+RECT: y=2465.92, w=402.672x483.469, fill=white, rx=16
+RECT: y=2467.92, w=398.656x479.453, fill=, rx=14
+RECT: y=2467.92, w=398.672x479.469, fill=, rx=14
+RECT: y=2467.92, w=398.672x479.469, fill=, rx=14
+RECT: y=2759.92, w=394.656x187.453, fill=url(#pattern1_4_2015), rx=
+RECT: y=2759.92, w=394.672x187.469, fill=url(#pattern2_4_2015), rx=
+RECT: y=2759.92, w=394.672x187.469, fill=url(#pattern3_4_2015), rx=
+RECT: y=3045.39, w=1248.0x800.0, fill=#FFC501, rx=16
+RECT: y=3189.39, w=1440.0x1921.84, fill=#0C513F, rx=
+RECT: y=3952.66, w=180.0x136.734, fill=url(#pattern4_4_2015), rx=
+RECT: y=4279.39, w=336.0x693.0, fill=url(#pattern5_4_2015), rx=
+RECT: y=4279.39, w=336.0x693.0, fill=url(#pattern7_4_2015), rx=
+RECT: y=4311.39, w=336.0x693.0, fill=url(#pattern6_4_2015), rx=
+RECT: y=4311.39, w=336.0x693.0, fill=url(#pattern8_4_2015), rx=
+RECT: y=5260.39, w=1248.0x800.0, fill=white, rx=24
+RECT: y=5262.39, w=1244.0x796.0, fill=, rx=22
+RECT: y=5356.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5446.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5536.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5626.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5716.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5806.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5896.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=5952.67, w=439.672x53.7188, fill=white, rx=26.8594
+RECT: y=5952.67, w=439.672x53.7188, fill=, rx=26.8594
+RECT: y=5986.89, w=451.0x73.0, fill=, rx=7.5
+RECT: y=6189.89, w=206.078x63.0, fill=#FFF3CC, rx=6.5
+RECT: y=6189.89, w=206.078x63.0, fill=, rx=6.5
+RECT: y=6406.89, w=329.0x289.0, fill=#F9FAFB, rx=23.5
+RECT: y=6406.89, w=329.0x289.0, fill=, rx=23.5
+RECT: y=6462.89, w=329.0x205.0, fill=#F9FAFB, rx=23.5
+RECT: y=6462.89, w=329.0x205.0, fill=, rx=23.5
+RECT: y=6476.89, w=329.0x205.0, fill=#F9FAFB, rx=23.5
+RECT: y=6476.89, w=329.0x205.0, fill=, rx=23.5
+RECT: y=6504.89, w=329.0x205.0, fill=#F9FAFB, rx=23.5
+RECT: y=6504.89, w=329.0x205.0, fill=, rx=23.5
+RECT: y=6700.89, w=329.0x261.0, fill=#F9FAFB, rx=23.5
+RECT: y=6700.89, w=329.0x261.0, fill=, rx=23.5
+RECT: y=6714.89, w=329.0x233.0, fill=#F9FAFB, rx=23.5
+RECT: y=6714.89, w=329.0x233.0, fill=, rx=23.5
+RECT: y=6728.89, w=329.0x289.0, fill=#F9FAFB, rx=23.5
+RECT: y=6728.89, w=329.0x289.0, fill=, rx=23.5
+RECT: y=6742.89, w=329.0x177.0, fill=#F9FAFB, rx=23.5
+RECT: y=6742.89, w=329.0x177.0, fill=, rx=23.5
+RECT: y=7284.38, w=383.328x216.031, fill=url(#pattern23_4_2015), rx=
+RECT: y=7284.38, w=383.344x216.047, fill=url(#pattern24_4_2015), rx=
+RECT: y=7284.59, w=383.328x215.609, fill=url(#pattern22_4_2015), rx=
+RECT: y=7292.89, w=386.328x443.0, fill=, rx=10.5
+RECT: y=7292.89, w=386.328x443.0, fill=, rx=10.5
+RECT: y=7292.89, w=386.344x443.0, fill=, rx=10.5
+RECT: y=7883.39, w=1244.0x796.0, fill=white, rx=14
+RECT: y=7883.39, w=1244.0x796.0, fill=, rx=14
+RECT: y=7993.39, w=1440.0x1752.0, fill=black, rx=
+RECT: y=8037.39, w=572.0x616.0, fill=#FFC501, rx=16
+RECT: y=8037.89, w=563.0x69.0, fill=black, rx=7.5
+RECT: y=8037.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8123.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8123.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8209.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8209.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8295.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8295.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8381.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8381.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8467.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8467.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8553.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8553.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8639.89, w=563.0x69.0, fill=#0C513F, rx=7.5
+RECT: y=8639.89, w=563.0x69.0, fill=, rx=7.5
+RECT: y=8761.39, w=612.0x800.0, fill=#0C513F, rx=12
+RECT: y=8761.39, w=612.0x800.0, fill=url(#pattern25_4_2015), rx=
+RECT: y=8761.39, w=612.0x800.0, fill=white, rx=8
+RECT: y=9408.89, w=163.859x55.0, fill=#FFC501, rx=6.5
+RECT: y=9408.89, w=163.859x55.0, fill=, rx=6.5

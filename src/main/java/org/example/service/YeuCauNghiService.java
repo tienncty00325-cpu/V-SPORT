@@ -91,11 +91,7 @@ public class YeuCauNghiService {
             throw new IllegalArgumentException("Bạn đã có yêu cầu nghỉ vào ngày này rồi");
         }
 
-        // Kiểm tra xem nhân viên có ca làm vào ngày nghỉ xin phép không
-        List<org.example.model.CaLamViec> activeShifts = caLamViecDAO.getCaByAccountIDAndDateRange(yeuCauNghi.getAccountID(), yeuCauNghi.getNgayNghi(), yeuCauNghi.getNgayNghi());
-        if (activeShifts != null && !activeShifts.isEmpty()) {
-            throw new IllegalArgumentException("Không thể gửi yêu cầu nghỉ vì bạn đã có ca làm việc được phân vào ngày " + yeuCauNghi.getNgayNghi() + ". Vui lòng đổi ca hoặc xin quản lý hủy lịch làm trước.");
-        }
+
 
         // Kiểm tra hạn mức nghỉ phép: tối đa 4 ngày nghỉ/tháng
         int targetMonth = yeuCauNghi.getNgayNghi().getMonthValue();
@@ -268,11 +264,7 @@ public class YeuCauNghiService {
             throw new IllegalArgumentException("Yêu cầu đã được xử lý trước đó");
         }
 
-        // Kiểm tra xung đột lịch ca làm việc trong ngày nghỉ phép
-        List<org.example.model.CaLamViec> activeShifts = caLamViecDAO.getCaByAccountIDAndDateRange(ycn.getAccountID(), ycn.getNgayNghi(), ycn.getNgayNghi());
-        if (activeShifts != null && !activeShifts.isEmpty()) {
-            throw new IllegalArgumentException("Nhân viên có ca làm việc được lên lịch trong ngày nghỉ phép này. Vui lòng chuyển ca hoặc xóa lịch làm trước khi duyệt.");
-        }
+
 
         // Cập nhật trạng thái
         ycn.setTrangThai("DaDuyet");

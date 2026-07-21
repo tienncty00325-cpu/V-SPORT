@@ -4,26 +4,54 @@
     {
       "name": "KhoDichVu",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "FE/manager", "-p", "5500", "--no-clipboard"],
+      "runtimeArgs": [
+        "serve",
+        "FE/manager",
+        "-p",
+        "5500",
+        "--no-clipboard"
+      ],
       "port": 5500
     },
     {
       "name": "header-preview",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "/tmp/claude-1000/-home-nhan-Downloads-V-SPORT/d4e6eb6d-696c-4de2-b25e-c5b6ec885a10/scratchpad"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8791",
+        "--directory",
+        "/tmp/claude-1000/-home-nhan-Downloads-V-SPORT/d4e6eb6d-696c-4de2-b25e-c5b6ec885a10/scratchpad"
+      ],
       "port": 8791
     },
     {
       "name": "prototype",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8793", "--directory", "/home/nhan/Downloads/V-SPORT/prototype"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8793",
+        "--directory",
+        "/home/nhan/Downloads/V-SPORT/prototype"
+      ],
       "port": 8793
     },
     {
       "name": "vsport-tomcat-preview",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["/tmp/claude-1000/-home-nhan-Downloads-V-SPORT/c7e056d3-9ea5-4c50-862e-481ac3b562e8/scratchpad/run-tomcat-preview.sh"],
+      "runtimeArgs": [
+        "/tmp/claude-1000/-home-nhan-Downloads-V-SPORT/6efa40a7-1fca-4e6a-8a67-9b41bcd7b432/scratchpad/run-tomcat-8090.sh"
+      ],
       "port": 8090
+    },
+    {
+      "name": "vsport-tomcat-8091",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "/tmp/claude-1000/-home-nhan-Downloads-V-SPORT/408a60cf-a68a-427e-bbcc-89299dc980d9/scratchpad/run-tomcat-8091.sh"
+      ],
+      "port": 8091
     }
   ]
 }

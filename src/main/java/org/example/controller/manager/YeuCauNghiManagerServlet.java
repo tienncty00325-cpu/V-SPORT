@@ -63,13 +63,13 @@ public class YeuCauNghiManagerServlet extends HttpServlet {
             return;
         }
 
+        String format = req.getParameter("format");
         try {
-            // Láº¥y parameter filter
+            // Lấy parameter filter
             String status = req.getParameter("status");
             List<YeuCauNghi> allRequests = yeuCauNghiService.getYeuCauNghiByCoSo(managerCoSoId, status);
 
             // Check if JSON format requested (for AJAX)
-            String format = req.getParameter("format");
             if ("json".equals(format)) {
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
@@ -81,8 +81,15 @@ public class YeuCauNghiManagerServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/manager/nhan-su?tab=leave");
         } catch (Exception e) {
             logger.error("Error in YeuCauNghiManagerServlet doGet: {}", e.getMessage(), e);
-            session.setAttribute("error", "Lá»—i khi táº£i dá»¯ liá»‡u: " + e.getMessage());
-            resp.sendRedirect(req.getContextPath() + "/manager/nhan-su?tab=leave");
+            if ("json".equals(format)) {
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write("{\"success\":false,\"error\":\"Lỗi hệ thống: " + e.getMessage().replace("\"", "\\\"") + "\"}");
+            } else {
+                session.setAttribute("error", "Lỗi khi tải dữ liệu: " + e.getMessage());
+                resp.sendRedirect(req.getContextPath() + "/manager/nhan-su?tab=leave");
+            }
         }
     }
 

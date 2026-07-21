@@ -3,12 +3,20 @@ package org.example.dao.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import org.example.dao.CoSoDAO;
+import org.example.dto.FacilityMapDTO;
 import org.example.model.CoSo;
 import org.example.model.LoaiSan;
 import org.example.model.MonTheThao;
 import org.example.model.San;
+import org.example.util.DBUtil;
 import org.example.util.JPAUtil;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Time;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +35,44 @@ public class CoSoDAOImpl implements CoSoDAO {
                     "SELECT c FROM CoSo c WHERE (c.isDeleted = false OR c.isDeleted IS NULL) " +
                     "AND c.TrangThai NOT IN ('Chờ duyệt', 'Từ chối')", CoSo.class)
                 .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<CoSo> searchCoSo(String keyword, Integer monTheThaoId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            StringBuilder jpql = new StringBuilder(
+                    "SELECT DISTINCT c FROM CoSo c WHERE (c.isDeleted = false OR c.isDeleted IS NULL) " +
+                    "AND c.TrangThai NOT IN ('Chờ duyệt', 'Từ chối')");
+
+            String trimmedKeyword = keyword != null ? keyword.trim() : "";
+            boolean hasKeyword = !trimmedKeyword.isEmpty();
+            if (hasKeyword) {
+                jpql.append(" AND (LOWER(c.TenCoSo) LIKE :kw ESCAPE '\\' OR LOWER(c.DiaChi) LIKE :kw ESCAPE '\\')");
+            }
+            if (monTheThaoId != null) {
+                jpql.append(" AND EXISTS (SELECT 1 FROM San s JOIN LoaiSan ls ON s.loaiSanID = ls.loaiSanID " +
+                        "WHERE s.coSoID = c.CoSoID AND (s.isDeleted = false OR s.isDeleted IS NULL) " +
+                        "AND ls.monTheThaoID = :monTheThaoId)");
+            }
+
+            jakarta.persistence.TypedQuery<CoSo> query = em.createQuery(jpql.toString(), CoSo.class);
+            if (hasKeyword) {
+                // Escape LIKE wildcards trong keyword người dùng nhập để tránh họ tự ý
+                // dùng % / _ làm ký tự đại diện ngoài ý muốn ứng dụng.
+                String escaped = trimmedKeyword.toLowerCase()
+                        .replace("\\", "\\\\")
+                        .replace("%", "\\%")
+                        .replace("_", "\\_");
+                query.setParameter("kw", "%" + escaped + "%");
+            }
+            if (monTheThaoId != null) {
+                query.setParameter("monTheThaoId", monTheThaoId);
+            }
+            return query.getResultList();
         } finally {
             em.close();
         }
@@ -404,6 +450,100 @@ public class CoSoDAOImpl implements CoSoDAO {
         } finally {
             em.close();
         }
+    }
+
+    @Override
+    public List<FacilityMapDTO> getAllCoSoForMap(Integer sportId, String keyword, Integer facilityId) {
+        List<FacilityMapDTO> result = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT c.CoSoID, c.TenCoSo, c.DiaChi, c.SoDienThoai, c.ViDo, c.KinhDo, c.HinhAnh, " +
+                "       c.GioMoCua, c.GioDongCua, c.TrangThai, c.LoaiHinhKinhDoanh, " +
+                "       (SELECT MIN(ls.GiaKhongDen) FROM LoaiSan ls WHERE ls.CoSoID = c.CoSoID) AS MinPrice, " +
+                "       (SELECT COUNT(*) FROM San s WHERE s.CoSoID = c.CoSoID AND s.TrangThai = N'Sẵn sàng' " +
+                "               AND (s.IsDeleted = 0 OR s.IsDeleted IS NULL)) AS ReadyCourtCount " +
+                "FROM CoSo c " +
+                "WHERE (c.IsDeleted = 0 OR c.IsDeleted IS NULL) " +
+                "  AND c.TrangThai = N'Đang hoạt động' " +
+                "  AND c.ViDo IS NOT NULL AND c.KinhDo IS NOT NULL " +
+                "  AND c.ViDo BETWEEN -90 AND 90 AND c.KinhDo BETWEEN -180 AND 180");
+
+        if (facilityId != null) {
+            sql.append(" AND c.CoSoID = ?");
+        }
+        if (sportId != null) {
+            sql.append(" AND c.CoSoID IN (SELECT DISTINCT ls.CoSoID FROM LoaiSan ls WHERE ls.MonTheThaoID = ?)");
+        }
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        if (hasKeyword) {
+            sql.append(" AND (LOWER(c.TenCoSo) LIKE ? ESCAPE '\\' OR LOWER(c.DiaChi) LIKE ? ESCAPE '\\')");
+        }
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            if (facilityId != null) {
+                ps.setInt(idx++, facilityId);
+            }
+            if (sportId != null) {
+                ps.setInt(idx++, sportId);
+            }
+            if (hasKeyword) {
+                String escaped = keyword.trim().toLowerCase()
+                        .replace("\\", "\\\\")
+                        .replace("%", "\\%")
+                        .replace("_", "\\_");
+                String pattern = "%" + escaped + "%";
+                ps.setString(idx++, pattern);
+                ps.setString(idx++, pattern);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    FacilityMapDTO dto = new FacilityMapDTO();
+                    dto.setCoSoId(rs.getInt("CoSoID"));
+                    dto.setTenCoSo(rs.getString("TenCoSo"));
+                    dto.setDiaChi(rs.getString("DiaChi"));
+                    dto.setSoDienThoai(rs.getString("SoDienThoai"));
+
+                    BigDecimal viDo = rs.getBigDecimal("ViDo");
+                    BigDecimal kinhDo = rs.getBigDecimal("KinhDo");
+                    dto.setViDo(viDo.doubleValue());
+                    dto.setKinhDo(kinhDo.doubleValue());
+
+                    Time gioMo = rs.getTime("GioMoCua");
+                    Time gioDong = rs.getTime("GioDongCua");
+                    dto.setGioMoCua(gioMo != null ? gioMo.toString().substring(0, 5) : null);
+                    dto.setGioDongCua(gioDong != null ? gioDong.toString().substring(0, 5) : null);
+
+                    dto.setTrangThai(rs.getString("TrangThai"));
+                    String hinhAnh = rs.getString("HinhAnh");
+                    dto.setHinhAnh(hinhAnh != null ? hinhAnh.trim() : "");
+
+                    double minPrice = rs.getDouble("MinPrice");
+                    dto.setMinPrice(rs.wasNull() ? 0.0 : minPrice);
+                    dto.setReadyCourtCount(rs.getInt("ReadyCourtCount"));
+
+                    List<String> sportsList = new ArrayList<>();
+                    String loaiHinh = rs.getString("LoaiHinhKinhDoanh");
+                    if (loaiHinh != null && !loaiHinh.trim().isEmpty()) {
+                        for (String s : loaiHinh.split(",")) {
+                            if (!s.trim().isEmpty()) {
+                                sportsList.add(s.trim());
+                            }
+                        }
+                    }
+                    dto.setSports(sportsList);
+
+                    result.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Lỗi khi tải danh sách cơ sở cho bản đồ: {}", e.getMessage(), e);
+        }
+
+        return result;
     }
 
     private void autoGenerateCourts(CoSo coSo, EntityManager em) {

@@ -5,10 +5,29 @@ import jakarta.mail.internet.*;
 import java.util.Properties;
 
 public class EmailUtil {
-    private static final String HOST = "smtp.gmail.com";
-    private static final String PORT = "465"; 
-    private static final String USERNAME = "nhanntty00234@gmail.com"; 
-    private static final String PASSWORD = "ghtnukwuzwbaqarp";
+    // Ưu tiên env var / JVM system property; fallback về cấu hình dev hiện có
+    // để không phá môi trường đang chạy. KHÔNG log giá trị password.
+    private static final String HOST = config("SMTP_HOST", "smtp.gmail.com");
+    private static final String PORT = config("SMTP_PORT", "465");
+    private static final String USERNAME = config("SMTP_USERNAME", "nhanntty00234@gmail.com");
+    private static final String PASSWORD = config("SMTP_PASSWORD", "ghtnukwuzwbaqarp");
+    private static final String FROM = config("SMTP_FROM", USERNAME);
+
+    private static String config(String key, String def) {
+        String v = System.getenv(key);
+        if (v == null || v.isBlank()) v = System.getProperty(key);
+        return (v == null || v.isBlank()) ? def : v.trim();
+    }
+
+    /** Diagnostic an toàn: có host/port/username(mask)/password-configured, không in secret. */
+    public static String safeConfigSummary() {
+        String maskedUser = USERNAME.length() > 4
+                ? USERNAME.substring(0, 2) + "***" + USERNAME.substring(USERNAME.indexOf('@') >= 0 ? USERNAME.indexOf('@') : USERNAME.length() - 2)
+                : "***";
+        return "SMTP config: host=" + HOST + ", port=" + PORT
+                + ", username=" + maskedUser
+                + ", passwordConfigured=" + !PASSWORD.isBlank();
+    }
 
     public static void sendEmail(String toAddress, String subject, String body) throws MessagingException {
         Properties props = new Properties();
@@ -50,10 +69,8 @@ public class EmailUtil {
             }
         });
         
-        session.setDebug(true);
-
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(USERNAME));
+        message.setFrom(new InternetAddress(FROM));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toAddress));
         message.setSubject(subject);
         message.setText(body);

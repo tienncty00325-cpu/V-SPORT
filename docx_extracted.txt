@@ -1,0 +1,1783 @@
+FPT POLYTECHNIC BÀ RỊA - VŨNG TÀU
+
+BÁO CÁO DỰ ÁN
+V-SPORT – HỆ THỐNG QUẢN LÝ CHUỖI SÂN THỂ THAO
+
+Nhóm thực hiện
+THE BIGSIZE
+Giảng viên hướng dẫn
+Thầy Nguyễn Bảo Long
+Môn học
+JAV101 và SOF1022
+Lớp
+SD2001
+
+Thành viên: Nguyễn Thiện Nhân, Nguyễn Chí Tiến, Tô Gia Bảo,Lê Hoàng Minh, Nguyễn Đức Minh Khôi, Tạ Hoàng Kim Châu
+Năm 2026
+
+LỜI MỞ ĐẦU
+Trong bối cảnh chuyển đổi số ngày càng được ứng dụng rộng rãi, nhiều cơ sở kinh doanh sân thể thao vẫn quản lý lịch đặt, khách hàng, dịch vụ và doanh thu bằng sổ sách, bảng tính hoặc các kênh trao đổi rời rạc. Cách vận hành này làm dữ liệu phân tán, mất nhiều thời gian đối soát và dễ phát sinh sai sót.
+Xuất phát từ thực trạng đó, nhóm THE BIGSIZE xây dựng V-SPORT – Hệ thống quản lý chuỗi sân thể thao trên nền tảng Web. Hệ thống hướng đến việc liên kết các nghiệp vụ quan trọng như quản lý tài khoản, cơ sở, sân, lịch đặt, check-in, dịch vụ, hóa đơn, thanh toán, nhân sự và ca làm việc trên cùng một nền tảng.
+Dự án được phát triển bằng Java 17, Jakarta Servlet, JSP và Microsoft SQL Server theo mô hình MVC. Trong quá trình thực hiện, nhóm chú trọng tính đúng đắn của luồng nghiệp vụ, validation dữ liệu, xác thực và phân quyền người dùng, đồng thời xây dựng tài liệu phân tích và kiểm thử bám sát source code thực tế.
+Do giới hạn về thời gian và kinh nghiệm, sản phẩm vẫn còn những điểm cần tiếp tục hoàn thiện. Nhóm kính mong nhận được ý kiến góp ý từ giảng viên để hệ thống ngày càng ổn định và phù hợp hơn với nhu cầu vận hành thực tế.
+LỜI CẢM ƠN
+Nhóm THE BIGSIZE xin gửi lời cảm ơn chân thành đến Thầy Nguyễn Bảo Long đã trực tiếp hướng dẫn, góp ý chuyên môn và hỗ trợ nhóm trong quá trình phân tích, xây dựng và hoàn thiện dự án V-SPORT.
+Nhóm cũng xin cảm ơn quý Thầy/Cô tại FPT Polytechnic Bà Rịa - Vũng Tàu đã trang bị nền tảng kiến thức về Java Web, cơ sở dữ liệu, phân tích hệ thống và kiểm thử phần mềm để nhóm có thể áp dụng vào dự án.
+Cuối cùng, nhóm xin cảm ơn tất cả các thành viên đã phối hợp trong việc phát triển source code, quản lý tiến độ, kiểm thử, thiết kế giao diện và xây dựng tài liệu. Những thiếu sót còn lại sẽ là cơ sở để nhóm tiếp tục học hỏi và cải tiến sản phẩm.
+
+1. GIỚI THIỆU ĐỀ TÀI
+1.1. Thông tin nhóm
+Tên dự án: V-SPORT – Hệ thống quản lý chuỗi sân thể thao.
+Tên nhóm: THE BIGSIZE.
+Giảng viên hướng dẫn: Thầy Nguyễn Bảo Long.
+Môn học: JAV101 và SOF1022.
+Lớp: SD2001.
+Họ và tên
+MSSV
+Vai trò và công việc phụ trách
+Nguyễn Thiện Nhân
+TY00234
+Nhóm trưởng; quản lý tiến độ trên Jira; điều phối và tích hợp source code trên GitHub; thiết kế và cập nhật cơ sở dữ liệu Microsoft SQL Server; tham gia xây dựng chức năng đăng nhập, Session và kiểm thử logic tổng thể.
+Nguyễn Chí Tiến
+TY00325
+Tham gia xây dựng module Admin; phát triển tầng truy xuất dữ liệu bằng DAO, JDBC và JPA/Hibernate; cấu hình DBUtil; xây dựng Filter phục vụ xác thực và phân quyền truy cập.
+Tô Gia Bảo
+TY00311
+Xây dựng Landing Page và giao diện đăng ký; xử lý dữ liệu form đăng ký bằng Servlet và DAO; bổ sung validation dữ liệu đầu vào; hỗ trợ xây dựng và kiểm tra Filter bảo mật.
+Lê Hoàng Minh
+TY00254
+Thiết kế và phát triển giao diện JSP dành cho Manager; tham gia xây dựng chức năng quản lý cơ sở và quản lý ca làm việc; kiểm thử các chức năng CRUD thuộc module Manager.
+Nguyễn Đức Minh Khôi
+TY00249
+Thiết kế giao diện quản lý; phát triển chức năng quản lý nhân sự và quản lý sân; kết nối JSP với Servlet; kiểm thử luồng thêm, sửa, xóa và hiển thị dữ liệu.
+Tạ Hoàng Kim Châu
+TY00256
+Xây dựng tài liệu môn SOF1022; thiết kế các sơ đồ UML; tham gia chức năng OTP, khôi phục mật khẩu và gửi email; xây dựng Test Case và kiểm tra validation.
+Nhóm THE BIGSIZE gồm 06 thành viên, thực hiện dự án theo hình thức phân chia công việc dựa trên từng module của hệ thống. Các thành viên phối hợp quản lý tiến độ bằng Jira, quản lý mã nguồn bằng GitHub và kiểm thử chéo trước khi tích hợp vào nhánh chính.
+1.2. Lý do chọn đề tài
+Hiện nay, nhiều cơ sở kinh doanh sân thể thao vẫn quản lý lịch đặt sân, thông tin khách hàng, dịch vụ đi kèm và doanh thu bằng sổ sách, bảng tính hoặc các ứng dụng nhắn tin riêng lẻ. Cách quản lý này khiến dữ liệu bị phân tán, khó theo dõi và dễ xảy ra sai sót trong quá trình vận hành.
+Đối với chủ cơ sở và người quản lý, việc kiểm tra trạng thái sân, xử lý lịch đặt bị trùng, quản lý nhiều chi nhánh, phân công nhân viên, sắp xếp ca làm việc và đối soát hóa đơn thường mất nhiều thời gian. Khi khách hàng sử dụng thêm nước uống, dụng cụ hoặc các dịch vụ khác, nhân viên cũng dễ bỏ sót sản phẩm, tính sai tổng tiền hoặc không cập nhật chính xác số lượng tồn kho.
+Đối với khách hàng, phương thức đặt sân truyền thống qua điện thoại hoặc tin nhắn chưa thực sự thuận tiện. Khách hàng khó chủ động kiểm tra sân trống, khung giờ, mức giá và trạng thái đơn đặt sân. Việc xác nhận thanh toán hoặc thay đổi lịch đặt cũng phụ thuộc nhiều vào quá trình trao đổi thủ công với nhân viên.
+Xuất phát từ những vấn đề trên, nhóm lựa chọn xây dựng V-SPORT nhằm số hóa và liên kết các nghiệp vụ quan trọng trên cùng một hệ thống. Phần mềm hỗ trợ khách hàng đặt sân trực tuyến; đồng thời hỗ trợ nhân viên, quản lý và quản trị viên thực hiện các công việc như quản lý sân, chi nhánh, nhân sự, ca làm việc, dịch vụ, hóa đơn, thanh toán và trạng thái sử dụng sân.
+Việc thực hiện đề tài không chỉ mang ý nghĩa ứng dụng thực tế mà còn giúp nhóm vận dụng các kiến thức đã học về Java, Jakarta Servlet, JSP, mô hình MVC, Microsoft SQL Server, xác thực người dùng, phân quyền, validation và kiểm thử phần mềm.
+1.3. Mục tiêu dự án
+1.3.1. Mục tiêu tổng quát
+Xây dựng V-SPORT trên nền tảng Web nhằm số hóa các nghiệp vụ quản lý và vận hành sân thể thao. Hệ thống hỗ trợ quản lý dữ liệu tập trung, giảm thao tác thủ công, hạn chế sai sót khi đặt sân, theo dõi trạng thái sân, quản lý dịch vụ và lập hóa đơn.
+V-SPORT hướng đến việc tạo ra một quy trình thống nhất giữa khách hàng, nhân viên, quản lý cơ sở và quản trị viên hệ thống. Mỗi người dùng được cung cấp giao diện và chức năng phù hợp với vai trò, đồng thời dữ liệu được giới hạn theo quyền truy cập và cơ sở phụ trách.
+1.3.2. Mục tiêu cụ thể
+• Xây dựng hệ thống tài khoản và xác thực người dùng: Hỗ trợ đăng ký, đăng nhập, đăng xuất, lưu thông tin người dùng trong Session, gửi OTP qua email và khôi phục mật khẩu.
+• Xây dựng cơ chế phân quyền theo vai trò: Sử dụng Filter và Session để kiểm soát quyền truy cập của Customer, Staff, Manager và Admin.
+• Quản lý cơ sở và sân thể thao: Hỗ trợ quản trị thông tin cơ sở, loại sân, sân và trạng thái hoạt động.
+• Quản lý lịch đặt sân: Cho phép lựa chọn cơ sở, loại sân, ngày và khung giờ; kiểm tra dữ liệu, hạn chế trùng lịch và lưu đơn đặt sân.
+• Hỗ trợ vận hành sân: Cho phép nhân viên check-in, mở sân, theo dõi phiên sử dụng và kết thúc phiên theo giờ cố định hoặc không cố định.
+• Quản lý dịch vụ và hóa đơn: Thêm sản phẩm hoặc dịch vụ vào phiên sử dụng; tính tiền sân, tiền dịch vụ, tổng thanh toán và trạng thái hóa đơn.
+• Tích hợp thanh toán trực tuyến: Sử dụng PayOS trong luồng thanh toán đặt sân trực tuyến.
+• Quản lý nhân sự và ca làm việc: Hỗ trợ Manager quản lý nhân viên, tạo và điều chỉnh ca làm việc, xử lý yêu cầu nghỉ và theo dõi lịch sử thay đổi.
+• Bảo đảm tính hợp lệ và an toàn dữ liệu: Thực hiện validation tại giao diện và máy chủ; mã hóa mật khẩu bằng BCrypt; sử dụng PreparedStatement, Transaction và kiểm tra nghiệp vụ.
+• Xây dựng kiến trúc dễ bảo trì: Áp dụng MVC, DAO Pattern, Jakarta Servlet, JSP và Microsoft SQL Server để tách biệt giao diện, xử lý yêu cầu và truy xuất dữ liệu.
+1.3.3. Mục tiêu học tập
+Thông qua dự án V-SPORT, nhóm vận dụng kiến thức về Java Web, Jakarta Servlet, JSP, JSTL, Session, Filter, JDBC, JPA/Hibernate, mô hình MVC, thiết kế cơ sở dữ liệu, quản lý mã nguồn bằng GitHub, quản lý công việc bằng Jira và kiểm thử phần mềm.
+Dự án đồng thời giúp các thành viên nâng cao kỹ năng phân tích yêu cầu, phối hợp làm việc nhóm, xử lý lỗi, trình bày tài liệu kỹ thuật và bảo vệ sản phẩm trước giảng viên.
+1.4. Phạm vi dự án
+1.4.1. Đối tượng sử dụng
+Guest (Khách chưa đăng nhập): xem thông tin giới thiệu, đăng ký, đăng nhập và khôi phục mật khẩu.
+Customer (Khách hàng): cập nhật hồ sơ, xem thông tin sân, đặt sân, theo dõi lịch sử đặt và thực hiện thanh toán.
+Staff (Nhân viên): theo dõi ca làm, check-in khách, mở hoặc kết thúc phiên sử dụng sân, thêm dịch vụ và in hóa đơn.
+Manager (Quản lý cơ sở): quản lý sân, nhân sự, ca làm việc, kho dịch vụ, lịch đặt, hóa đơn, khách hàng và nhật ký hoạt động tại cơ sở.
+Admin (Quản trị viên): quản lý tài khoản, chủ cơ sở, chi nhánh, sân, thùng rác dữ liệu và nhật ký hệ thống.
+1.4.2. Chức năng nằm trong phạm vi
+Đăng ký tài khoản, xác thực OTP, đăng nhập, đăng xuất, lưu Session và quên mật khẩu.
+Phân quyền truy cập bằng Filter theo vai trò và phạm vi cơ sở.
+Quản lý người dùng, chủ cơ sở, chi nhánh, loại sân và sân.
+Đặt sân trực tuyến, giữ chỗ tạm thời, kiểm tra trùng lịch và quản lý vòng đời đơn đặt.
+Thanh toán trực tuyến thông qua PayOS và tiếp nhận webhook xác nhận thanh toán.
+Check-in, mở sân, tính thời gian sử dụng theo giờ cố định hoặc không cố định và kết thúc phiên.
+Quản lý sản phẩm, dịch vụ, tồn kho, hóa đơn và in hóa đơn.
+Quản lý nhân sự, ca làm việc, yêu cầu nghỉ, nhật ký thay đổi và dữ liệu xóa mềm.
+1.4.3. Công nghệ sử dụng
+Thành phần
+Công nghệ và mục đích sử dụng
+Backend
+Java 17 và Jakarta Servlet, tổ chức theo mô hình MVC.
+View/UI
+JSP, HTML, CSS, JavaScript, JSTL và Expression Language (EL).
+Database
+Microsoft SQL Server.
+Data Access
+Hệ thống chủ yếu sử dụng JDBC kết hợp DAO Pattern; JPA/Hibernate được sử dụng ở một số thành phần phù hợp.
+Application Server
+Apache Tomcat 10.1.
+Build Tool
+Apache Maven, đóng gói ứng dụng dưới định dạng WAR.
+Security
+BCrypt dùng để mã hóa mật khẩu; Filter và Session dùng để xác thực và phân quyền người dùng.
+Email
+Jakarta Mail dùng để gửi mã OTP khi đăng ký và khôi phục mật khẩu.
+Payment
+Tích hợp PayOS cho luồng thanh toán đặt sân trực tuyến.
+Connection Pool
+HikariCP dùng để quản lý và tái sử dụng kết nối cơ sở dữ liệu.
+Logging
+Log4j2 dùng để ghi nhận nhật ký hoạt động và hỗ trợ theo dõi lỗi hệ thống.
+1.4.4. Định hướng phát triển
+Các ý tưởng như AI Booking Agent, Dynamic Pricing, ghép kèo theo ELO, SOS tìm người chơi và Smart Parking chưa được xem là chức năng hoàn thiện trong phiên bản hiện tại. Nhóm xác định đây là các hướng phát triển sau khi các nghiệp vụ quản lý, đặt sân, thanh toán và vận hành cốt lõi đạt độ ổn định cần thiết.
+
+2. KHẢO SÁT VÀ PHÂN TÍCH YÊU CẦU
+Mục tiêu của chương
+Chương này trình bày cách nhóm thu thập nhu cầu từ người sử dụng, xác định các vấn đề trong quy trình đặt sân và vận hành cơ sở thể thao, sau đó đối chiếu với các chức năng đang tồn tại trong source code V-SPORT. Các số liệu khảo sát chỉ được sử dụng khi có minh chứng thật từ Google Forms hoặc biên bản phỏng vấn.
+
+2.1. Mục đích khảo sát
+• Xác định những khó khăn mà khách hàng gặp phải khi tìm sân trống, đặt sân, xác nhận lịch và thanh toán.
+• Tìm hiểu những vấn đề mà nhân viên và quản lý gặp phải khi theo dõi trạng thái sân, xử lý lịch đặt, quản lý dịch vụ, hóa đơn, nhân sự và ca làm việc.
+• Đánh giá mức độ cần thiết của các chức năng mà hệ thống V-SPORT đang phát triển, gồm đặt sân trực tuyến, kiểm tra trùng lịch, thanh toán QR, check-in, quản lý dịch vụ và quản lý ca làm việc.
+• Làm cơ sở xây dựng Use Case, Functional Requirements, Non-functional Requirements, Test Case và kịch bản demo sản phẩm.
+2.2. Đối tượng khảo sát
+Để bảo đảm yêu cầu thu thập được phản ánh cả góc nhìn sử dụng dịch vụ và góc nhìn vận hành, nhóm chia đối tượng khảo sát thành hai nhóm chính:
+Nhóm đối tượng
+Nhu cầu cần tìm hiểu
+Hình thức thu thập
+Khách hàng/người chơi
+Thói quen đặt sân; khó khăn khi xem sân trống, giá và trạng thái đơn; nhu cầu thanh toán trực tuyến, theo dõi lịch sử và đặt thêm dịch vụ.
+Google Forms và trao đổi trực tiếp.
+Nhân viên/Manager
+Quy trình xác nhận lịch, check-in, tính tiền, quản lý hóa đơn, kho dịch vụ, nhân sự, ca làm việc và phân quyền theo cơ sở.
+Phỏng vấn định hướng, quan sát quy trình và phân tích nghiệp vụ.
+2.3. Kỹ thuật thu thập yêu cầu
+STT
+Kỹ thuật
+Cách thực hiện
+Đầu ra
+1
+Khảo sát bảng hỏi
+Xây dựng Google Forms dành cho người thường xuyên sử dụng sân thể thao; câu hỏi tập trung vào quy trình đặt sân, thanh toán và dịch vụ đi kèm.
+Dữ liệu định lượng, biểu đồ và mức độ ưu tiên của từng nhu cầu.
+2
+Phỏng vấn định hướng
+Trao đổi với người từng đặt sân, nhân viên lễ tân hoặc người tham gia quản lý sân để tìm hiểu quy trình thực tế và các lỗi thường xảy ra.
+Pain point, quy tắc nghiệp vụ và tình huống ngoại lệ.
+3
+Quan sát quy trình
+Mô phỏng luồng từ lúc khách chọn sân, xác nhận lịch, check-in, sử dụng dịch vụ đến khi thanh toán và in hóa đơn.
+Luồng nghiệp vụ đầu-cuối và điểm dễ phát sinh sai sót.
+4
+Phân tích hệ thống
+Đối chiếu yêu cầu với cấu trúc MVC, Servlet, DAO, Service, JSP và cơ sở dữ liệu trong source code hiện tại.
+Phạm vi chức năng thực tế, Use Case và yêu cầu kiểm thử.
+2.4. Nội dung khảo sát dành cho khách hàng
+Bảng hỏi được điều chỉnh để bám sát các chức năng có thể triển khai và demo trong source code hiện tại, thay cho các câu hỏi tập trung vào AI Booking, Dynamic Pricing, ELO, SOS hoặc Smart Parking.
+Câu 1. Bạn thường xuyên chơi môn thể thao nào?
+□ Bóng đá
+□ Cầu lông
+□ Pickleball
+□ Tennis
+□ Môn khác
+Câu 2. Bạn thường đặt sân bằng hình thức nào?
+□ Gọi điện trực tiếp
+□ Nhắn tin qua mạng xã hội
+□ Đến trực tiếp cơ sở
+□ Đặt qua website/ứng dụng
+Câu 3. Bạn đã từng gặp khó khăn nào khi đặt sân?
+□ Không biết sân còn trống hay không
+□ Chờ xác nhận lâu
+□ Không rõ mức giá
+□ Bị trùng hoặc sai khung giờ
+□ Khó thay đổi/hủy lịch
+□ Không gặp khó khăn
+Câu 4. Mức độ hữu ích của việc xem sân trống, giá và khung giờ trực tiếp trên website?
+□ 1 – Không hữu ích
+□ 2 – Ít hữu ích
+□ 3 – Bình thường
+□ 4 – Hữu ích
+□ 5 – Rất hữu ích
+Câu 5. Bạn đánh giá mức độ quan trọng của việc hệ thống tự động kiểm tra và ngăn đặt trùng lịch?
+□ 1 – Không quan trọng
+□ 2 – Ít quan trọng
+□ 3 – Bình thường
+□ 4 – Quan trọng
+□ 5 – Rất quan trọng
+Câu 6. Bạn có sẵn sàng thanh toán tiền cọc bằng mã QR để xác nhận giữ sân?
+□ Sẵn sàng
+□ Có thể cân nhắc
+□ Chỉ muốn thanh toán tiền mặt
+□ Không có nhu cầu
+Câu 7. Bạn có cần theo dõi trạng thái và lịch sử đặt sân trên tài khoản cá nhân?
+□ Rất cần
+□ Có thì thuận tiện hơn
+□ Không quá cần thiết
+Câu 8. Bạn có nhu cầu đặt trước nước uống, dụng cụ hoặc dịch vụ đi kèm cùng đơn đặt sân?
+□ Thường xuyên
+□ Thỉnh thoảng
+□ Hiếm khi
+□ Không có nhu cầu
+Câu 9. Bạn có mong muốn nhận một hóa đơn tổng hợp rõ tiền sân, dịch vụ và trạng thái thanh toán?
+□ Rất cần
+□ Có thì tốt
+□ Không quan trọng
+Câu 10. Bạn có góp ý hoặc mong muốn bổ sung chức năng nào cho V-SPORT? (Câu trả lời tự do)
+2.5. Nội dung phỏng vấn dành cho nhân viên và quản lý
+Câu 1. Hiện tại cơ sở ghi nhận lịch đặt sân và kiểm tra sân trống bằng cách nào?
+Câu 2. Những trường hợp sai khung giờ, trùng lịch hoặc khách không đến thường được xử lý ra sao?
+Câu 3. Nhân viên cần những thông tin nào trên màn hình check-in để mở sân và kết thúc phiên sử dụng chính xác?
+Câu 4. Cơ sở đang quản lý nước uống, dụng cụ cho thuê, số lượng tồn và dịch vụ phát sinh như thế nào?
+Câu 5. Quy trình tính tiền, xác nhận thanh toán và in hóa đơn hiện tại có điểm nào dễ nhầm lẫn?
+Câu 6. Manager đang phân công ca làm, tiếp nhận yêu cầu nghỉ hoặc kiểm tra nhân viên đi làm bằng cách nào?
+Câu 7. Dữ liệu giữa Admin, Manager và Staff cần được giới hạn theo vai trò và cơ sở ra sao?
+Câu 8. Khi xóa nhầm dữ liệu hoặc cần kiểm tra ai đã thay đổi thông tin, cơ sở mong muốn hệ thống hỗ trợ như thế nào?
+2.6. Phân tích vấn đề và giải pháp đề xuất
+Vấn đề quan sát
+Ảnh hưởng
+Giải pháp trong V-SPORT
+Bằng chứng trong source
+Khách khó biết sân trống, giá và khung giờ phù hợp.
+Mất thời gian trao đổi; phụ thuộc vào nhân viên.
+Giao diện đặt sân trực tuyến và lịch sử đặt sân.
+DatSanServlet; DatSan.jsp; LichSuDatSan.jsp.
+Có nguy cơ hai khách đặt cùng một sân và cùng khung giờ.
+Trùng lịch, khiếu nại và sai dữ liệu.
+Kiểm tra overlap, transaction, khóa dòng sân và cơ chế giữ chỗ tạm.
+DatSanServlet; SoftHoldDAO; LichDatSanDAO.
+Xác nhận cọc hoặc thanh toán thủ công.
+Chậm xác nhận; khó đối soát trạng thái đơn.
+Tạo phiên thanh toán PayOS và tiếp nhận webhook.
+PayOSService; PayOSWebhookServlet.
+Nhân viên khó theo dõi sân đang chơi và thời điểm kết thúc.
+Tính sai thời lượng hoặc bỏ sót phiên sử dụng.
+Check-in đơn đặt trước, khách vãng lai, dừng phiên và xử lý hóa đơn.
+CheckInServlet; CheckInDAO; CheckIn.jsp.
+Dịch vụ phát sinh dễ bị bỏ sót hoặc tính sai.
+Sai tổng tiền và tồn kho không chính xác.
+Quản lý kho dịch vụ, thêm dịch vụ vào phiên và in hóa đơn.
+KhoDichVuManagerServlet; HoaDonDAO; HoaDonPrintServlet.
+Xếp ca và yêu cầu nghỉ thực hiện rời rạc.
+Trùng ca, thiếu nhân sự hoặc khó kiểm tra lịch sử.
+Quản lý ca, validation, check-in/check-out ca và yêu cầu nghỉ.
+QuanLyCaLamManagerServlet; StaffCaLamServlet; YeuCauNghiService.
+Người dùng truy cập sai vai trò hoặc sai cơ sở.
+Rò rỉ dữ liệu và thao tác ngoài phạm vi.
+Session, Filter và kiểm tra phạm vi chi nhánh.
+FilterQuyenAdmin; FilterQuyenManager; BranchSecurityUtils.
+Xóa nhầm hoặc khó truy vết thay đổi.
+Mất dữ liệu và khó xác định trách nhiệm.
+Xóa mềm, thùng rác và Audit Log.
+AdminTrashServlet; ThungRacManagerServlet; AuditLogDAO.
+2.7. Minh chứng và kết quả khảo sát
+Tại thời điểm biên soạn bản nháp này, tài liệu cũ chưa chứa số lượng phản hồi, biểu đồ hoặc file xuất dữ liệu từ Google Forms. Vì vậy, nhóm chưa đưa bất kỳ tỷ lệ phần trăm nào vào báo cáo để tránh sử dụng số liệu không có căn cứ.
+PHẦN NHÓM CẦN BỔ SUNG TRƯỚC KHI NỘP
+Chèn ảnh trang tổng quan Google Forms có số lượng người trả lời; từ 3 đến 5 biểu đồ quan trọng; thời gian khảo sát; nhóm đối tượng tham gia; và một đoạn kết luận ngắn dựa trên số liệu thật. Không tự tạo phần trăm hoặc khẳng định “đa số” khi chưa có dữ liệu.
+
+Minh chứng cần chèn
+Nội dung thể hiện
+Vị trí đề xuất
+Ảnh tổng quan Google Forms
+Tên biểu mẫu, tổng số phản hồi và thời gian thực hiện.
+Đầu mục 2.7.
+Biểu đồ về cách đặt sân hiện tại
+Cho biết khách chủ yếu gọi điện, nhắn tin, đến trực tiếp hay dùng website.
+Hình 2.1.
+Biểu đồ về khó khăn khi đặt sân
+Xác định pain point nổi bật như khó biết sân trống, chờ xác nhận hoặc không rõ giá.
+Hình 2.2.
+Biểu đồ về thanh toán QR
+Đánh giá mức độ sẵn sàng đặt cọc hoặc thanh toán trực tuyến.
+Hình 2.3.
+Biểu đồ về dịch vụ và hóa đơn
+Đánh giá nhu cầu đặt thêm dịch vụ và nhận hóa đơn tổng hợp.
+Hình 2.4.
+Ghi chú phỏng vấn
+Tóm tắt từ 3 đến 5 phát hiện liên quan đến vận hành, ca làm và kiểm soát dữ liệu.
+Sau các biểu đồ.
+2.8. Kết luận phân tích yêu cầu
+• Nhóm chức năng ưu tiên cao gồm xác thực tài khoản, phân quyền, quản lý cơ sở và sân, đặt sân, kiểm tra trùng lịch, thanh toán, check-in và hóa đơn.
+• Đối với vận hành nội bộ, quản lý nhân sự, ca làm việc, yêu cầu nghỉ, kho dịch vụ, xóa mềm và Audit Log là các chức năng giúp giảm sai sót và tăng khả năng kiểm soát.
+• Các nội dung AI Booking, Dynamic Pricing, ELO, SOS và Smart Parking không được xem là kết quả khảo sát cho phiên bản hiện tại nếu chưa có chức năng hoàn chỉnh và minh chứng demo.
+• Kết quả của chương này là cơ sở để xây dựng Chương 3 – Yêu cầu phần mềm, trong đó mỗi yêu cầu phải được liên kết với actor, Use Case và thành phần source code tương ứng.
+
+3. YÊU CẦU PHẦN MỀM
+Chương này xác định phạm vi chức năng, quy tắc nghiệp vụ và các yêu cầu chất lượng của phiên bản V-SPORT hiện tại. Mỗi yêu cầu được đối chiếu với thành phần source code để hạn chế mô tả vượt quá sản phẩm có thể chạy và demo.
+3.1. Các vai trò trong hệ thống
+Role
+Tên tiếng Việt
+Phạm vi chức năng
+Guest
+Khách chưa đăng nhập
+Xem trang giới thiệu, đăng ký, đăng nhập, xác thực OTP và khôi phục mật khẩu.
+Customer
+Khách hàng
+Cập nhật hồ sơ, xem cơ sở/sân, đặt sân, thanh toán, đặt dịch vụ và xem lịch sử đặt sân.
+Staff
+Nhân viên/Lễ tân
+Xem ca làm, gửi yêu cầu nghỉ, theo dõi lịch đặt, check-in, mở sân cho khách vãng lai, thêm dịch vụ, chốt và in hóa đơn.
+Manager
+Quản lý cơ sở
+Quản lý sân, nhân sự, ca làm việc, yêu cầu nghỉ, kho dịch vụ, khách hàng, lịch đặt, hóa đơn, thùng rác và Audit Log trong phạm vi cơ sở.
+Admin
+Quản trị viên
+Quản lý tài khoản, Owner, chi nhánh, sân, dữ liệu xóa mềm, Audit Log và theo dõi tổng quan toàn hệ thống.
+
+3.2. Yêu cầu chức năng (Functional Requirements)
+ID
+Tên yêu cầu
+Mô tả
+Ưu tiên
+Source liên quan
+FR01
+Đăng ký tài khoản
+Guest nhập thông tin, hệ thống validation, tạo tài khoản tạm, gửi OTP và chỉ lưu tài khoản sau khi OTP hợp lệ.
+Cao
+DangKyServlet; XacThucOTPServlet; TaiKhoanDAOImpl; EmailUtil
+FR02
+Đăng nhập và Session
+Cho phép đăng nhập bằng username hoặc email; tạo Session mới và lưu user, roleId, accountId, fullName, email.
+Rất cao
+DangNhapServlet; SessionUtil; RoleRedirectUtil
+FR03
+Đăng xuất
+Hủy Session hiện tại và đưa người dùng về trang công khai.
+Cao
+DangXuatServlet
+FR04
+Quên và đặt lại mật khẩu
+Kiểm tra email, gửi OTP, xác thực và cập nhật mật khẩu mới đã mã hóa.
+Cao
+QuenMatKhauServlet; XacThucOTPServlet; DatLaiMatKhauServlet
+FR05
+Cập nhật hồ sơ
+Người dùng đăng nhập có thể cập nhật thông tin cá nhân và ảnh đại diện theo phạm vi cho phép.
+Trung bình
+UpdateProfileServlet
+FR06
+Phân quyền theo Role
+Chặn truy cập trái phép và điều hướng người dùng theo Admin, Manager, Staff hoặc Customer.
+Rất cao
+FilterBaoMat; FilterQuyenAdmin; FilterQuyenManager; FilterKhach
+FR07
+Giới hạn dữ liệu theo cơ sở
+Manager và Staff chỉ thao tác dữ liệu thuộc CoSoID được phân công.
+Rất cao
+BranchSecurityUtils; các Servlet Manager/Staff
+FR08
+Quản lý tài khoản Admin
+Admin xem, thêm, sửa, khóa/xóa mềm tài khoản và xử lý OTP khi thêm hoặc sửa tài khoản.
+Cao
+QuanLyNguoiDungServlet; TaiKhoanDAO
+FR09
+Quản lý Owner
+Tiếp nhận đăng ký Owner, duyệt hoặc từ chối hồ sơ.
+Trung bình
+OwnerRegisterServlet; AdminOwnerServlet; OwnerApprovalService
+FR10
+Quản lý chi nhánh
+Admin thêm, sửa, duyệt, thay đổi trạng thái và xóa mềm cơ sở; đồng bộ sân theo cấu hình.
+Cao
+QuanLyChiNhanhServlet; CoSoDAO; FacilityTrashService
+FR11
+Quản lý sân và loại sân
+Admin/Manager quản lý thông tin sân, loại sân, giá, hình ảnh và trạng thái.
+Cao
+QuanLySanServlet; QuanLySanManagerServlet; SanService; SanDAO; LoaiSanDAO
+FR12
+Đặt sân trực tuyến
+Customer chọn sân, ngày, giờ, phương thức thanh toán; hệ thống validation và tạo đơn đặt sân.
+Rất cao
+DatSanServlet; DatSanDAO; LichDatSanDAO
+FR13
+Giữ chỗ và chống đặt trùng
+Tạo Soft Hold khi khách thao tác; khóa dòng và kiểm tra overlap trong transaction trước khi ghi đơn.
+Rất cao
+GiuChoTamServlet; SoftHoldDAO; DatSanServlet
+FR14
+Thanh toán PayOS
+Tạo checkout session, tiếp nhận return/cancel/status và webhook để xác nhận giao dịch.
+Cao
+PayOSService; PayOSWebhookServlet; DatSanServlet
+FR15
+Vòng đời đơn đặt
+Tự động xử lý giữ chỗ quá hạn, đơn chờ xác nhận, no-show và các trạng thái liên quan.
+Cao
+BookingLifecycleService; AppStartupListener
+FR16
+Lịch sử và hủy đặt sân
+Customer xem lịch sử, chi tiết và gửi yêu cầu hủy theo điều kiện nghiệp vụ.
+Cao
+DatSanServlet; LichSuDatSan.jsp
+FR17
+Đặt trước dịch vụ
+Customer chọn sản phẩm/dịch vụ của cơ sở cho đơn đặt sân; lưu số lượng, đơn giá và trạng thái chuẩn bị.
+Trung bình
+BookingServicesServlet; LichDatSanDichVuDAO
+FR18
+Quản lý lịch đặt cho Manager/Staff
+Hiển thị danh sách đặt sân theo cơ sở, hỗ trợ xác nhận hoặc xử lý trạng thái trong phạm vi quyền.
+Cao
+QuanLyDatSanServlet
+FR19
+Check-in đơn đặt trước
+Staff mở sân từ đơn đã xác nhận/chờ xác nhận hợp lệ, kiểm tra thanh toán và cập nhật trạng thái sân.
+Rất cao
+CheckInServlet; CheckInDAO
+FR20
+Mở sân cho khách vãng lai
+Staff tạo phiên sử dụng trực tiếp theo giờ cố định hoặc không cố định, đồng thời tạo hóa đơn.
+Rất cao
+CheckInServlet; CheckInDAO
+FR21
+Thêm dịch vụ và chốt hóa đơn
+Staff thêm dịch vụ, tính tổng tiền, chọn phương thức thanh toán và in hóa đơn.
+Rất cao
+CheckInServlet; HoaDonDAO; HoaDonPrintServlet
+FR22
+Quản lý kho dịch vụ
+Manager quản lý danh mục, sản phẩm, đơn giá, tồn kho, trạng thái và dữ liệu xóa mềm.
+Cao
+KhoDichVuManagerServlet; SanPhamDichVuDAO; DanhMucSanPhamDAO
+FR23
+Quản lý nhân sự
+Manager xem, thêm, sửa và quản lý nhân viên thuộc cơ sở.
+Cao
+NhanSuManagerServlet; NhanSuService
+FR24
+Quản lý ca làm việc
+Manager tạo, cập nhật, công bố hoặc hủy ca; Staff xem ca, check-in/check-out theo chức năng hiện có.
+Cao
+QuanLyCaLamManagerServlet; StaffCaLamServlet; CaLamService
+FR25
+Yêu cầu nghỉ
+Staff gửi yêu cầu nghỉ; Manager duyệt/từ chối và ghi chú xử lý.
+Trung bình
+YeuCauNghiStaffServlet; YeuCauNghiManagerServlet; YeuCauNghiService
+FR26
+Audit Log và thùng rác
+Ghi lịch sử thao tác; cho phép xem, khôi phục hoặc xử lý dữ liệu xóa mềm theo quyền.
+Cao
+AuditLogService; AuditLogDAO; AdminTrashServlet; ThungRacManagerServlet
+FR27
+Dashboard
+Hiển thị thông tin tổng quan phù hợp với Admin, Manager và Staff.
+Trung bình
+AdminDashboardServlet; DashboardServlet; StaffDashboardServlet
+
+3.3. Yêu cầu phi chức năng (Non-functional Requirements)
+ID
+Nhóm yêu cầu
+Mô tả
+Ưu tiên
+NFR01
+Bảo mật mật khẩu
+Mật khẩu phải được băm bằng BCrypt trước khi lưu; không lưu mật khẩu dạng văn bản thuần.
+Rất cao
+NFR02
+Xác thực và phân quyền
+Các đường dẫn nội bộ phải kiểm tra Session và Role bằng Filter; dữ liệu phải tiếp tục được kiểm tra phạm vi cơ sở ở server.
+Rất cao
+NFR03
+Toàn vẹn giao dịch
+Các luồng đặt sân, check-in, cập nhật sân, dịch vụ và hóa đơn phải dùng transaction khi có nhiều câu lệnh liên quan.
+Rất cao
+NFR04
+Chống trùng lịch
+Trong điều kiện nhiều yêu cầu đồng thời, hệ thống phải khóa/kiểm tra dữ liệu để chỉ một yêu cầu hợp lệ được ghi nhận.
+Rất cao
+NFR05
+Hiệu năng
+Các trang danh sách thông thường nên phản hồi trong khoảng 3 giây với dữ liệu kiểm thử; danh sách dài cần phân trang và truy vấn có điều kiện.
+Cao
+NFR06
+Khả năng sử dụng
+Giao diện tiếng Việt, thông báo lỗi rõ ràng, thao tác chính dễ nhận biết và hỗ trợ kích thước màn hình PC/laptop.
+Cao
+NFR07
+Khả năng bảo trì
+Source phải tách Controller, Service, DAO, Model và View; hạn chế đặt toàn bộ business logic trong Servlet/JSP.
+Cao
+NFR08
+Khả năng ghi log
+Lỗi hệ thống và thao tác quan trọng cần được ghi bằng Log4j2/Audit Log, không hiển thị stack trace trực tiếp cho người dùng.
+Cao
+NFR09
+Cấu hình an toàn
+Thông tin SQL Server, email và PayOS phải lấy từ biến môi trường hoặc file cấu hình không commit; file mẫu không chứa secret thật.
+Rất cao
+NFR10
+Tương thích
+Ứng dụng chạy trên Java 17, Tomcat 10.1 và trình duyệt hiện đại hỗ trợ HTML5/CSS/JavaScript.
+Cao
+NFR11
+Sao lưu và phục hồi
+Cơ sở dữ liệu cần có bản sao lưu trước buổi demo và trước các migration quan trọng.
+Cao
+NFR12
+Độ tin cậy tích hợp
+Khi PayOS hoặc Email gặp lỗi, hệ thống phải hiển thị thông báo có thể hiểu và không tạo dữ liệu thanh toán/xác thực sai.
+Cao
+
+3.4. Quy tắc nghiệp vụ (Business Rules)
+• BR01: Người dùng chỉ được coi là đăng nhập khi Session chứa đối tượng user hợp lệ.
+• BR02: Role quyết định trang chủ sau đăng nhập và phạm vi URL được phép truy cập.
+• BR03: Manager/Staff chỉ được thao tác dữ liệu có CoSoID trùng cơ sở được phân công.
+• BR04: Username và Email không được trùng; dữ liệu bắt buộc phải được kiểm tra ở phía server.
+• BR05: Mật khẩu mới phải đáp ứng quy tắc độ dài và độ phức tạp do ValidationUtil/Servlet quy định.
+• BR06: Tài khoản đăng ký chỉ được lưu hoàn tất sau khi OTP đúng và phiên xác thực còn hiệu lực.
+• BR07: Ngày đặt, giờ bắt đầu và giờ kết thúc phải hợp lệ; giờ kết thúc phải sau giờ bắt đầu.
+• BR08: Một sân không được có hai đơn chồng lấn nếu đơn hiện hữu đang ở trạng thái chặn lịch.
+• BR09: Đơn thanh toán online có thời gian giữ chỗ; quá hạn mà chưa xác nhận phải chuyển trạng thái phù hợp và giải phóng khung giờ.
+• BR10: Đơn chờ xác nhận không được giữ vô thời hạn; hệ thống có cơ chế xử lý tự động theo Constants/BookingLifecycleService.
+• BR11: Đơn đã xác nhận nhưng quá thời gian cho phép mà khách không đến có thể được đánh dấu Không đến (No-show).
+• BR12: Chỉ mở sân khi sân đang ở trạng thái Sẵn sàng và không có phiên khác xung đột.
+• BR13: Giờ cố định sử dụng thời lượng đã đặt trước; giờ không cố định tính đến thời điểm nhân viên dừng phiên.
+• BR14: Số lượng dịch vụ thêm vào phải lớn hơn 0 và không vượt tồn kho khả dụng.
+• BR15: Tổng hóa đơn được hình thành từ tiền sân, tiền dịch vụ, giảm giá và các thành phần được hệ thống hỗ trợ.
+• BR16: Một nhân viên không được có hai ca làm việc chồng lấn trong cùng khoảng thời gian.
+• BR17: Ca tùy chỉnh phải có lý do và tuân thủ giới hạn độ dài.
+• BR18: Ca đã check-in/check-out/hoàn thành không được chỉnh sửa hoặc hủy trái quy định.
+• BR19: Dữ liệu quan trọng ưu tiên xóa mềm để có thể truy vết và khôi phục.
+• BR20: Các thao tác thêm, sửa, hủy, duyệt hoặc khôi phục quan trọng phải có Audit Log khi module hỗ trợ.
+3.5. Giới hạn của phiên bản hiện tại
+• Hệ thống là ứng dụng Web Servlet/JSP chạy trên Tomcat; chưa có ứng dụng mobile native.
+• AI Booking Agent, Dynamic Pricing, ELO Matchmaking, SOS và Smart Parking mới là hướng phát triển; không được mô tả là chức năng hoàn thiện để demo.
+• Một số Model/bảng mở rộng tồn tại trong source hoặc script SQL nhưng chưa có đầy đủ View, Servlet, Service và luồng người dùng.
+• Khả năng chịu tải lớn chưa được kiểm chứng bằng Stress Test hoặc Load Test chuyên sâu.
+• Email OTP và PayOS phụ thuộc dịch vụ bên thứ ba, kết nối mạng và cấu hình môi trường.
+• Dữ liệu mẫu và migration phải được chạy đúng thứ tự; môi trường demo cần được chuẩn bị trước để tránh sai schema.
+• Các số liệu khảo sát, tỷ lệ Pass và phần trăm đóng góp chỉ được điền khi nhóm có minh chứng thật.
+3.6. Sơ đồ Use Case tổng quát
+CẦN ĐIỀN SƠ ĐỒ
+Hình 3.1. Sơ đồ Use Case tổng quát gồm Guest, Customer, Staff, Manager và Admin
+Hình 3.1. Sơ đồ Use Case tổng quát gồm Guest, Customer, Staff, Manager và Admin
+3.7. Mô tả Use Case chi tiết
+UC01. Đăng ký và xác thực OTP
+Mã Use Case
+UC01
+Tên Use Case
+Đăng ký và xác thực OTP
+Actor
+Guest
+Mục đích
+Tạo tài khoản Customer hợp lệ.
+Điều kiện trước
+Người dùng chưa đăng nhập; email/username chưa tồn tại.
+Luồng chính
+1. Mở biểu mẫu đăng ký.2. Nhập thông tin và gửi form.3. Servlet chuẩn hóa và validation dữ liệu.4. Hệ thống băm mật khẩu, tạo tài khoản tạm và gửi OTP.5. Người dùng nhập OTP.6. Hệ thống xác thực OTP và lưu tài khoản.7. Chuyển về màn hình đăng nhập.
+Luồng thay thế/ngoại lệ
+1. Dữ liệu thiếu/sai: hiển thị lỗi và giữ dữ liệu phù hợp.2. Email/username trùng: từ chối đăng ký.3. OTP sai/hết hạn: không lưu tài khoản và cho phép gửi lại theo quy tắc.
+Điều kiện sau
+Tài khoản Customer được tạo; OTP tạm được xóa khỏi Session.
+Thành phần source liên quan
+DangKyServlet; XacThucOTPServlet; TaiKhoanDAOImpl; EmailUtil; DangKy.jsp; NhapMa.jsp
+
+UC02. Đăng nhập và tạo Session
+Mã Use Case
+UC02
+Tên Use Case
+Đăng nhập và tạo Session
+Actor
+Guest
+Mục đích
+Xác thực người dùng và điều hướng đúng Role.
+Điều kiện trước
+Tài khoản tồn tại, không bị xóa/khóa theo logic DAO.
+Luồng chính
+1. Nhập username/email và mật khẩu.2. DangNhapServlet kiểm tra dữ liệu rỗng.3. DAO tìm tài khoản và kiểm tra BCrypt.4. Hủy Session cũ nếu có.5. Tạo Session mới và lưu user, roleId, accountId, fullName, email.6. Điều hướng đến trang chủ theo Role.
+Luồng thay thế/ngoại lệ
+1. Thông tin sai: hiển thị lỗi.2. Database lỗi: hiển thị thông báo cấu hình/kết nối phù hợp.3. Đã đăng nhập: GET /dangnhap điều hướng về trang Role.
+Điều kiện sau
+Session xác thực tồn tại và người dùng vào đúng dashboard.
+Thành phần source liên quan
+DangNhapServlet; TaiKhoanDAOImpl; RoleRedirectUtil; SessionUtil
+
+UC03. Quên mật khẩu
+Mã Use Case
+UC03
+Tên Use Case
+Quên mật khẩu
+Actor
+Guest
+Mục đích
+Đặt lại mật khẩu thông qua email OTP.
+Điều kiện trước
+Email đã đăng ký trong hệ thống.
+Luồng chính
+1. Nhập email.2. Hệ thống kiểm tra email.3. Gửi OTP và lưu authType/resetEmail trong Session.4. Người dùng nhập OTP.5. Hệ thống đánh dấu isVerified.6. Người dùng nhập mật khẩu mới và xác nhận.7. Hệ thống validation, băm và cập nhật mật khẩu.
+Luồng thay thế/ngoại lệ
+1. Email không tồn tại: báo lỗi.2. OTP sai: không cho sang bước nhập mật khẩu.3. Mật khẩu yếu/không khớp: từ chối cập nhật.
+Điều kiện sau
+Mật khẩu mới được lưu; dữ liệu OTP/reset trong Session được xóa.
+Thành phần source liên quan
+QuenMatKhauServlet; XacThucOTPServlet; DatLaiMatKhauServlet; NhapMatKauMoi.jsp
+
+UC04. Admin quản lý chi nhánh
+Mã Use Case
+UC04
+Tên Use Case
+Admin quản lý chi nhánh
+Actor
+Admin
+Mục đích
+Tạo và duy trì thông tin cơ sở.
+Điều kiện trước
+Admin đã đăng nhập và qua FilterQuyenAdmin.
+Luồng chính
+1. Mở danh sách chi nhánh.2. Chọn thêm hoặc sửa.3. Nhập thông tin cơ sở và cấu hình sân.4. Servlet validation và gọi DAO.5. Hệ thống lưu thay đổi, đồng bộ sân khi cần.6. Ghi kết quả và điều hướng lại danh sách.
+Luồng thay thế/ngoại lệ
+1. Dữ liệu không hợp lệ: báo lỗi.2. Cơ sở có ràng buộc: sử dụng xóa mềm/thùng rác.3. Không đủ quyền: bị Filter chặn.
+Điều kiện sau
+Thông tin CoSo và các sân liên quan được cập nhật nhất quán.
+Thành phần source liên quan
+QuanLyChiNhanhServlet; CoSoDAO; FacilityTrashService; QuanLyChiNhanh.jsp
+
+UC05. Admin quản lý tài khoản
+Mã Use Case
+UC05
+Tên Use Case
+Admin quản lý tài khoản
+Actor
+Admin
+Mục đích
+Thêm, sửa, khóa hoặc xóa mềm tài khoản.
+Điều kiện trước
+Admin đã đăng nhập.
+Luồng chính
+1. Mở trang nhân sự/tài khoản.2. Chọn thao tác.3. Nhập dữ liệu và Role/CoSo phù hợp.4. Servlet kiểm tra trùng và validation.5. Nếu luồng yêu cầu OTP, gửi và xác thực OTP.6. DAO lưu dữ liệu.7. Hiển thị thông báo kết quả.
+Luồng thay thế/ngoại lệ
+1. Email/username trùng: từ chối.2. Role/CoSo không hợp lệ: từ chối.3. OTP sai quá số lần: hủy thao tác.
+Điều kiện sau
+Tài khoản được cập nhật đúng và có thể truy vết.
+Thành phần source liên quan
+QuanLyNguoiDungServlet; XacThucOTPServlet; TaiKhoanDAO; AdminTrashDAO
+
+UC06. Manager quản lý sân
+Mã Use Case
+UC06
+Tên Use Case
+Manager quản lý sân
+Actor
+Manager
+Mục đích
+Quản lý sân thuộc cơ sở phụ trách.
+Điều kiện trước
+Manager đã đăng nhập và có CoSoID.
+Luồng chính
+1. Mở trang quản lý sân.2. Hệ thống tải danh sách theo CoSoID.3. Manager thêm/sửa/thay đổi trạng thái sân.4. Servlet và Service validation dữ liệu.5. DAO lưu thay đổi.6. Audit Log được ghi khi chức năng hỗ trợ.
+Luồng thay thế/ngoại lệ
+1. Truy cập sân ngoài cơ sở: từ chối.2. Tên/loại sân/giá không hợp lệ: báo lỗi.3. Sân đang sử dụng: hạn chế thao tác nguy hiểm.
+Điều kiện sau
+Dữ liệu sân của cơ sở được cập nhật.
+Thành phần source liên quan
+QuanLySanManagerServlet; SanService; SanDAO; BranchSecurityUtils
+
+UC07. Customer đặt sân
+Mã Use Case
+UC07
+Tên Use Case
+Customer đặt sân
+Actor
+Customer
+Mục đích
+Tạo đơn đặt sân không trùng lịch.
+Điều kiện trước
+Customer đã đăng nhập; sân hoạt động và thuộc cơ sở hợp lệ.
+Luồng chính
+1. Chọn cơ sở, sân, ngày, giờ và phương thức thanh toán.2. Tạo/kiểm tra Soft Hold khi thao tác.3. Servlet validation đầu vào.4. Bắt đầu transaction và khóa dữ liệu sân.5. Kiểm tra overlap theo trạng thái chặn lịch.6. Tính tiền dự kiến.7. Ghi LichDatSan và hóa đơn/giữ chỗ tương ứng.8. Commit và trả kết quả.
+Luồng thay thế/ngoại lệ
+1. Khung giờ trùng: rollback và yêu cầu chọn lại.2. Deadlock/tạm lỗi: retry theo logic hiện có.3. Dữ liệu sai: không mở transaction ghi dữ liệu.
+Điều kiện sau
+Một đơn hợp lệ được tạo; khung giờ được giữ theo trạng thái và thời hạn.
+Thành phần source liên quan
+DatSanServlet; GiuChoTamServlet; SoftHoldDAO; LichDatSanDAO; DatSan.jsp
+
+UC08. Thanh toán đặt cọc PayOS
+Mã Use Case
+UC08
+Tên Use Case
+Thanh toán đặt cọc PayOS
+Actor
+Customer/PayOS
+Mục đích
+Xác nhận thanh toán online cho đơn đặt sân.
+Điều kiện trước
+Đơn ở trạng thái chờ thanh toán và còn thời hạn giữ chỗ.
+Luồng chính
+1. Hệ thống tạo checkout session PayOS.2. Customer quét QR/thanh toán.3. PayOS gọi webhook hoặc trả về return URL.4. Hệ thống xác thực dữ liệu giao dịch.5. Cập nhật mã giao dịch, phương thức, thời điểm xác nhận và trạng thái đơn/hóa đơn.6. Hiển thị kết quả cho Customer.
+Luồng thay thế/ngoại lệ
+1. Thanh toán bị hủy: giữ trạng thái theo chính sách cho đến khi hết hạn.2. Webhook không hợp lệ: không cập nhật dữ liệu.3. Đơn đã quá hạn: không xác nhận sai khung giờ.
+Điều kiện sau
+Đơn và hóa đơn phản ánh đúng trạng thái giao dịch.
+Thành phần source liên quan
+PayOSService; PayOSWebhookServlet; DatSanServlet
+
+UC09. Staff check-in đơn đặt trước
+Mã Use Case
+UC09
+Tên Use Case
+Staff check-in đơn đặt trước
+Actor
+Staff
+Mục đích
+Mở sân cho đơn hợp lệ.
+Điều kiện trước
+Staff thuộc cơ sở; đơn đúng ngày/giờ và sân Sẵn sàng.
+Luồng chính
+1. Mở trang Check-in.2. Chọn đơn đặt trước.3. Hệ thống khóa và đọc đơn/sân/hóa đơn.4. Kiểm tra trạng thái đặt và thanh toán.5. Xác nhận thu tiền tại quầy nếu luồng cho phép.6. Cập nhật đơn thành Đang sử dụng và actual_start_time.7. Cập nhật sân thành Đang sử dụng.
+Luồng thay thế/ngoại lệ
+1. Sân không Sẵn sàng: từ chối.2. Đơn đã Đang sử dụng: không mở lần hai.3. Đơn không thuộc cơ sở: từ chối.
+Điều kiện sau
+Phiên sử dụng được mở nhất quán.
+Thành phần source liên quan
+CheckInServlet; CheckInDAO; CheckIn.jsp
+
+UC10. Staff mở sân khách vãng lai và kết thúc phiên
+Mã Use Case
+UC10
+Tên Use Case
+Staff mở sân khách vãng lai và kết thúc phiên
+Actor
+Staff
+Mục đích
+Tạo phiên trực tiếp, tính tiền theo chế độ thời gian và chốt hóa đơn.
+Điều kiện trước
+Sân Sẵn sàng; Staff thuộc cơ sở.
+Luồng chính
+1. Chọn sân và chế độ giờ cố định/không cố định.2. Nhập thông tin khách và thời lượng nếu có.3. Hệ thống kiểm tra xung đột.4. Tạo LichDatSan trạng thái Đang sử dụng và hóa đơn chưa thanh toán.5. Khi khách kết thúc, Staff chọn dừng phiên.6. Hệ thống ghi actual_end_time, tính tiền sân/dịch vụ/giảm trừ hợp lệ.7. Xác nhận phương thức thanh toán và đóng hóa đơn.8. Chuyển sân về Sẵn sàng.
+Luồng thay thế/ngoại lệ
+1. Dừng sớm giờ cố định: yêu cầu lý do và xử lý giảm trừ theo logic hỗ trợ.2. Dịch vụ chưa hợp lệ: không chốt sai tổng tiền.3. Thanh toán lỗi: hóa đơn không được đánh dấu đã trả.
+Điều kiện sau
+Phiên kết thúc; sân được giải phóng; hóa đơn có thể in.
+Thành phần source liên quan
+CheckInServlet; CheckInDAO; HoaDonDAO; HoaDonPrintServlet
+
+UC11. Thêm dịch vụ và in hóa đơn
+Mã Use Case
+UC11
+Tên Use Case
+Thêm dịch vụ và in hóa đơn
+Actor
+Staff/Manager
+Mục đích
+Ghi nhận dịch vụ phát sinh và xuất hóa đơn rõ ràng.
+Điều kiện trước
+Có đơn/phiên sử dụng và sản phẩm còn hoạt động.
+Luồng chính
+1. Tìm sản phẩm theo cơ sở.2. Chọn số lượng.3. Hệ thống kiểm tra tồn và đơn giá.4. Ghi chi tiết dịch vụ/chi tiết hóa đơn.5. Cập nhật tổng tiền dịch vụ và tổng thanh toán.6. Chọn in hóa đơn.7. HoaDonPrintServlet tải dữ liệu và chuyển đến HoaDonPrint.jsp.
+Luồng thay thế/ngoại lệ
+1. Số lượng không hợp lệ hoặc vượt tồn: từ chối.2. Hóa đơn đã đóng/hủy: không thêm mới.3. Không đúng cơ sở: không cho truy cập sản phẩm.
+Điều kiện sau
+Hóa đơn và tồn kho phản ánh đúng giao dịch.
+Thành phần source liên quan
+CheckInServlet; KhoDichVuManagerServlet; HoaDonDAO; HoaDonPrintServlet
+
+UC12. Manager quản lý ca làm việc
+Mã Use Case
+UC12
+Tên Use Case
+Manager quản lý ca làm việc
+Actor
+Manager
+Mục đích
+Tạo và điều phối ca làm hợp lệ.
+Điều kiện trước
+Manager đã đăng nhập; nhân viên thuộc cơ sở.
+Luồng chính
+1. Mở lịch ca.2. Chọn nhân viên/ngày/mẫu ca hoặc thời gian tùy chỉnh.3. Validation thời gian, lý do tùy chỉnh và xung đột.4. Service/DAO lưu ca.5. Manager công bố hoặc cập nhật theo trạng thái cho phép.6. Hệ thống ghi lịch sử thay đổi.
+Luồng thay thế/ngoại lệ
+1. Ca trùng: báo Conflict.2. Nhân viên ngoài cơ sở: Forbidden.3. Ca đã check-in/check-out/hoàn thành: không cho sửa/hủy trái quy định.
+Điều kiện sau
+Lịch ca hợp lệ được lưu và hiển thị cho Staff.
+Thành phần source liên quan
+QuanLyCaLamManagerServlet; CaLamService; CaLamValidationEngine; CaLamViecDAO
+
+UC13. Staff gửi và Manager xử lý yêu cầu nghỉ
+Mã Use Case
+UC13
+Tên Use Case
+Staff gửi và Manager xử lý yêu cầu nghỉ
+Actor
+Staff/Manager
+Mục đích
+Quản lý yêu cầu nghỉ có trạng thái và người xử lý.
+Điều kiện trước
+Staff có tài khoản/cơ sở; ngày nghỉ và lý do hợp lệ.
+Luồng chính
+1. Staff mở form và gửi yêu cầu.2. Service kiểm tra dữ liệu và ca bị ảnh hưởng.3. Lưu yêu cầu trạng thái chờ xử lý.4. Manager xem danh sách theo cơ sở.5. Manager duyệt hoặc từ chối, nhập ghi chú.6. Hệ thống lưu người và thời gian xử lý.
+Luồng thay thế/ngoại lệ
+1. Yêu cầu trùng/không hợp lệ: từ chối.2. Manager ngoài cơ sở: không được xử lý.3. Yêu cầu đã xử lý: không xử lý lại.
+Điều kiện sau
+Yêu cầu nghỉ có kết quả và có thể truy vết.
+Thành phần source liên quan
+YeuCauNghiStaffServlet; YeuCauNghiManagerServlet; YeuCauNghiService
+
+UC14. Xóa mềm, khôi phục và Audit Log
+Mã Use Case
+UC14
+Tên Use Case
+Xóa mềm, khôi phục và Audit Log
+Actor
+Admin/Manager
+Mục đích
+Hạn chế mất dữ liệu và ghi nhận thao tác quan trọng.
+Điều kiện trước
+Người dùng có quyền với loại dữ liệu và cơ sở tương ứng.
+Luồng chính
+1. Người dùng chọn xóa.2. Hệ thống đánh dấu IsDeleted, DeletedAt, DeletedBy.3. Bản ghi không còn xuất hiện trong danh sách hoạt động.4. Bản ghi xuất hiện trong thùng rác phù hợp.5. Người có quyền chọn khôi phục hoặc xử lý tiếp.6. Audit Log lưu actor, action, entity và thời điểm.
+Luồng thay thế/ngoại lệ
+1. Dữ liệu có ràng buộc không thể xóa cứng: giữ xóa mềm.2. Không đúng quyền/cơ sở: từ chối.3. Bản ghi không tồn tại: báo NotFound.
+Điều kiện sau
+Dữ liệu vẫn có khả năng truy vết và khôi phục.
+Thành phần source liên quan
+AdminTrashServlet; ThungRacManagerServlet; AuditLogService; AuditLogDAO
+
+
+4. KIẾN TRÚC VÀ THIẾT KẾ HỆ THỐNG
+4.1. Kiến trúc tổng quan
+V-SPORT được xây dựng dưới dạng ứng dụng Web Java đóng gói WAR và triển khai trên Apache Tomcat 10.1. Trình duyệt gửi HTTP Request đến Jakarta Servlet. Servlet kiểm tra Session, phân quyền, validation và điều phối nghiệp vụ. Tùy module, Servlet gọi Service rồi DAO hoặc gọi DAO trực tiếp. DAO sử dụng JDBC/JPA để truy xuất Microsoft SQL Server. Kết quả được đặt vào Request/Session và hiển thị bằng JSP, JSTL và Expression Language.
+CẦN ĐIỀN SƠ ĐỒ
+Hình 4.1. Sơ đồ kiến trúc tổng quan V-SPORT
+Hình 4.1. Sơ đồ kiến trúc tổng quan V-SPORT
+4.2. Mô hình MVC
+Tầng
+Thành phần
+Trách nhiệm
+Ví dụ trong source
+View
+JSP, JSTL, EL, HTML, CSS, JavaScript
+Hiển thị dữ liệu, nhận thao tác và gửi form/AJAX; không truy cập Database trực tiếp.
+auth/*.jsp; customer/*.jsp; staff/*.jsp; manager/*.jsp; admin/*.jsp
+Controller
+Jakarta Servlet và Filter
+Nhận Request, đọc parameter, kiểm tra Session/Role, validation, gọi Service/DAO và chọn forward/redirect/JSON.
+org.example.controller; org.example.filter
+Model
+Entity/POJO, Service, DAO, Utility
+Biểu diễn dữ liệu, xử lý quy tắc nghiệp vụ, transaction, truy vấn và tích hợp PayOS/Email.
+org.example.model; service; dao; util
+Database
+Microsoft SQL Server
+Lưu tài khoản, cơ sở, sân, lịch đặt, hóa đơn, dịch vụ, ca làm, yêu cầu nghỉ và Audit Log.
+QuanLiSport schema và các migration trong thư mục sql
+
+CẦN ĐIỀN SƠ ĐỒ
+Hình 4.2. Sơ đồ mô hình MVC của V-SPORT
+Hình 4.2. Sơ đồ mô hình MVC của V-SPORT
+4.3. Luồng xử lý chung
+1. Người dùng thao tác trên JSP và gửi HTTP Request.
+2. Filter kiểm tra trạng thái đăng nhập và Role đối với URL được bảo vệ.
+3. Servlet đọc parameter, chuẩn hóa dữ liệu và kiểm tra validation.
+4. Servlet gọi Service/DAO; các luồng nhiều bước mở transaction.
+5. DAO thực hiện PreparedStatement/JPA với SQL Server.
+6. Kết quả được commit hoặc rollback.
+7. Servlet đặt dữ liệu vào Request/Session hoặc tạo JSON.
+8. JSP hiển thị kết quả hoặc trình duyệt được redirect đến màn hình tiếp theo.
+4.4. Cấu trúc package và thư mục
+Package/thư mục
+Trách nhiệm
+Ví dụ
+org.example.controller
+Servlet xác thực và controller dùng chung.
+DangNhapServlet, DangKyServlet, QuanLyDatSanServlet
+org.example.controller.customer
+Chức năng dành cho Customer.
+DatSanServlet, GiuChoTamServlet, BookingServicesServlet
+org.example.controller.staff
+Chức năng dành cho Staff.
+CheckInServlet, StaffCaLamServlet, HoaDonPrintServlet
+org.example.controller.manager
+Chức năng quản lý cơ sở.
+QuanLySanManagerServlet, QuanLyCaLamManagerServlet, KhoDichVuManagerServlet
+org.example.controller.admin
+Chức năng quản trị toàn hệ thống.
+QuanLyChiNhanhServlet, QuanLyNguoiDungServlet, AdminTrashServlet
+org.example.filter
+Xác thực, phân quyền và điều hướng luồng.
+FilterBaoMat, FilterQuyenAdmin, FilterQuyenManager
+org.example.service
+Business Logic và tích hợp.
+BookingLifecycleService, PayOSService, AuditLogService
+org.example.dao / dao.impl
+Hợp đồng DAO và triển khai truy vấn.
+LichDatSanDAO/DAOImpl, SanDAO/DAOImpl
+org.example.model
+Entity và POJO dữ liệu.
+TaiKhoan, CoSo, San, Lichdatsan, HoaDon
+org.example.util
+Kết nối, Session, validation và startup.
+DBUtil, JPAUtil, SessionUtil, AppStartupListener
+src/main/webapp
+JSP, tài nguyên tĩnh và WEB-INF.
+admin, manager, staff, customer, auth, resources
+sql
+Migration và script bổ sung schema.
+reservation hold, soft delete, audit log, booking services
+
+4.5. Thiết kế cơ sở dữ liệu
+Cơ sở dữ liệu sử dụng khóa chính dạng ID, khóa ngoại để liên kết các bảng lõi và các cột trạng thái để quản lý vòng đời nghiệp vụ. Một số bảng cũ phục vụ định hướng mở rộng vẫn tồn tại trong script/model; ERD chính thức của phiên bản demo nên ưu tiên các bảng có luồng hoạt động hoàn chỉnh.
+CẦN ĐIỀN SƠ ĐỒ
+Hình 4.3. Sơ đồ ERD của phiên bản V-SPORT hiện tại
+Hình 4.3. Sơ đồ ERD của phiên bản V-SPORT hiện tại
+4.5.1. Từ điển dữ liệu các bảng lõi
+
+4.5.1. Từ điển dữ liệu các bảng lõi (tiếp)
+Bảng
+Mục đích
+Cột quan trọng
+Quan hệ chính
+Roles
+Danh mục vai trò.
+RoleID, RoleName
+Accounts.RoleID
+Accounts
+Tài khoản, thông tin cá nhân, Role và cơ sở.
+AccountID, Username, Password, Email, RoleID, CoSoID, IsDeleted
+Roles, CoSo, nhiều bảng nghiệp vụ
+CoSo
+Thông tin chi nhánh/cơ sở.
+CoSoID, TenCoSo, DiaChi, TrangThai, GioMoCua, AccountID_QuanLy
+Accounts, San, sản phẩm, ca làm
+MonTheThao
+Danh mục môn thể thao.
+MonTheThaoID, TenMon
+LoaiSan
+LoaiSan
+Loại sân và cấu hình giá/giờ lên đèn.
+LoaiSanID, MonTheThaoID, TenLoai, GiaKhongDen, GiaCoDen, CoSoID
+MonTheThao, CoSo, San
+San
+Từng sân thuộc cơ sở.
+SanID, TenSan, LoaiSanID, CoSoID, TrangThai, IsDeleted
+LoaiSan, CoSo, LichDatSan
+LichDatSan
+Đơn đặt/phiên sử dụng sân.
+DatSanID, AccountID, SanID, NgayDat, GioBatDau, GioKetThuc, TrangThai, HoldExpiresAt, TimeMode
+Accounts, San, HoaDon, dịch vụ đặt trước
+SoftHold
+Giữ chỗ tạm khi khách thao tác form.
+HoldID, SanID, thời gian bắt đầu/kết thúc, thời hạn
+San/Customer session theo triển khai DAO
+DanhMucSanPham
+Nhóm sản phẩm/dịch vụ.
+DanhMucID, TenDanhMuc
+SanPham_DichVu
+SanPham_DichVu
+Sản phẩm và tồn kho theo cơ sở.
+SanPhamID, DanhMucID, CoSoID, TenSanPham, DonGia, SoLuongTon, TrangThai
+DanhMucSanPham, CoSo, ChiTietHoaDon
+LichDatSan_DichVu
+Dịch vụ khách đặt trước cho đơn sân.
+Id, DatSanID, SanPhamID, Quantity, UnitPrice, Status
+LichDatSan, SanPham_DichVu
+HoaDon
+Hóa đơn chính hoặc hóa đơn tách.
+HoaDonID, DatSanID, TongTienSan, TongTienDichVu, TongThanhToan, TrangThaiThanhToan, LoaiHoaDon
+LichDatSan, Accounts, ChiTietHoaDon
+ChiTietHoaDon
+Chi tiết sản phẩm trong hóa đơn.
+ChiTietID, HoaDonID, SanPhamID, SoLuong, DonGiaTaiThoiDiemBan, ThanhTien
+HoaDon, SanPham_DichVu
+CaLamViec
+Lịch làm của nhân viên.
+CaLamViecID, AccountID, CoSoID, NgayLam, GioBatDau, GioKetThuc, TrangThai/thuộc tính mở rộng
+Accounts, CoSo
+YeuCauNghi
+Yêu cầu nghỉ và kết quả xử lý.
+YeuCauNghiID, AccountID, CoSoID, NgayNghi, LyDo, TrangThai, XuLyBy
+Accounts, CoSo
+AuditLog
+Nhật ký thao tác.
+AuditLogID, ActorAccountID, ActorRole, CoSoID, Action, EntityType, EntityID, CreatedAt
+Liên kết logic đến actor/entity
+AdminTrash
+Thông tin dữ liệu xóa mềm cấp Admin.
+Loại entity, ID, người xóa, thời điểm
+Các bảng hỗ trợ xóa mềm
+
+
+4.6. Class Diagram
+Class Diagram cần sử dụng đúng tên lớp trong source. Không dùng các tên chung như AuthController hoặc BookingController nếu class thực tế là DangNhapServlet, DangKyServlet và DatSanServlet.
+CẦN ĐIỀN SƠ ĐỒ
+Hình 4.4. Class Diagram các module xác thực, đặt sân, check-in, hóa đơn và ca làm việc
+Hình 4.4. Class Diagram các module xác thực, đặt sân, check-in, hóa đơn và ca làm việc
+4.7. Bảo mật và toàn vẹn dữ liệu
+• BCrypt được dùng để băm và kiểm tra mật khẩu.
+• Session lưu thông tin người dùng sau đăng nhập; Session cũ bị invalidate khi đăng nhập tài khoản mới.
+• Filter chặn URL theo trạng thái đăng nhập và Role.
+• BranchSecurityUtils và kiểm tra CoSoID hạn chế truy cập chéo chi nhánh.
+• PreparedStatement giảm nguy cơ SQL Injection đối với truy vấn JDBC.
+• Transaction, UPDLOCK/ROWLOCK và rollback được dùng trong các luồng cần tính nhất quán.
+• Log4j2 ghi lỗi kỹ thuật; Audit Log ghi hành động nghiệp vụ quan trọng.
+• Secret của Database, Email và PayOS phải được đặt ngoài source trước khi công khai repository.
+4.8. Môi trường triển khai
+Thành phần
+Cấu hình
+Ngôn ngữ
+Java 17
+Build
+Apache Maven, packaging WAR
+Web Server
+Apache Tomcat 10.1
+Database
+Microsoft SQL Server
+View
+JSP, JSTL, EL, HTML, CSS, JavaScript
+Data Access
+JDBC/DAO và một phần JPA/Hibernate
+Connection Pool
+HikariCP
+Logging
+Log4j2
+Email
+Jakarta Mail
+Thanh toán
+PayOS Java SDK
+Khởi chạy dự án
+start_server.bat trên môi trường Windows của nhóm
+
+
+5. MÔ TẢ LUỒNG NGHIỆP VỤ VÀ SƠ ĐỒ
+Chương này cung cấp mô tả bằng văn bản để nhóm có thể vẽ lại Sequence Diagram và Activity Diagram đúng source. Tất cả vị trí sơ đồ được để trống theo yêu cầu.
+5.1. Sequence Diagram
+5.1.1. Đăng ký và xác thực OTP
+1. Guest -> DangKy.jsp: nhập form
+2. DangKy.jsp -> DangKyServlet: POST /dangky
+3. DangKyServlet -> ValidationUtil: kiểm tra dữ liệu
+4. DangKyServlet -> BCrypt: băm mật khẩu
+5. DangKyServlet -> TaiKhoanDAO/EmailUtil: kiểm tra trùng và gửi OTP
+6. DangKyServlet -> Session: lưu tempAccount, otp, authType
+7. Guest -> XacThucOTPServlet: gửi OTP
+8. XacThucOTPServlet -> TaiKhoanDAO: lưu tài khoản
+9. XacThucOTPServlet -> Guest: kết quả/điều hướng
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 1. Đăng ký và xác thực OTP
+CẦN ĐIỀN SƠ ĐỒ - Sequence 1. Đăng ký và xác thực OTP
+5.1.2. Đăng nhập và phân quyền
+1. Guest -> DangNhapServlet: username/email + password
+2. DangNhapServlet -> TaiKhoanDAO: dangNhapKhachHang
+3. TaiKhoanDAO -> BCrypt: checkpw
+4. DangNhapServlet -> Session: invalidate cũ, tạo mới và setAttribute
+5. DangNhapServlet -> RoleRedirectUtil: lấy đường dẫn theo Role
+6. Browser -> Filter tương ứng: kiểm tra các request sau đăng nhập
+7. Filter -> Dashboard Servlet/JSP: cho phép hoặc từ chối
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 2. Đăng nhập và phân quyền
+CẦN ĐIỀN SƠ ĐỒ - Sequence 2. Đăng nhập và phân quyền
+5.1.3. Đặt sân và thanh toán PayOS
+1. Customer -> DatSan.jsp: chọn sân/ngày/giờ
+2. DatSan.jsp -> GiuChoTamServlet: tạo/refresh Soft Hold
+3. Customer -> DatSanServlet: POST đặt sân
+4. DatSanServlet -> SQL Server: transaction, lock sân, kiểm tra overlap
+5. DatSanServlet -> LichDatSanDAO/HoaDonDAO: lưu đơn và hóa đơn
+6. DatSanServlet -> PayOSService: tạo checkout session
+7. PayOS -> PayOSWebhookServlet: callback
+8. PayOSWebhookServlet -> Database: xác nhận giao dịch/trạng thái
+9. Customer -> DatSanServlet: xem trạng thái/lịch sử
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 3. Đặt sân và thanh toán PayOS
+CẦN ĐIỀN SƠ ĐỒ - Sequence 3. Đặt sân và thanh toán PayOS
+5.1.4. Check-in và mở sân khách vãng lai
+1. Staff -> CheckIn.jsp: tải sân/đơn theo cơ sở
+2. Staff -> CheckInServlet: chọn check-in hoặc walk-in
+3. CheckInServlet -> CheckInDAO: transaction
+4. CheckInDAO -> LichDatSan/San/HoaDon: khóa và kiểm tra
+5. CheckInDAO -> Database: cập nhật Đang sử dụng, actual_start_time và sân
+6. Staff -> CheckInServlet: dừng phiên
+7. CheckInDAO -> Database: tính tiền, đóng hóa đơn, giải phóng sân
+8. CheckInServlet -> HoaDonPrintServlet: in hóa đơn
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 4. Check-in và mở sân khách vãng lai
+CẦN ĐIỀN SƠ ĐỒ - Sequence 4. Check-in và mở sân khách vãng lai
+5.1.5. Thêm dịch vụ và hóa đơn
+1. Staff/Customer -> Servlet: chọn dịch vụ và số lượng
+2. Servlet -> SanPhamDichVuDAO: kiểm tra sản phẩm/tồn
+3. Servlet -> LichDatSanDichVuDAO hoặc HoaDonDAO: lưu chi tiết
+4. DAO -> Database: cập nhật tổng tiền/tồn kho
+5. Staff -> CheckInServlet: xử lý thanh toán
+6. Staff -> HoaDonPrintServlet: tải hóa đơn
+7. HoaDonPrintServlet -> HoaDonPrint.jsp: hiển thị bản in
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 5. Thêm dịch vụ và hóa đơn
+CẦN ĐIỀN SƠ ĐỒ - Sequence 5. Thêm dịch vụ và hóa đơn
+5.1.6. Quản lý ca làm việc và yêu cầu nghỉ
+1. Manager -> QuanLyCaLamManagerServlet: tạo/sửa ca
+2. Servlet -> CaLamValidationEngine: validation
+3. Servlet -> CaLamService/DAO: kiểm tra xung đột và lưu
+4. Staff -> StaffCaLamServlet: xem/check-in/check-out ca
+5. Staff -> YeuCauNghiStaffServlet: gửi yêu cầu nghỉ
+6. Manager -> YeuCauNghiManagerServlet: duyệt/từ chối
+7. Service -> Audit/Database: lưu kết quả
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 6. Quản lý ca làm việc và yêu cầu nghỉ
+CẦN ĐIỀN SƠ ĐỒ - Sequence 6. Quản lý ca làm việc và yêu cầu nghỉ
+5.2. Activity Diagram
+5.2.1. Hoạt động đăng ký tài khoản
+1. Bắt đầu
+2. Mở form đăng ký
+3. Nhập dữ liệu
+4. Validation hợp lệ?
+5. Không: hiển thị lỗi và nhập lại
+6. Có: kiểm tra trùng
+7. Tạo tài khoản tạm và gửi OTP
+8. OTP hợp lệ?
+9. Không: báo lỗi/gửi lại
+10. Có: lưu tài khoản
+11. Kết thúc
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Activity 1. Hoạt động đăng ký tài khoản
+CẦN ĐIỀN SƠ ĐỒ - Activity 1. Hoạt động đăng ký tài khoản
+5.2.2. Hoạt động đăng nhập
+1. Bắt đầu
+2. Nhập tài khoản/mật khẩu
+3. Dữ liệu rỗng?
+4. Có: báo lỗi
+5. Không: DAO kiểm tra tài khoản và BCrypt
+6. Hợp lệ?
+7. Không: báo sai thông tin
+8. Có: tạo Session
+9. Xác định Role
+10. Điều hướng dashboard
+11. Kết thúc
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Activity 2. Hoạt động đăng nhập
+CẦN ĐIỀN SƠ ĐỒ - Activity 2. Hoạt động đăng nhập
+5.2.3. Hoạt động đặt sân
+1. Bắt đầu
+2. Chọn cơ sở/sân/ngày/giờ
+3. Validation
+4. Tạo/kiểm tra Soft Hold
+5. Bắt đầu transaction
+6. Khung giờ trùng?
+7. Có: rollback và chọn lại
+8. Không: tính tiền và lưu đơn
+9. Thanh toán online?
+10. Có: tạo PayOS và chờ xác nhận
+11. Không: chờ xác nhận tại quầy/nhân viên
+12. Commit
+13. Kết thúc
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Activity 3. Hoạt động đặt sân
+CẦN ĐIỀN SƠ ĐỒ - Activity 3. Hoạt động đặt sân
+5.2.4. Hoạt động check-in và checkout
+1. Bắt đầu
+2. Staff chọn đơn hoặc sân walk-in
+3. Kiểm tra cơ sở và trạng thái sân
+4. Hợp lệ?
+5. Không: báo lỗi
+6. Có: mở transaction và tạo/cập nhật phiên
+7. Sân chuyển Đang sử dụng
+8. Khách dùng dịch vụ
+9. Staff dừng phiên
+10. Tính tiền
+11. Thanh toán thành công?
+12. Không: giữ trạng thái hóa đơn phù hợp
+13. Có: đóng hóa đơn và giải phóng sân
+14. Kết thúc
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Activity 4. Hoạt động check-in và checkout
+CẦN ĐIỀN SƠ ĐỒ - Activity 4. Hoạt động check-in và checkout
+5.2.5. Hoạt động quản lý ca
+1. Bắt đầu
+2. Manager chọn nhân viên/ngày/ca
+3. Ca mẫu hay tùy chỉnh?
+4. Tùy chỉnh: nhập lý do
+5. Validation thời gian
+6. Có xung đột?
+7. Có: báo lỗi
+8. Không: lưu Draft/Published theo thao tác
+9. Ghi Audit
+10. Staff xem ca
+11. Kết thúc
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Activity 5. Hoạt động quản lý ca
+CẦN ĐIỀN SƠ ĐỒ - Activity 5. Hoạt động quản lý ca
+5.2.6. Hoạt động yêu cầu nghỉ
+1. Bắt đầu
+2. Staff nhập ngày, loại nghỉ, lý do
+3. Validation
+4. Lưu trạng thái Chờ xử lý
+5. Manager xem yêu cầu theo cơ sở
+6. Duyệt hay từ chối
+7. Nhập ghi chú
+8. Lưu người/thời gian xử lý
+9. Thông báo kết quả
+10. Kết thúc
+CẦN ĐIỀN SƠ ĐỒ
+CẦN ĐIỀN SƠ ĐỒ - Activity 6. Hoạt động yêu cầu nghỉ
+CẦN ĐIỀN SƠ ĐỒ - Activity 6. Hoạt động yêu cầu nghỉ
+
+6. KẾ HOẠCH KIỂM THỬ PHẦN MỀM
+6.1. Mục đích kiểm thử
+Đảm bảo các chức năng được mô tả trong tài liệu hoạt động đúng source, xử lý dữ liệu hợp lệ, không cho truy cập trái quyền và không làm sai trạng thái sân, lịch đặt, dịch vụ, hóa đơn hoặc ca làm việc. Kiểm thử cũng cung cấp minh chứng để nhóm trả lời phản biện về validation, Session, CRUD, transaction và bảo mật.
+6.2. Phạm vi kiểm thử
+• Trong phạm vi: đăng ký/OTP, đăng nhập/Session, quên mật khẩu, phân quyền, CRUD Admin, CRUD Manager, đặt sân, chống trùng, PayOS, check-in, walk-in, dịch vụ, hóa đơn, kho, ca làm, nghỉ phép, thùng rác và Audit Log.
+• Ngoài phạm vi: AI Booking, Dynamic Pricing, ELO, SOS, Smart Parking; kiểm thử tải quy mô lớn; kiểm thử mã nguồn nội bộ của PayOS/Jakarta Mail; ứng dụng mobile native.
+6.3. Môi trường và công cụ
+Thành phần
+Mô tả
+Máy chủ ứng dụng
+Apache Tomcat 10.1 chạy WAR tạo bởi Maven.
+Ngôn ngữ
+Java 17.
+Cơ sở dữ liệu
+Microsoft SQL Server với schema/migration đúng phiên bản source.
+Trình duyệt
+Chrome, Edge hoặc Firefox bản hiện đại trên PC/laptop.
+Theo dõi lỗi
+Jira: ticket, người phụ trách, độ ưu tiên, trạng thái và minh chứng.
+Quản lý source
+GitHub/Git: branch, commit và lịch sử sửa lỗi.
+Log
+logs/vsport-app.log và Audit Log trong hệ thống.
+Khởi chạy
+Dùng .\start_server.bat theo môi trường dự án của nhóm.
+
+6.4. Phương pháp kiểm thử
+• Black-box Testing: kiểm tra đầu vào/đầu ra trên giao diện theo góc nhìn người dùng.
+• Functional Testing: xác minh từng yêu cầu FR và Use Case.
+• Validation Testing: dữ liệu rỗng, sai định dạng, vượt giới hạn, trùng dữ liệu.
+• Authorization Testing: truy cập URL sai Role và truy cập chéo CoSoID.
+• Integration Testing: Servlet - Service - DAO - Database; PayOS/Email ở môi trường có cấu hình.
+• Concurrency Testing: hai yêu cầu đặt cùng sân/khung giờ và mở sân đồng thời.
+• Regression Testing: chạy lại luồng cốt lõi sau mỗi lần sửa lỗi.
+6.5. Tiêu chí bắt đầu và kết thúc
+Tiêu chí
+Điều kiện
+Entry Criteria
+Source merge thành công; Maven build không lỗi; SQL Server đã chạy migration; tài khoản test đủ Role; dữ liệu sân/sản phẩm/ca mẫu sẵn sàng; cấu hình Email/PayOS được kiểm tra.
+Exit Criteria
+100% test case Rất cao/Cao đã được chạy; không còn lỗi Critical chặn đăng nhập, đặt sân, check-in hoặc thanh toán; lỗi còn lại có ticket và phương án xử lý; dữ liệu demo được reset ổn định.
+
+6.6. Dữ liệu kiểm thử đề xuất
+• Mỗi Role ít nhất một tài khoản hoạt động: Admin, Manager, Staff và Customer.
+• Hai Manager/Staff thuộc hai cơ sở khác nhau để test truy cập chéo chi nhánh.
+• Ít nhất hai sân cùng loại, một sân Sẵn sàng và một sân Đang sử dụng.
+• Một đơn Đã xác nhận, một đơn Chờ thanh toán, một đơn Quá hạn và một đơn Đang sử dụng.
+• Sản phẩm có tồn kho đủ, tồn kho bằng 0 và sản phẩm ngừng kinh doanh.
+• Ca mẫu sáng/chiều/đêm và một ca tùy chỉnh có lý do.
+• Một email nhận OTP thật và một email không tồn tại trong Accounts.
+
+6.7. Danh sách Test Case
+ID
+Module
+Điều kiện/dữ liệu
+Bước kiểm thử
+Kết quả mong đợi
+Ưu tiên
+Kết quả thực tế
+TC-AUTH-01
+Đăng ký
+Form hợp lệ, email mới
+Gửi form -> nhập OTP đúng
+Tài khoản được tạo; mật khẩu đã hash; chuyển đăng nhập.
+Rất cao
+CẦN CẬP NHẬT
+TC-AUTH-02
+Đăng ký
+Bỏ trống trường bắt buộc
+Gửi form
+Hiển thị lỗi; không tạo tài khoản tạm sai.
+Cao
+CẦN CẬP NHẬT
+TC-AUTH-03
+Đăng ký
+Username/email đã tồn tại
+Gửi form
+Từ chối và thông báo trùng.
+Cao
+CẦN CẬP NHẬT
+TC-AUTH-04
+OTP
+OTP sai/hết hạn
+Nhập mã sai
+Không lưu tài khoản; hiển thị lỗi/gửi lại theo quy tắc.
+Cao
+CẦN CẬP NHẬT
+TC-AUTH-05
+Đăng nhập
+Tài khoản/mật khẩu đúng
+POST /dangnhap
+Tạo Session và redirect đúng Role.
+Rất cao
+CẦN CẬP NHẬT
+TC-AUTH-06
+Đăng nhập
+Mật khẩu sai
+POST /dangnhap
+Không tạo Session; báo sai thông tin.
+Rất cao
+CẦN CẬP NHẬT
+TC-AUTH-07
+Session
+Đăng nhập A rồi đăng nhập B
+Thực hiện liên tiếp
+Session A bị invalidate; Session chứa B.
+Cao
+CẦN CẬP NHẬT
+TC-AUTH-08
+Quên mật khẩu
+Email tồn tại, OTP đúng
+Hoàn tất luồng
+Mật khẩu mới dùng được; OTP/reset session bị xóa.
+Cao
+CẦN CẬP NHẬT
+TC-AUTH-09
+Mật khẩu
+Mật khẩu yếu/không khớp
+Gửi form reset
+Từ chối và hiển thị quy tắc.
+Cao
+CẦN CẬP NHẬT
+TC-SEC-01
+Phân quyền
+Customer mở /admin/*
+Truy cập URL trực tiếp
+Bị chặn/điều hướng, không lộ dữ liệu.
+Rất cao
+CẦN CẬP NHẬT
+TC-SEC-02
+Chi nhánh
+Manager A sửa sân cơ sở B
+Sửa ID trên request
+Server từ chối thao tác.
+Rất cao
+CẦN CẬP NHẬT
+TC-ADM-01
+CRUD tài khoản
+Dữ liệu hợp lệ
+Admin thêm tài khoản
+Tạo thành công và hiển thị đúng danh sách.
+Cao
+CẦN CẬP NHẬT
+TC-ADM-02
+CRUD tài khoản
+Tài khoản có ràng buộc
+Admin xóa
+Xóa mềm; xuất hiện thùng rác.
+Cao
+CẦN CẬP NHẬT
+TC-ADM-03
+CRUD chi nhánh
+Thông tin hợp lệ
+Thêm/sửa chi nhánh
+CoSo được lưu; danh sách cập nhật.
+Cao
+CẦN CẬP NHẬT
+TC-MGR-01
+Quản lý sân
+Sân hợp lệ thuộc cơ sở
+Thêm/sửa sân
+Lưu đúng CoSoID, loại sân, trạng thái.
+Cao
+CẦN CẬP NHẬT
+TC-MGR-02
+Quản lý sân
+Thiếu tên/loại/giá sai
+Gửi form
+Validation chặn lưu.
+Cao
+CẦN CẬP NHẬT
+TC-BOOK-01
+Đặt sân
+Khung giờ trống
+Customer đặt sân
+Tạo LichDatSan/hóa đơn đúng trạng thái.
+Rất cao
+CẦN CẬP NHẬT
+TC-BOOK-02
+Đặt sân
+Hai request cùng sân/giờ
+Gửi gần đồng thời
+Chỉ một đơn thành công; đơn còn lại báo xung đột.
+Rất cao
+CẦN CẬP NHẬT
+TC-BOOK-03
+Soft Hold
+Hold còn hạn
+Người khác chọn cùng slot
+Hệ thống áp dụng quy tắc giữ chỗ hiện tại.
+Cao
+CẦN CẬP NHẬT
+TC-BOOK-04
+Vòng đời
+Đơn chờ thanh toán quá hạn
+Chạy lifecycle/read endpoint
+Đơn chuyển quá hạn và slot được giải phóng.
+Cao
+CẦN CẬP NHẬT
+TC-PAY-01
+PayOS
+Giao dịch thành công
+Thanh toán và webhook hợp lệ
+Đơn/hóa đơn được xác nhận một lần.
+Rất cao
+CẦN CẬP NHẬT
+TC-PAY-02
+PayOS
+Webhook sai/không hợp lệ
+Gửi callback giả
+Không cập nhật thanh toán.
+Rất cao
+CẦN CẬP NHẬT
+TC-CHECK-01
+Check-in
+Đơn hợp lệ, sân Sẵn sàng
+Staff check-in
+Đơn/sân chuyển Đang sử dụng; actual_start_time được ghi.
+Rất cao
+CẦN CẬP NHẬT
+TC-CHECK-02
+Check-in
+Sân đang sử dụng
+Check-in lần hai
+Từ chối; không tạo phiên/hóa đơn trùng.
+Rất cao
+CẦN CẬP NHẬT
+TC-CHECK-03
+Walk-in cố định
+Sân trống, thời lượng hợp lệ
+Mở sân và kết thúc
+Tiền sân theo thời lượng/quy tắc; sân giải phóng.
+Rất cao
+CẦN CẬP NHẬT
+TC-CHECK-04
+Walk-in linh hoạt
+Sân trống
+Mở sân, chờ, bấm dừng
+Không tự out; actual_end_time và hóa đơn được tính.
+Rất cao
+CẦN CẬP NHẬT
+TC-SVC-01
+Dịch vụ
+Tồn kho đủ
+Thêm số lượng hợp lệ
+Chi tiết và tổng tiền cập nhật; tồn kho đúng.
+Cao
+CẦN CẬP NHẬT
+TC-SVC-02
+Dịch vụ
+Tồn kho 0/vượt tồn
+Thêm sản phẩm
+Từ chối; không âm tồn kho.
+Cao
+CẦN CẬP NHẬT
+TC-INV-01
+Hóa đơn
+Phiên có tiền sân và dịch vụ
+Thanh toán và in
+Tổng tiền, trạng thái và bản in khớp dữ liệu.
+Rất cao
+CẦN CẬP NHẬT
+TC-SHIFT-01
+Ca làm
+Ca không xung đột
+Manager tạo ca
+Ca được lưu và Staff xem được.
+Cao
+CẦN CẬP NHẬT
+TC-SHIFT-02
+Ca làm
+Ca chồng lấn
+Manager tạo
+Báo Conflict; không lưu.
+Cao
+CẦN CẬP NHẬT
+TC-SHIFT-03
+Ca tùy chỉnh
+Không nhập lý do
+Gửi form
+Validation chặn lưu.
+Cao
+CẦN CẬP NHẬT
+TC-SHIFT-04
+Ca đã xử lý
+Ca CheckedIn/Completed
+Sửa hoặc hủy
+Hệ thống từ chối theo trạng thái.
+Cao
+CẦN CẬP NHẬT
+TC-LEAVE-01
+Yêu cầu nghỉ
+Dữ liệu hợp lệ
+Staff gửi, Manager duyệt
+Lưu đúng trạng thái/người/thời gian xử lý.
+Trung bình
+CẦN CẬP NHẬT
+TC-TRASH-01
+Thùng rác
+Bản ghi xóa mềm
+Khôi phục
+Bản ghi trở lại danh sách hoạt động.
+Cao
+CẦN CẬP NHẬT
+TC-AUDIT-01
+Audit Log
+Thực hiện thao tác quan trọng
+Mở Audit Log
+Hiển thị actor, action, entity, thời gian và cơ sở phù hợp.
+Cao
+CẦN CẬP NHẬT
+
+
+6.8. Báo cáo kết quả kiểm thử
+Nhóm cần chạy toàn bộ Test Case trên đúng bản source sẽ demo, sau đó điền Pass/Fail, ngày thực hiện, người thực hiện, ảnh/video minh chứng và Jira ticket cho các trường hợp Fail. Không điền tỷ lệ Pass khi chưa thực thi thực tế.
+CẦN ĐIỀN KẾT QUẢ KIỂM THỬ
+CẦN ĐIỀN BẢNG/BIỂU ĐỒ KẾT QUẢ KIỂM THỬ THỰC TẾ
+CẦN ĐIỀN BẢNG/BIỂU ĐỒ KẾT QUẢ KIỂM THỬ THỰC TẾ
+6.9. Quy trình xử lý lỗi
+1. Tester ghi nhận bước tái hiện, dữ liệu đầu vào, ảnh/video, log và mức độ ưu tiên.
+2. Tạo Jira ticket và gán người phụ trách đúng module.
+3. Lập trình viên tạo branch sửa lỗi và kiểm tra cục bộ.
+4. Merge code sau review; chạy lại Test Case lỗi và Regression Test các luồng liên quan.
+5. Đóng ticket khi có minh chứng Pass; giữ lại lịch sử để trình bày với thầy.
+
+7. ĐÁNH GIÁ KẾT QUẢ DỰ ÁN
+7.1. Kết quả đạt được
+• Xây dựng ứng dụng Java Web theo MVC với các vùng giao diện riêng cho Customer, Staff, Manager và Admin.
+• Hoàn thiện các tiêu chí trọng tâm: đăng nhập có Session, đăng ký OTP, quên mật khẩu, validation, CRUD Admin và CRUD Manager.
+• Xây dựng luồng đặt sân có giữ chỗ, kiểm tra trùng, transaction và tích hợp PayOS.
+• Xây dựng luồng vận hành Staff gồm check-in, khách vãng lai, giờ cố định/không cố định, dịch vụ, thanh toán và in hóa đơn.
+• Xây dựng quản lý sân, nhân sự, ca làm, yêu cầu nghỉ, kho dịch vụ, thùng rác và Audit Log.
+• Sử dụng Jira và GitHub để phối hợp công việc, theo dõi lỗi và tích hợp source.
+7.2. Thuận lợi
+• Đề tài gần với nhu cầu thực tế, dễ xây dựng kịch bản nghiệp vụ và demo.
+• Java Servlet/JSP, JDBC và MVC phù hợp kiến thức môn học, giúp thầy dễ kiểm tra luồng code.
+• Nhóm có 6 thành viên nên có thể chia module giao diện, backend, database, testing và tài liệu.
+• Các công cụ Maven, Tomcat, GitHub, Jira và SQL Server hỗ trợ quy trình phát triển rõ ràng.
+• Source đã có nhiều Utility/Service dùng chung như SessionUtil, Validation Engine, Audit Log và Booking Lifecycle.
+7.3. Khó khăn
+• Phạm vi ban đầu quá rộng, chứa nhiều ý tưởng AI và tiện ích chưa đủ thời gian triển khai đầu-cuối.
+• Dự án có cả JDBC/DAO và JPA/Hibernate nên việc thống nhất cách truy xuất dữ liệu còn phức tạp.
+• Luồng đặt sân và check-in cần xử lý đồng thời nhiều bảng, trạng thái và transaction.
+• Cấu trúc database thay đổi qua nhiều migration, dễ phát sinh lệch schema giữa máy thành viên.
+• Giao diện và nghiệp vụ phát triển song song nên cần kiểm thử hồi quy thường xuyên.
+• Việc quản lý secret và cấu hình môi trường cần được siết chặt trước khi công khai repository.
+7.4. Hạn chế còn tồn tại
+• Một số màn hình danh sách dài cần bổ sung phân trang thống nhất toàn hệ thống.
+• Một số chức năng và Model mở rộng chưa có luồng View - Servlet - Service/DAO hoàn chỉnh.
+• Chưa có kiểm thử tải, kiểm thử bảo mật chuyên sâu và pipeline CI/CD tự động.
+• Giao diện responsive và thông báo lỗi cần tiếp tục chuẩn hóa giữa các Role.
+• Số liệu khảo sát và kết quả kiểm thử cần được bổ sung bằng minh chứng thật trước khi nộp.
+7.5. Định hướng phát triển
+• Hoàn thiện phân trang server-side cho tất cả trang danh sách lớn.
+• Chuẩn hóa Service Layer để giảm business logic trong Servlet và thống nhất JDBC/JPA.
+• Tăng coverage bằng Unit Test, Integration Test và E2E Test với Playwright/Selenium.
+• Bổ sung báo cáo doanh thu, tỷ lệ lấp đầy sân và xuất dữ liệu.
+• Triển khai AI Booking, Dynamic Pricing, ELO, SOS hoặc Smart Parking theo từng module độc lập sau khi chức năng lõi ổn định.
+• Triển khai môi trường staging, quản lý secret, backup và CI/CD trước khi đưa vào sử dụng thực tế.
+
+8. QUẢN LÝ DỰ ÁN VÀ ĐÓNG GÓP THÀNH VIÊN
+8.1. Công cụ quản lý
+Công cụ
+Mục đích
+Jira
+Tạo Epic/Story/Task/Bug, phân công người phụ trách, theo dõi To Do - In Progress - Done và lưu minh chứng.
+GitHub/Git
+Quản lý branch, commit, merge và lịch sử thay đổi source.
+Google Docs/Word
+Biên soạn tài liệu SOF1022 và mô tả yêu cầu.
+Canva
+Thiết kế slide thuyết trình chung JAV101 và SOF1022.
+SQL Server
+Quản lý schema, dữ liệu mẫu và migration.
+Tomcat/Maven
+Build, đóng gói và chạy bản demo.
+
+8.2. Quy trình làm việc nhóm
+1. Thống nhất yêu cầu và chia module trên Jira.
+2. Mỗi thành viên phát triển trên branch hoặc phần việc được phân công.
+3. Tự kiểm thử chức năng trước khi bàn giao.
+4. Tạo commit rõ nội dung và merge vào nhánh chính sau khi xử lý xung đột.
+5. Tester chạy Test Case, tạo Bug ticket và theo dõi sửa lỗi.
+6. Nhóm trưởng kiểm tra bản build, database và kịch bản demo cuối cùng.
+7. Cập nhật Docs/Canva theo đúng chức năng có thể chạy.
+8.3. Bảng đóng góp thành viên
+Họ và tên
+MSSV
+Công việc
+Đóng góp (%)
+Minh chứng
+Nguyễn Thiện Nhân
+TY00234
+Nhóm trưởng; Jira/GitHub; database; Authentication; tích hợp và kiểm thử tổng thể.
+CẦN NHÓM ĐIỀN
+Jira ticket, commit, file/module, minh chứng demo
+Nguyễn Chí Tiến
+TY00325
+Module Admin; DAO/JDBC/JPA; DBUtil; Filter và phân quyền.
+CẦN NHÓM ĐIỀN
+Jira ticket, commit, class phụ trách
+Tô Gia Bảo
+TY00311
+Landing Page; đăng ký; Servlet/DAO; validation và Filter.
+CẦN NHÓM ĐIỀN
+Jira ticket, commit, giao diện/class
+Lê Hoàng Minh
+TY00254
+Giao diện Manager; cơ sở/ca làm; kiểm thử CRUD Manager.
+CẦN NHÓM ĐIỀN
+Jira ticket, commit, ảnh test
+Nguyễn Đức Minh Khôi
+TY00249
+Giao diện Manager; nhân sự và quản lý sân; CRUD và testing.
+CẦN NHÓM ĐIỀN
+Jira ticket, commit, ảnh test
+Tạ Hoàng Kim Châu
+TY00256
+Docs SOF; UML; OTP/khôi phục; Test Case và validation.
+CẦN NHÓM ĐIỀN
+Tài liệu, sơ đồ, Jira, commit nếu có
+
+Lưu ý: Tổng tỷ lệ phải bằng 100%, không được để tất cả thành viên bằng nhau. Nhóm phải điền theo Jira, commit, module thực tế, kiểm thử và phần tài liệu; sau slide đóng góp cần mở Jira để chứng minh.
+
+9. KẾT LUẬN
+9.1. Kết luận chung
+V-SPORT đã hình thành một hệ thống quản lý chuỗi sân thể thao trên nền tảng Java Web, tập trung vào các nghiệp vụ có khả năng ứng dụng và demo rõ ràng: xác thực tài khoản, phân quyền, quản lý cơ sở/sân/nhân sự, đặt sân, thanh toán, check-in, dịch vụ, hóa đơn và ca làm việc. Việc xây dựng theo MVC, DAO, Session, Filter và Microsoft SQL Server giúp nhóm vận dụng trực tiếp kiến thức của JAV101 và SOF1022.
+Trong quá trình hoàn thiện, nhóm đã điều chỉnh tài liệu để phản ánh đúng source code, chuyển các ý tưởng AI và tiện ích chưa hoàn chỉnh thành định hướng tương lai. Cách trình bày này bảo đảm tính trung thực khi demo và giúp nhóm trả lời được câu hỏi “bấm nút nào thì class nào chạy, dữ liệu đi qua đâu và lưu vào bảng nào”.
+9.2. Bài học kinh nghiệm
+• Phải chốt phạm vi chức năng trước khi thiết kế tài liệu và slide.
+• Mọi chức năng mô tả là hoàn thiện cần có đủ View - Servlet - Service/DAO - Database và Test Case.
+• Validation và phân quyền phải thực hiện ở server, không chỉ dựa vào giao diện.
+• Luồng nhiều bảng cần transaction, trạng thái rõ ràng và kiểm thử tình huống lỗi.
+• Git/Jira chỉ có giá trị chứng minh khi mỗi thành viên cập nhật công việc và commit đúng thực tế.
+• Secret không được đưa vào source hoặc tài liệu công khai.
+9.3. Cam kết trình bày và demo
+Nhóm chỉ demo những chức năng đang chạy trên bản source cuối cùng. Chức năng chưa hoàn thiện sẽ được trình bày trung thực là giới hạn hoặc định hướng phát triển. Trước buổi bảo vệ, nhóm sẽ chạy lại Test Case ưu tiên cao, sao lưu database, chuẩn bị tài khoản theo Role và kiểm tra toàn bộ kịch bản trên cùng một máy demo.
+
+PHỤ LỤC A. KỊCH BẢN DEMO ĐỀ XUẤT
+STT
+Phần demo
+Thao tác
+File/class cần mở
+Thời lượng
+1
+Đăng ký và OTP
+Đăng ký tài khoản mới, nhận OTP, xác thực thành công.
+DangKyServlet; XacThucOTPServlet
+2 phút
+2
+Đăng nhập và Session
+Đăng nhập; chỉ vị trí setAttribute trong Session; điều hướng theo Role.
+DangNhapServlet; RoleRedirectUtil
+1 phút
+3
+CRUD Admin
+Thêm/sửa một chi nhánh hoặc tài khoản; trình bày validation và thùng rác.
+QuanLyChiNhanhServlet hoặc QuanLyNguoiDungServlet
+2-3 phút
+4
+CRUD Manager
+Thêm/sửa sân hoặc nhân sự thuộc cơ sở; chứng minh giới hạn CoSoID.
+QuanLySanManagerServlet hoặc NhanSuManagerServlet
+2-3 phút
+5
+Đặt sân
+Chọn sân, giờ, tạo đơn; giải thích kiểm tra trùng và transaction.
+DatSanServlet; SoftHoldDAO
+3 phút
+6
+Check-in và hóa đơn
+Check-in hoặc mở walk-in; thêm dịch vụ; dừng phiên; thanh toán và in bill.
+CheckInServlet; CheckInDAO; HoaDonPrintServlet
+4-5 phút
+7
+Ca làm việc
+Tạo ca hợp lệ và test một ca trùng/tùy chỉnh thiếu lý do.
+QuanLyCaLamManagerServlet; CaLamValidationEngine
+2 phút
+8
+Jira và đóng góp
+Mở Jira chứng minh ticket, người phụ trách và tiến độ.
+Jira/GitHub
+1-2 phút
+
+Nên chuẩn bị sẵn dữ liệu và tab trình duyệt. Không sửa database hoặc code trực tiếp trong lúc thuyết trình trừ khi thầy yêu cầu.
+
+PHỤ LỤC B. CÂU HỎI PHẢN BIỆN VÀ VỊ TRÍ SOURCE
+Câu hỏi
+Gợi ý trả lời/vị trí kiểm tra
+Code lưu Session ở đâu?
+DangNhapServlet.doPost: tạo Session mới và setAttribute user, roleId, accountId, fullName, email.
+Mật khẩu được bảo mật thế nào?
+BCrypt được dùng khi đăng ký/đặt lại mật khẩu và checkpw khi đăng nhập trong DAO.
+Gửi email ở đâu?
+EmailUtil và các hàm DAO/Servlet phục vụ OTP đăng ký hoặc quên mật khẩu.
+Validation ở đâu?
+ValidationUtil, ValidationUtils, CaLamValidationEngine và validation trực tiếp trong Servlet/Service.
+Có dùng JPA không?
+Có JPA/Hibernate ở một số Entity/DAO, cấu hình trong JPAUtil và META-INF/persistence.xml; hệ thống đồng thời dùng JDBC/DAO.
+Dữ liệu từ trang web xuống Servlet ở đâu?
+JSP gửi form/action hoặc AJAX; Servlet đọc bằng request.getParameter(...).
+Từ Servlet xuống Database ở đâu?
+Servlet gọi Service/DAO; DAO dùng DBUtil/JPAUtil và PreparedStatement/EntityManager.
+Bấm nút đặt sân thì chạy đâu?
+Form/JavaScript trên customer/DatSan.jsp gửi đến các route của DatSanServlet.
+Làm sao ngăn hai người đặt cùng sân?
+DatSanServlet/DAO mở transaction, khóa dòng sân và kiểm tra overlap trước khi commit; có retry cho lỗi đồng thời.
+Check-in cập nhật những gì?
+CheckInDAO cập nhật LichDatSan sang Đang sử dụng, ghi actual_start_time, cập nhật San thành Đang sử dụng và xử lý hóa đơn.
+Giờ cố định và không cố định khác nhau thế nào?
+TimeMode/ReservedDurationMinutes lưu chế độ; giờ linh hoạt tính theo actual_start_time và actual_end_time khi Staff dừng phiên.
+Ý nghĩa HoldExpiresAt?
+Thời điểm hết hạn giữ chỗ thanh toán online; lifecycle dùng để chuyển đơn quá hạn và giải phóng slot.
+Ý nghĩa ConfirmSource?
+Nguồn xác nhận giao dịch/đơn, ví dụ WEBHOOK, STAFF_MANUAL hoặc MANAGER_APPROVE theo migration/model.
+Xóa dữ liệu có mất hẳn không?
+Các module hỗ trợ xóa mềm dùng IsDeleted, DeletedAt, DeletedBy và thùng rác để khôi phục.
+Audit Log lưu gì?
+Actor, Role, CoSoID, Action, EntityType, EntityID, Details, IP và CreatedAt.
+Servlet bất kỳ có chức năng gì?
+Trả lời theo cấu trúc: route -> đọc input -> validation -> gọi Service/DAO -> đặt output -> forward/redirect.
+Tại sao ứng dụng hữu ích?
+Giảm quản lý rời rạc, hạn chế trùng lịch, liên kết vận hành sân - dịch vụ - hóa đơn - nhân sự và phân quyền theo cơ sở.
+Chức năng nào chưa làm?
+AI Booking, Dynamic Pricing, ELO, SOS, Smart Parking chưa được xem là luồng demo hoàn chỉnh; trình bày là định hướng.
+
+
+PHỤ LỤC C. DANH SÁCH SƠ ĐỒ CẦN BỔ SUNG
+Mã
+Tên sơ đồ/biểu đồ
+Nội dung bắt buộc
+Vị trí
+D01
+Use Case tổng quát
+Guest, Customer, Staff, Manager, Admin
+Mục 3.6
+D02
+Kiến trúc tổng quan
+Browser - Filter - Servlet - Service/DAO - SQL Server - PayOS/Email
+Mục 4.1
+D03
+Mô hình MVC
+View - Controller - Model/Service/DAO - Database
+Mục 4.2
+D04
+ERD
+Các bảng lõi Accounts, CoSo, LoaiSan, San, LichDatSan, HoaDon, dịch vụ, ca làm, nghỉ, Audit
+Mục 4.5
+D05
+Class Diagram
+Các module Auth, Booking, Check-in/Billing, Shift
+Mục 4.6
+D06-D11
+06 Sequence Diagram
+Theo mục 5.1.1 đến 5.1.6
+Mục 5.1
+D12-D17
+06 Activity Diagram
+Theo mục 5.2.1 đến 5.2.6
+Mục 5.2
+D18
+Biểu đồ kết quả khảo sát
+Dùng số liệu Google Forms thật
+Mục 2.7
+D19
+Biểu đồ kết quả kiểm thử
+Tổng Pass/Fail theo Test Case đã chạy
+Mục 6.8
+
+
+TÀI LIỆU THAM KHẢO
+1. Oracle/OpenJDK: Java Platform, Standard Edition 17.
+2. Eclipse Foundation: Jakarta Servlet 6.0 và Jakarta Server Pages/JSTL.
+3. Apache Software Foundation: Apache Tomcat 10.1 và Apache Maven.
+4. Microsoft: JDBC Driver for SQL Server và SQL Server documentation.
+5. Hibernate ORM và Jakarta Persistence 3.1 documentation.
+6. Jakarta Mail / Eclipse Angus Mail documentation.
+7. PayOS Java SDK documentation.
+8. jBCrypt library documentation.
+9. Source code V-SPORT và các migration SQL do nhóm THE BIGSIZE phát triển.
+10. Tài liệu yêu cầu JAV101 + SOF1022 do giảng viên cung cấp.

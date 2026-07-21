@@ -19,6 +19,15 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
 
     private static final Logger logger = LogManager.getLogger(TaiKhoanDAOImpl.class);
 
+    /**
+     * Hash BCrypt hợp lệ cố định, không gắn với tài khoản thật nào. Dùng để chạy
+     * một lần checkpw() "giả" khi username/email không khớp account nào, để thời
+     * gian phản hồi gần bằng trường hợp account tồn tại nhưng sai mật khẩu — chống
+     * timing attack dùng để dò email/username tồn tại trong hệ thống.
+     */
+    private static final String DUMMY_BCRYPT_HASH =
+            "$2a$10$e8vvlxZLrBB2hA2WySDYK.ILi34msUoVA8ngsFmy/8gfSI.T4majO";
+
     @Override
     public boolean addAccountByAdmin(TaiKhoan TaiKhoan) {
         EntityManager em = JPAUtil.getEntityManager();
@@ -280,6 +289,22 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
     }
 
     @Override
+    public TaiKhoan findByEmail(String email) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<TaiKhoan> accounts = em.createQuery("SELECT a FROM TaiKhoan a WHERE a.email = :email", TaiKhoan.class)
+                                       .setParameter("email", email)
+                                       .getResultList();
+            return accounts.isEmpty() ? null : accounts.get(0);
+        } catch (Exception e) {
+            logger.error("Lỗi tìm tài khoản theo email {}: {}", email, e.getMessage(), e);
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
     public Boolean kiemtraUsername(String username) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -323,6 +348,11 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
                 if (BCrypt.checkpw(password, acc.getPassword())) {
                     return acc;
                 }
+            } else {
+                // Không tìm thấy account nào: vẫn chạy BCrypt trên dummy hash cố định
+                // để thời gian phản hồi gần bằng trường hợp account tồn tại nhưng sai
+                // mật khẩu (chống timing attack dùng để dò email/username tồn tại).
+                BCrypt.checkpw(password, DUMMY_BCRYPT_HASH);
             }
         } catch (Exception e) {
             logger.error("Lỗi đăng nhập khách hàng {}: {}", usernameOrEmail, e.getMessage(), e);
@@ -330,6 +360,58 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
             em.close();
         }
         return null;
+    }
+
+    @Override
+    public List<TaiKhoan> timTaiKhoanHoatDongTheoPhone(List<String> phoneVariants) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT a FROM TaiKhoan a WHERE a.phoneNumber IN :phones " +
+                    "AND a.isLocked = false AND (a.isDeleted = false OR a.isDeleted IS NULL)",
+                    TaiKhoan.class)
+                .setParameter("phones", phoneVariants)
+                .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public Boolean kiemtraPhone(List<String> phoneVariants) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long count = em.createQuery(
+                    "SELECT COUNT(a) FROM TaiKhoan a WHERE a.phoneNumber IN :phones " +
+                    "AND (a.isDeleted = false OR a.isDeleted IS NULL)", Long.class)
+                .setParameter("phones", phoneVariants)
+                .getSingleResult();
+            return count > 0;
+        } catch (Exception e) {
+            logger.error("Lỗi kiểm tra số điện thoại: {}", e.getMessage(), e);
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public TaiKhoan timTaiKhoanTheoEmail(String email) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<TaiKhoan> accounts = em.createQuery(
+                    "SELECT a FROM TaiKhoan a WHERE a.email = :email " +
+                    "AND (a.isDeleted = false OR a.isDeleted IS NULL)", TaiKhoan.class)
+                .setParameter("email", email)
+                .setMaxResults(1)
+                .getResultList();
+            return accounts.isEmpty() ? null : accounts.get(0);
+        } catch (Exception e) {
+            logger.error("Lỗi tìm tài khoản theo email: {}", e.getMessage(), e);
+            return null;
+        } finally {
+            em.close();
+        }
     }
 
     @Override

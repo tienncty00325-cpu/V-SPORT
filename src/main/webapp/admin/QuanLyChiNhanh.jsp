@@ -339,6 +339,11 @@ body { font-family: 'Inter', sans-serif; }
         </label>
         <input type="text" id="adminDiaChi" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
                class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
+        <input type="hidden" id="adminViDo">
+        <input type="hidden" id="adminKinhDo">
+        <p id="adminGeoStatus" class="text-[11px] font-semibold mt-0.5 text-amber-600">
+          <i class="ti ti-map-pin-off text-sm align-[-2px]"></i> Chưa xác định tọa độ — nhấn "Định vị địa chỉ / Tọa độ GG Map"
+        </p>
       </div>
 
       <div class="flex justify-end gap-3 pt-3 border-t border-zinc-50">
@@ -396,6 +401,8 @@ body { font-family: 'Inter', sans-serif; }
         <input type="hidden" name="email"       id="hEmail">
         <input type="hidden" name="soDienThoai" id="hPhone">
         <input type="hidden" name="diaChi"      id="hDiaChi">
+        <input type="hidden" name="viDo"        id="hViDo">
+        <input type="hidden" name="kinhDo"      id="hKinhDo">
 
         <div>
           <p class="text-sm font-semibold text-zinc-800 mb-0.5">Cấu hình cơ sở <span class="text-green-600 text-xs font-normal">✓ Email đã xác thực</span></p>
@@ -548,7 +555,8 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('modalThem').classList.add('hidden');
     adminGoStep(1);
     document.getElementById('formThemCoSo').reset();
-    ['adminTenCoSo','adminEmail','adminPhone','adminDiaChi'].forEach(id => document.getElementById(id).value = '');
+    ['adminTenCoSo','adminEmail','adminPhone','adminDiaChi','adminViDo','adminKinhDo'].forEach(id => document.getElementById(id).value = '');
+    setGeoStatus('adminGeoStatus', 'none');
     updateTotalCourts();
     admOtpFails = 0; admResendCount = 0;
     clearInterval(admResendTimer);
@@ -580,6 +588,7 @@ body { font-family: 'Inter', sans-serif; }
     if (!email) return showAdminError('Vui lòng nhập email liên hệ.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAdminError('Email không hợp lệ.');
     if (!phone) return showAdminError('Vui lòng nhập số điện thoại.');
+    if (!/^(0|\+84)[35789][0-9]{8}$/.test(phone)) return showAdminError('Số điện thoại không hợp lệ.');
     if (!addr)  return showAdminError('Vui lòng nhập địa chỉ.');
 
     const btn = document.getElementById('btnSendOtp');
@@ -664,6 +673,8 @@ body { font-family: 'Inter', sans-serif; }
         document.getElementById('hEmail').value   = document.getElementById('adminEmail').value.trim();
         document.getElementById('hPhone').value   = document.getElementById('adminPhone').value.trim();
         document.getElementById('hDiaChi').value  = document.getElementById('adminDiaChi').value.trim();
+        document.getElementById('hViDo').value    = document.getElementById('adminViDo').value;
+        document.getElementById('hKinhDo').value  = document.getElementById('adminKinhDo').value;
         adminGoStep(3);
       } else {
         admOtpFails++;
@@ -732,6 +743,12 @@ body { font-family: 'Inter', sans-serif; }
       alert('Vui lòng chọn ít nhất một môn thể thao và nhập số sân lớn hơn 0.');
       return false;
     }
+    const viDo = document.getElementById('hViDo').value;
+    const kinhDo = document.getElementById('hKinhDo').value;
+    if (!viDo || !kinhDo) {
+      alert('Vị trí cơ sở chưa hợp lệ. Vui lòng chọn lại vị trí trên bản đồ hoặc nhập đầy đủ tọa độ.');
+      return false;
+    }
     return true;
   }
 
@@ -763,6 +780,13 @@ body { font-family: 'Inter', sans-serif; }
   // ==========================================
   let activeGeoTargetId = 'adminDiaChi';
 
+  // Mỗi form (Thêm/Sửa) có bộ 3 field riêng: input địa chỉ hiển thị, hidden viDo/kinhDo,
+  // và dòng trạng thái. Tra theo id input địa chỉ đang active để biết ghi vào đâu.
+  const GEO_FIELD_MAP = {
+    adminDiaChi: { viDo: 'adminViDo', kinhDo: 'adminKinhDo', status: 'adminGeoStatus' },
+    suaDiaChi:   { viDo: 'suaViDo',   kinhDo: 'suaKinhDo',   status: 'suaGeoStatus' }
+  };
+
   function autoFillAddress(targetId) {
     activeGeoTargetId = targetId || 'adminDiaChi';
     document.getElementById('geoInput').value = "";
@@ -774,20 +798,49 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('geoModal').classList.add('hidden');
   }
 
+  // Parse tọa độ từ nhiều định dạng: decimal "lat, lon", DMS "10°23'07.3\"N 107°07'20.4\"E",
+  // hoặc Google Maps URL chứa "@lat,lon" hay "q=lat,lon". Trả về {lat, lon} hoặc null.
+  function parseCoordInput(raw) {
+    const input = raw.trim();
+
+    let m = input.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+        || input.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+        || input.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+    if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };
+
+    const dms = /(\d+)[°\s](\d+)['’′]\s*([\d.]+)[\"”″]?\s*([NSns])[,\s]+(\d+)[°\s](\d+)['’′]\s*([\d.]+)[\"”″]?\s*([EWew])/;
+    m = input.match(dms);
+    if (m) {
+      const toDec = (deg, min, sec, dir) => {
+        let v = parseInt(deg, 10) + parseInt(min, 10) / 60 + parseFloat(sec) / 3600;
+        if (/[SsWw]/.test(dir)) v = -v;
+        return v;
+      };
+      return { lat: toDec(m[1], m[2], m[3], m[4]), lon: toDec(m[5], m[6], m[7], m[8]) };
+    }
+
+    m = input.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+    if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };
+
+    return null;
+  }
+
+  function isValidLatLon(lat, lon) {
+    return Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+  }
+
   function submitGeoInput() {
     const input = document.getElementById('geoInput').value.trim();
     if (!input) {
       alert("Vui lòng dán tọa độ hoặc link Google Map.");
       return;
     }
-    const match = input.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
-    if (match) {
-      const lat = match[1];
-      const lon = match[2];
+    const coord = parseCoordInput(input);
+    if (coord && isValidLatLon(coord.lat, coord.lon)) {
       closeGeoModal();
-      fetchAddressFromCoords(lat, lon);
+      fetchAddressFromCoords(coord.lat, coord.lon);
     } else {
-      alert("Không tìm thấy tọa độ hợp lệ. Ví dụ định dạng: 10.7626, 106.6601");
+      alert("Không tìm thấy tọa độ hợp lệ. Ví dụ: 10.7626, 106.6601 hoặc link Google Maps.");
     }
   }
 
@@ -800,7 +853,7 @@ body { font-family: 'Inter', sans-serif; }
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-zinc-700 border-t-transparent rounded-full mr-2"></span> Đang định vị GPS...';
-    
+
     navigator.geolocation.getCurrentPosition(
       function(pos) {
         btn.disabled = false;
@@ -825,29 +878,76 @@ body { font-family: 'Inter', sans-serif; }
     );
   }
 
+  // Debounce guard: tránh spam Nominatim nếu người dùng bấm định vị liên tục.
+  let geoFetchInFlight = false;
+
+  function setGeoStatus(statusId, state, lat, lon) {
+    const status = document.getElementById(statusId);
+    if (!status) return;
+    if (state === 'ok') {
+      status.className = 'text-[11px] font-semibold mt-0.5 text-emerald-600';
+      status.innerHTML = '<i class="ti ti-map-pin-check text-sm align-[-2px]"></i> Đã xác định vị trí (' + lat.toFixed(7) + ', ' + lon.toFixed(7) + ')';
+    } else if (state === 'partial') {
+      status.className = 'text-[11px] font-semibold mt-0.5 text-amber-600';
+      status.innerHTML = '<i class="ti ti-map-pin-check text-sm align-[-2px]"></i> Đã lưu tọa độ (' + lat.toFixed(7) + ', ' + lon.toFixed(7) + ') — chưa lấy được địa chỉ chữ, vui lòng nhập tay.';
+    } else {
+      status.className = 'text-[11px] font-semibold mt-0.5 text-amber-600';
+      status.innerHTML = '<i class="ti ti-map-pin-off text-sm align-[-2px]"></i> Chưa xác định tọa độ — nhấn "Định vị địa chỉ / Tọa độ GG Map"';
+    }
+  }
+
   function fetchAddressFromCoords(lat, lon) {
+    if (!isValidLatLon(lat, lon)) {
+      alert("Tọa độ không hợp lệ (vĩ độ -90..90, kinh độ -180..180).");
+      return;
+    }
+    if (geoFetchInFlight) return;
+    geoFetchInFlight = true;
+
+    const fields = GEO_FIELD_MAP[activeGeoTargetId] || GEO_FIELD_MAP.adminDiaChi;
     const addrInput = document.getElementById(activeGeoTargetId);
+
+    // Lưu tọa độ ngay — dù reverse geocode thất bại vẫn không mất vị trí đã xác định.
+    const viDoEl = document.getElementById(fields.viDo);
+    const kinhDoEl = document.getElementById(fields.kinhDo);
+    if (viDoEl) viDoEl.value = lat;
+    if (kinhDoEl) kinhDoEl.value = lon;
+    setGeoStatus(fields.status, 'partial', lat, lon);
+
     const originalPlaceholder = addrInput.placeholder || "";
     addrInput.disabled = true;
     addrInput.value = "";
     addrInput.placeholder = "Đang lấy địa chỉ từ tọa độ [" + parseFloat(lat).toFixed(4) + ", " + parseFloat(lon).toFixed(4) + "]...";
-    
-    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&accept-language=vi')
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&accept-language=vi',
+          { signal: controller.signal })
       .then(r => r.json())
       .then(data => {
+        clearTimeout(timeoutId);
         addrInput.disabled = false;
         addrInput.placeholder = originalPlaceholder;
         if (data && data.display_name) {
           addrInput.value = data.display_name;
+          setGeoStatus(fields.status, 'ok', lat, lon);
         } else {
-          alert("Không thể chuyển đổi tọa độ này thành địa chỉ.");
+          setGeoStatus(fields.status, 'partial', lat, lon);
+          alert("Không thể chuyển đổi tọa độ này thành địa chỉ. Tọa độ vẫn được lưu — vui lòng nhập địa chỉ thủ công.");
         }
       })
       .catch(err => {
+        clearTimeout(timeoutId);
         addrInput.disabled = false;
         addrInput.placeholder = originalPlaceholder;
-        alert("Lỗi kết nối dịch vụ địa chỉ. Vui lòng nhập thủ công.");
-      });
+        setGeoStatus(fields.status, 'partial', lat, lon);
+        const msg = (err && err.name === 'AbortError')
+          ? "Hết thời gian chờ dịch vụ địa chỉ. Tọa độ vẫn được lưu — vui lòng nhập địa chỉ thủ công."
+          : "Lỗi kết nối dịch vụ địa chỉ. Tọa độ vẫn được lưu — vui lòng nhập địa chỉ thủ công.";
+        alert(msg);
+      })
+      .finally(() => { geoFetchInFlight = false; });
   }
 
   // ==========================================
@@ -862,15 +962,20 @@ body { font-family: 'Inter', sans-serif; }
         document.getElementById('suaTrangThai').value = data.trangThai;
         document.getElementById('suaPhone').value = data.soDienThoai;
         document.getElementById('suaDiaChi').value = data.diaChi;
-        document.getElementById('suaGioMoCua').value = data.gioMoCua.substring(0, 5);
-        document.getElementById('suaGioDongCua').value = data.gioDongCua.substring(0, 5);
 
-        setupSportCheckbox('sua_BongDa', 'sua_soLuongSan_BongDa', data.countBongDa);
-        setupSportCheckbox('sua_CauLong', 'sua_soLuongSan_CauLong', data.countCauLong);
-        setupSportCheckbox('sua_Tennis', 'sua_soLuongSan_Tennis', data.countTennis);
-        setupSportCheckbox('sua_Pickleball', 'sua_soLuongSan_Pickleball', data.countPickleball);
+        const gioMoInput = document.getElementById('suaGioMoCua');
+        const gioDongInput = document.getElementById('suaGioDongCua');
+        gioMoInput.value = data.gioMoCua ? data.gioMoCua.substring(0, 5) : '';
+        gioDongInput.value = data.gioDongCua ? data.gioDongCua.substring(0, 5) : '';
+        document.getElementById('suaGioWarning').classList.toggle('hidden', !!(data.gioMoCua && data.gioDongCua));
 
-        updateTotalCourtsEdit();
+        document.getElementById('suaViDo').value = data.viDo || '';
+        document.getElementById('suaKinhDo').value = data.kinhDo || '';
+        if (data.viDo && data.kinhDo) {
+          setGeoStatus('suaGeoStatus', 'ok', parseFloat(data.viDo), parseFloat(data.kinhDo));
+        } else {
+          setGeoStatus('suaGeoStatus', 'none');
+        }
 
         document.getElementById('modalSua').classList.remove('hidden');
       })
@@ -879,41 +984,16 @@ body { font-family: 'Inter', sans-serif; }
       });
   }
 
-  function setupSportCheckbox(checkboxId, inputId, count) {
-    const cb = document.getElementById(checkboxId);
-    const inp = document.getElementById(inputId);
-    if (count > 0) {
-      cb.checked = true;
-      inp.removeAttribute('disabled');
-      inp.value = count;
-    } else {
-      cb.checked = false;
-      inp.setAttribute('disabled', 'true');
-      inp.value = 0;
-    }
-  }
-
   function closeModalSua() {
     document.getElementById('modalSua').classList.add('hidden');
     document.getElementById('formSuaCoSo').reset();
   }
 
-  function updateTotalCourtsEdit() {
-    let total = 0;
-    document.querySelectorAll('.sport-count-edit').forEach(i => {
-      if (!i.hasAttribute('disabled')) total += parseInt(i.value) || 0;
-    });
-    const d = document.getElementById('sua_soLuongSanDuKienDisplay');
-    const h = document.getElementById('sua_soLuongSanDuKien');
-    if (d) d.value = total;
-    if (h) h.value = total;
-  }
-
   function finalValidateEdit() {
-    updateTotalCourtsEdit();
-    const total = parseInt(document.getElementById('sua_soLuongSanDuKien').value) || 0;
-    if (total <= 0) {
-      alert('Vui lòng chọn ít nhất một môn thể thao và nhập số sân lớn hơn 0.');
+    const viDo = document.getElementById('suaViDo').value;
+    const kinhDo = document.getElementById('suaKinhDo').value;
+    if (!viDo || !kinhDo) {
+      alert('Vị trí cơ sở chưa hợp lệ. Vui lòng chọn lại vị trí trên bản đồ hoặc nhập đầy đủ tọa độ.');
       return false;
     }
     return true;
@@ -978,6 +1058,8 @@ body { font-family: 'Inter', sans-serif; }
   function closePayOSModal() {
     if (payosSaving) return;
     document.getElementById('modalPayOS').classList.add('hidden');
+    document.getElementById('modalPayOSOtp').classList.add('hidden');
+    clearInterval(payosResendTimer);
     payosCurrentCoSoId = null;
   }
 
@@ -1021,6 +1103,10 @@ body { font-family: 'Inter', sans-serif; }
           showPayOSFormError(data.message || 'Không thể lưu cấu hình PayOS.');
           return;
         }
+        if (data.requiresOtp) {
+          openPayOSOtpModal(data.maskedEmail, data.resendWaitSeconds);
+          return;
+        }
         updatePayOSBadge(payosCurrentCoSoId, data.configuration.status);
         showPayOSToast(data.message || 'Đã cập nhật cấu hình PayOS.');
         closePayOSModal();
@@ -1034,6 +1120,138 @@ body { font-family: 'Inter', sans-serif; }
       });
 
     return false;
+  }
+
+  // ═══════════ PAYOS OTP MODAL ═══════════
+  let payosOtpFails = 0, payosResendTimer = null;
+
+  function openPayOSOtpModal(maskedEmail, resendWaitSeconds) {
+    document.getElementById('payosOtpEmailDisplay').textContent = maskedEmail || '';
+    document.getElementById('payosOtpErr').classList.add('hidden');
+    payosOtpFails = 0;
+    document.getElementById('payosOtpFails').textContent = '0';
+    document.querySelectorAll('.payos-otp').forEach(b => b.value = '');
+    document.getElementById('modalPayOSOtp').classList.remove('hidden');
+    setTimeout(() => document.querySelector('.payos-otp[data-index="0"]').focus(), 100);
+    payosStartResendCountdown(resendWaitSeconds || 60);
+  }
+
+  function closePayOSOtpModal() {
+    document.getElementById('modalPayOSOtp').classList.add('hidden');
+    clearInterval(payosResendTimer);
+  }
+
+  document.querySelectorAll('.payos-otp').forEach(box => {
+    box.addEventListener('input', e => {
+      const v = e.target.value.replace(/\D/g, '');
+      e.target.value = v ? v[0] : '';
+      if (v && +e.target.dataset.index < 5)
+        document.querySelector('.payos-otp[data-index="' + (+e.target.dataset.index + 1) + '"]').focus();
+    });
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value) {
+        const p = document.querySelector('.payos-otp[data-index="' + (+e.target.dataset.index - 1) + '"]');
+        if (p) { p.focus(); p.value = ''; }
+      }
+      if (e.key === 'Enter') submitPayOSOtp();
+    });
+    box.addEventListener('paste', e => {
+      e.preventDefault();
+      const d = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').split('');
+      document.querySelectorAll('.payos-otp').forEach((b,i) => b.value = d[i]||'');
+      document.querySelector('.payos-otp[data-index="' + Math.min(d.length-1,5) + '"]').focus();
+    });
+  });
+
+  function submitPayOSOtp() {
+    const err = document.getElementById('payosOtpErr');
+    err.classList.add('hidden');
+    let otp = '';
+    document.querySelectorAll('.payos-otp').forEach(b => otp += b.value);
+    if (otp.length < 6) { err.textContent = 'Vui lòng nhập đủ 6 chữ số.'; err.classList.remove('hidden'); return; }
+
+    const btn = document.getElementById('btnPayOSOtpVerify');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-1"></span> Đang xác thực...';
+
+    const body = new URLSearchParams();
+    body.set('action', 'verify-otp');
+    body.set('coSoId', payosCurrentCoSoId);
+    body.set('otp', otp);
+
+    fetch('${pageContext.request.contextPath}/admin/chi-nhanh/payos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    })
+      .then(r => r.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-shield-check text-sm"></i> Xác thực OTP';
+        if (data.success) {
+          clearInterval(payosResendTimer);
+          updatePayOSBadge(payosCurrentCoSoId, data.configuration.status);
+          showPayOSToast(data.message || 'Đã cập nhật cấu hình PayOS.');
+          document.getElementById('modalPayOSOtp').classList.add('hidden');
+          closePayOSModal();
+        } else {
+          payosOtpFails++;
+          document.getElementById('payosOtpFails').textContent = Math.min(payosOtpFails, 5);
+          document.querySelectorAll('.payos-otp').forEach(b => b.value = '');
+          document.querySelector('.payos-otp[data-index="0"]').focus();
+          err.textContent = data.message || 'Mã OTP không đúng.';
+          err.classList.remove('hidden');
+          if (payosOtpFails >= 5) {
+            setTimeout(() => { document.getElementById('modalPayOSOtp').classList.add('hidden'); }, 2000);
+          }
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-shield-check text-sm"></i> Xác thực OTP';
+        err.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        err.classList.remove('hidden');
+      });
+  }
+
+  function payosStartResendCountdown(seconds) {
+    let s = Math.max(seconds, 0);
+    const btn = document.getElementById('btnPayOSResend');
+    const cd = document.getElementById('payosResendCd');
+    cd.textContent = s;
+    btn.disabled = s > 0;
+    clearInterval(payosResendTimer);
+    payosResendTimer = setInterval(() => {
+      s--; cd.textContent = s;
+      if (s <= 0) { clearInterval(payosResendTimer); btn.disabled = false; }
+    }, 1000);
+  }
+
+  function resendPayOSOtp() {
+    const body = new URLSearchParams();
+    body.set('action', 'resend-otp');
+    body.set('coSoId', payosCurrentCoSoId);
+
+    fetch('${pageContext.request.contextPath}/admin/chi-nhanh/payos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    })
+      .then(r => r.json())
+      .then(data => {
+        const err = document.getElementById('payosOtpErr');
+        if (data.success) {
+          document.querySelectorAll('.payos-otp').forEach(b => b.value = '');
+          payosOtpFails = 0;
+          document.getElementById('payosOtpFails').textContent = '0';
+          err.classList.add('hidden');
+          document.querySelector('.payos-otp[data-index="0"]').focus();
+        } else {
+          err.textContent = data.message || 'Không thể gửi lại mã.';
+          err.classList.remove('hidden');
+        }
+        payosStartResendCountdown(data.resendWaitSeconds || 60);
+      });
   }
 
   function updatePayOSBadge(coSoId, status) {
@@ -1092,55 +1310,9 @@ body { font-family: 'Inter', sans-serif; }
           </div>
         </div>
 
-        <!-- Môn thể thao -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-zinc-700">Môn thể thao cung cấp <span class="text-red-500">*</span></label>
-          <div class="flex flex-col p-3 bg-zinc-50 rounded-xl border border-zinc-100 gap-0">
-            <div class="flex items-center justify-between py-2 border-b border-zinc-200/60">
-              <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer hover:text-zinc-900 select-none">
-                <input type="checkbox" id="sua_BongDa" name="loaiHinhKinhDoanh" value="Bóng đá" onchange="toggleSportCount(this,'sua_soLuongSan_BongDa')" class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600">
-                <span class="font-medium">Bóng đá</span>
-              </label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-500">Số sân:</span>
-                <input type="number" id="sua_soLuongSan_BongDa" name="soLuongSan_BongDa" value="0" min="1" disabled oninput="updateTotalCourtsEdit()"
-                       class="sport-count-edit w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400 focus:outline-none">
-              </div>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-zinc-200/60">
-              <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer hover:text-zinc-900 select-none">
-                <input type="checkbox" id="sua_CauLong" name="loaiHinhKinhDoanh" value="Cầu lông" onchange="toggleSportCount(this,'sua_soLuongSan_CauLong')" class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600">
-                <span class="font-medium">Cầu lông</span>
-              </label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-500">Số sân:</span>
-                <input type="number" id="sua_soLuongSan_CauLong" name="soLuongSan_CauLong" value="0" min="1" disabled oninput="updateTotalCourtsEdit()"
-                       class="sport-count-edit w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400 focus:outline-none">
-              </div>
-            </div>
-            <div class="flex items-center justify-between py-2 border-b border-zinc-200/60">
-              <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer hover:text-zinc-900 select-none">
-                <input type="checkbox" id="sua_Tennis" name="loaiHinhKinhDoanh" value="Tennis" onchange="toggleSportCount(this,'sua_soLuongSan_Tennis')" class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600">
-                <span class="font-medium">Tennis</span>
-              </label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-500">Số sân:</span>
-                <input type="number" id="sua_soLuongSan_Tennis" name="soLuongSan_Tennis" value="0" min="1" disabled oninput="updateTotalCourtsEdit()"
-                       class="sport-count-edit w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400 focus:outline-none">
-              </div>
-            </div>
-            <div class="flex items-center justify-between py-2">
-              <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer hover:text-zinc-900 select-none">
-                <input type="checkbox" id="sua_Pickleball" name="loaiHinhKinhDoanh" value="Pickleball" onchange="toggleSportCount(this,'sua_soLuongSan_Pickleball')" class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600">
-                <span class="font-medium">Pickleball</span>
-              </label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-500">Số sân:</span>
-                <input type="number" id="sua_soLuongSan_Pickleball" name="soLuongSan_Pickleball" value="0" min="1" disabled oninput="updateTotalCourtsEdit()"
-                       class="sport-count-edit w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400 focus:outline-none">
-              </div>
-            </div>
-          </div>
+        <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50/60 border border-blue-100 text-xs text-blue-700">
+          <i class="ti ti-info-circle text-sm shrink-0"></i>
+          <span>Môn thể thao và số sân do Quản lý cơ sở cấu hình tại trang "Quản lý Sân" của chi nhánh — Admin không chỉnh tại đây.</span>
         </div>
 
         <!-- Địa chỉ định vị GPS -->
@@ -1153,6 +1325,11 @@ body { font-family: 'Inter', sans-serif; }
           </label>
           <input type="text" name="diaChi" id="suaDiaChi" required placeholder="Số nhà, tên đường..."
                  class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
+          <input type="hidden" name="viDo" id="suaViDo">
+          <input type="hidden" name="kinhDo" id="suaKinhDo">
+          <p id="suaGeoStatus" class="text-[11px] font-semibold mt-0.5 text-amber-600">
+            <i class="ti ti-map-pin-off text-sm align-[-2px]"></i> Chưa xác định tọa độ — nhấn "Định vị địa chỉ / Tọa độ GG Map"
+          </p>
         </div>
 
         <!-- Số điện thoại -->
@@ -1175,14 +1352,9 @@ body { font-family: 'Inter', sans-serif; }
                    class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
           </div>
         </div>
-
-        <!-- Tổng số sân -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-zinc-700">Tổng số lượng sân dự kiến</label>
-          <input type="number" id="sua_soLuongSanDuKienDisplay" readonly value="0"
-                 class="w-full h-10 px-4 rounded-xl border border-zinc-200 text-sm font-bold text-zinc-500 bg-zinc-100 focus:outline-none select-none">
-          <input type="hidden" name="soLuongSanDuKien" id="sua_soLuongSanDuKien" value="0">
-        </div>
+        <p id="suaGioWarning" class="hidden text-[11px] font-semibold text-amber-600 -mt-2">
+          <i class="ti ti-clock-exclamation text-sm align-[-2px]"></i> Giờ hoạt động chưa được thiết lập cho cơ sở này — vui lòng nhập giờ thực tế trước khi lưu.
+        </p>
 
         <div class="flex justify-end gap-3 pt-3 border-t border-zinc-50">
           <button type="button" onclick="closeModalSua()" class="h-10 px-5 rounded-xl border border-zinc-200 text-sm font-bold text-zinc-600 hover:bg-zinc-50 transition-all">Hủy</button>
@@ -1267,6 +1439,47 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </form>
 
+  </div>
+</div>
+
+<!-- ═══ Modal Xác thực OTP — Cấu hình PayOS ═══ -->
+<div id="modalPayOSOtp" class="hidden fixed inset-0 z-[96] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closePayOSOtpModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-[420px] p-6 flex flex-col gap-5">
+    <div class="text-center">
+      <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-3">
+        <i class="ti ti-mail-check text-blue-600 text-3xl"></i>
+      </div>
+      <h4 class="text-base font-bold text-zinc-900 mb-1">Xác thực thay đổi PayOS</h4>
+      <p class="text-sm text-zinc-500">Mã OTP 6 chữ số đã được gửi đến</p>
+      <p class="text-sm font-semibold text-blue-600 mt-0.5" id="payosOtpEmailDisplay"></p>
+    </div>
+
+    <div class="flex justify-center gap-2">
+      <input type="text" maxlength="1" class="payos-otp adm-otp w-11 h-12 text-center text-xl font-bold border-2 border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" data-index="0"/>
+      <input type="text" maxlength="1" class="payos-otp adm-otp w-11 h-12 text-center text-xl font-bold border-2 border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" data-index="1"/>
+      <input type="text" maxlength="1" class="payos-otp adm-otp w-11 h-12 text-center text-xl font-bold border-2 border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" data-index="2"/>
+      <input type="text" maxlength="1" class="payos-otp adm-otp w-11 h-12 text-center text-xl font-bold border-2 border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" data-index="3"/>
+      <input type="text" maxlength="1" class="payos-otp adm-otp w-11 h-12 text-center text-xl font-bold border-2 border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" data-index="4"/>
+      <input type="text" maxlength="1" class="payos-otp adm-otp w-11 h-12 text-center text-xl font-bold border-2 border-zinc-200 rounded-xl bg-white text-zinc-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" data-index="5"/>
+    </div>
+
+    <div id="payosOtpErr" class="hidden text-center text-sm text-red-500 font-medium -mt-2"></div>
+    <p class="text-center text-xs text-zinc-400">Số lần nhập sai: <span id="payosOtpFails" class="font-bold text-red-500">0</span>/5</p>
+
+    <button type="button" onclick="submitPayOSOtp()" id="btnPayOSOtpVerify"
+            class="w-full h-11 rounded-xl bg-zinc-900 text-white text-sm font-bold hover:bg-zinc-800 transition-all flex items-center justify-center gap-2">
+      <i class="ti ti-shield-check text-sm"></i> Xác thực OTP
+    </button>
+    <div class="flex items-center justify-between -mt-1">
+      <button type="button" onclick="closePayOSOtpModal()" class="text-zinc-400 hover:text-zinc-700 text-sm flex items-center gap-1 bg-transparent border-none cursor-pointer">
+        <i class="ti ti-arrow-left text-sm"></i> Quay lại
+      </button>
+      <button type="button" onclick="resendPayOSOtp()" id="btnPayOSResend"
+              class="text-blue-500 hover:text-blue-700 text-sm disabled:opacity-40 bg-transparent border-none cursor-pointer" disabled>
+        Gửi lại mã (<span id="payosResendCd">60</span>s)
+      </button>
+    </div>
   </div>
 </div>
 

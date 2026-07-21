@@ -62,39 +62,87 @@ public class PayOSConfigurationService {
     public PayOSConfigurationUpdateResult updateConfiguration(int coSoId, String newClientId, String newApiKey,
                                                                 String newChecksumKey, HttpServletRequest req,
                                                                 TaiKhoan admin) {
-        CoSo coSo;
+        PreparedUpdate prepared;
         try {
-            coSo = loadActiveCoSoOrThrow(coSoId);
+            prepared = prepareUpdate(coSoId, newClientId, newApiKey, newChecksumKey);
         } catch (PayOSConfigurationException e) {
             return PayOSConfigurationUpdateResult.fail(e.getHttpStatus(), e.getMessage());
         }
+        return persistPrepared(prepared, req, admin);
+    }
 
+    /** Merge + validate CHỈ, KHÔNG ghi DB, KHÔNG ghi audit log — dùng để quyết định có cần OTP hay không. */
+    public PreparedUpdate prepareUpdate(int coSoId, String newClientId, String newApiKey, String newChecksumKey) {
+        CoSo coSo = loadActiveCoSoOrThrow(coSoId);
+        PayOSCredentials current = payOSConfigDAO.findPayOSConfigurationStatusByCoSoId(coSoId);
+        if (current == null) current = new PayOSCredentials(null, null, null);
+
+        MergeOutcome merged = mergeAndValidate(current, newClientId, newApiKey, newChecksumKey);
+        if (!merged.valid) {
+            throw new PayOSConfigurationException(400, merged.errorMessage);
+        }
+        return new PreparedUpdate(coSo, merged.finalClientId, merged.finalApiKey, merged.finalChecksumKey,
+                merged.fieldsChanged);
+    }
+
+    /** Ghi DB + audit log cho một PreparedUpdate đã được validate (và đã xác thực OTP nếu cần). */
+    public PayOSConfigurationUpdateResult persistPrepared(PreparedUpdate prepared, HttpServletRequest req,
+                                                           TaiKhoan admin) {
+        int coSoId = prepared.coSo.getCoSoID();
         PayOSCredentials current = payOSConfigDAO.findPayOSConfigurationStatusByCoSoId(coSoId);
         if (current == null) current = new PayOSCredentials(null, null, null);
         boolean wasConfiguredBefore = current.toState() != PayOSConfigState.NOT_CONFIGURED;
 
-        MergeOutcome merged = mergeAndValidate(current, newClientId, newApiKey, newChecksumKey);
-        if (!merged.valid) {
-            return PayOSConfigurationUpdateResult.fail(400, merged.errorMessage);
-        }
-        if (merged.fieldsChanged.isEmpty()) {
-            return PayOSConfigurationUpdateResult.ok(buildStatus(coSo, current), merged.fieldsChanged);
+        if (prepared.fieldsChanged.isEmpty()) {
+            return PayOSConfigurationUpdateResult.ok(buildStatus(prepared.coSo, current), prepared.fieldsChanged);
         }
 
         boolean updated = payOSConfigDAO.updatePayOSConfiguration(
-                coSoId, merged.finalClientId, merged.finalApiKey, merged.finalChecksumKey);
+                coSoId, prepared.finalClientId, prepared.finalApiKey, prepared.finalChecksumKey);
         if (!updated) {
             return PayOSConfigurationUpdateResult.fail(500, "Không thể cập nhật cấu hình PayOS. Vui lòng thử lại.");
         }
 
         String action = wasConfiguredBefore ? AuditLogService.ACTION_UPDATE : AuditLogService.ACTION_CREATE;
         String details = "Admin cập nhật cấu hình PayOS cho cơ sở #" + coSoId +
-                ". Fields changed: " + String.join(", ", merged.fieldsChanged) + ".";
+                " (đã xác thực OTP). Fields changed: " + String.join(", ", prepared.fieldsChanged) + ".";
         AuditLogService.log(req, admin, coSoId, action, AuditLogService.ENTITY_PAYOS_CONFIG,
-                String.valueOf(coSoId), coSo.getTenCoSo(), details);
+                String.valueOf(coSoId), prepared.coSo.getTenCoSo(), details);
 
-        PayOSCredentials finalRaw = new PayOSCredentials(merged.finalClientId, merged.finalApiKey, merged.finalChecksumKey);
-        return PayOSConfigurationUpdateResult.ok(buildStatus(coSo, finalRaw), merged.fieldsChanged);
+        PayOSCredentials finalRaw = new PayOSCredentials(prepared.finalClientId, prepared.finalApiKey,
+                prepared.finalChecksumKey);
+        return PayOSConfigurationUpdateResult.ok(buildStatus(prepared.coSo, finalRaw), prepared.fieldsChanged);
+    }
+
+    /** Sau khi OTP xác thực OK: nạp lại CoSo mới nhất rồi persist các giá trị pending trong challenge. */
+    public PayOSConfigurationUpdateResult persistChallenge(PayOSConfigChallenge challenge, HttpServletRequest req,
+                                                            TaiKhoan admin) {
+        CoSo coSo;
+        try {
+            coSo = loadActiveCoSoOrThrow(challenge.getCoSoId());
+        } catch (PayOSConfigurationException e) {
+            return PayOSConfigurationUpdateResult.fail(e.getHttpStatus(), e.getMessage());
+        }
+        PreparedUpdate prepared = new PreparedUpdate(coSo, challenge.getPendingClientId(),
+                challenge.getPendingApiKey(), challenge.getPendingChecksumKey(), challenge.getFieldsChanged());
+        return persistPrepared(prepared, req, admin);
+    }
+
+    public static final class PreparedUpdate {
+        public final CoSo coSo;
+        public final String finalClientId;
+        public final String finalApiKey;
+        public final String finalChecksumKey;
+        public final List<String> fieldsChanged;
+
+        PreparedUpdate(CoSo coSo, String finalClientId, String finalApiKey, String finalChecksumKey,
+                       List<String> fieldsChanged) {
+            this.coSo = coSo;
+            this.finalClientId = finalClientId;
+            this.finalApiKey = finalApiKey;
+            this.finalChecksumKey = finalChecksumKey;
+            this.fieldsChanged = fieldsChanged;
+        }
     }
 
     /** Chỉ dùng nội bộ tầng thanh toán backend. KHÔNG gọi từ servlet/API. */

@@ -23,11 +23,51 @@ public class AppStartupListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         addHoaDonGhiChuColumn();
+        checkAccountsReputationSchema();
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         // không cần dọn dẹp
+    }
+
+    /**
+     * Kiểm tra xem các cột liên quan đến reputation đã tồn tại trong dbo.Accounts chưa,
+     * và bảng CustomerReputationHistory có tồn tại không.
+     * Chỉ ghi log cảnh báo (warn) nếu thiếu, không tự động sửa bảng.
+     */
+    private void checkAccountsReputationSchema() {
+        String[] columns = {"DiemUyTin", "LateCancelCount", "NoShowCount", "CompletedBookingCount"};
+        for (String col : columns) {
+            String checkSql = "SELECT COL_LENGTH('dbo.Accounts', '" + col + "') AS col_len";
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(checkSql);
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Object lenObj = rs.getObject("col_len");
+                    if (lenObj == null) {
+                        logger.warn("AppStartupListener WARNING: Cột '{}' chưa tồn tại trong bảng dbo.Accounts. Vui lòng chạy file sql/migration_fix_accounts_reputation_columns.sql.", col);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("AppStartupListener: Lỗi khi kiểm tra cột '{}' trong dbo.Accounts: {}", col, e.getMessage());
+            }
+        }
+
+        // Kiểm tra bảng CustomerReputationHistory
+        String checkTableSql = "SELECT OBJECT_ID('dbo.CustomerReputationHistory') AS table_id";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(checkTableSql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                Object tableIdObj = rs.getObject("table_id");
+                if (tableIdObj == null) {
+                    logger.warn("AppStartupListener WARNING: Bảng 'dbo.CustomerReputationHistory' chưa tồn tại. Vui lòng chạy file sql/migration_customer_reputation_cancel_flow.sql.");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("AppStartupListener: Lỗi khi kiểm tra bảng dbo.CustomerReputationHistory: {}", e.getMessage());
+        }
     }
 
     /**

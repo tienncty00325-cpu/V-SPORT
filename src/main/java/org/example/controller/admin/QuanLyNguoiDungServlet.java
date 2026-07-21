@@ -206,29 +206,11 @@ public class QuanLyNguoiDungServlet extends HttpServlet {
             }
         } else if ("add".equals(action)) {
             boolean isAjax = "XMLHttpRequest".equals(req.getHeader("X-Requested-With"));
-            String username = req.getParameter("username");
             String email = req.getParameter("email");
             String phoneNumber = req.getParameter("phoneNumber");
 
-            if (username != null) username = username.trim();
             if (email != null) email = email.trim();
             if (phoneNumber != null) phoneNumber = phoneNumber.trim();
-
-            if (!org.example.util.ValidationUtil.isValidUsername(username)) {
-                String msg = "Tên đăng nhập không hợp lệ (3-50 ký tự, chỉ gồm chữ cái, số, gạch dưới và không chứa khoảng trắng)!";
-                if (isAjax) { sendJsonError(resp, msg); return; }
-                req.getSession().setAttribute("error", msg);
-                resp.sendRedirect(req.getContextPath() + "/admin/nhan-su");
-                return;
-            }
-
-            if (TaiKhoanDAO.kiemtraUsername(username)) {
-                String msg = "Tên đăng nhập đã tồn tại!";
-                if (isAjax) { sendJsonError(resp, msg); return; }
-                req.getSession().setAttribute("error", msg);
-                resp.sendRedirect(req.getContextPath() + "/admin/nhan-su");
-                return;
-            }
 
             if (email == null || email.isEmpty()) {
                 String msg = "Email không được để trống!";
@@ -266,6 +248,9 @@ public class QuanLyNguoiDungServlet extends HttpServlet {
 
             String fullName = req.getParameter("fullName");
             if (fullName != null) fullName = fullName.trim();
+
+            // Generate internal username from email – not from client
+            String username = generateUniqueUsername(email);
 
             TaiKhoan newAcc = new TaiKhoan();
             newAcc.setUsername(username);
@@ -419,6 +404,21 @@ public class QuanLyNguoiDungServlet extends HttpServlet {
             sb.append(chars.charAt(random.nextInt(chars.length())));
         }
         return sb.toString();
+    }
+
+    private String generateUniqueUsername(String email) {
+        String base = email.substring(0, email.indexOf('@'))
+                .toLowerCase()
+                .replaceAll("[^a-z0-9_]", "");
+        if (base.length() < 3) base = (base + "vsport").substring(0, 6);
+        if (base.length() > 30) base = base.substring(0, 30);
+        if (!TaiKhoanDAO.kiemtraUsername(base)) return base;
+        java.security.SecureRandom rng = new java.security.SecureRandom();
+        for (int i = 0; i < 30; i++) {
+            String cand = base + (100 + rng.nextInt(899900));
+            if (!TaiKhoanDAO.kiemtraUsername(cand)) return cand;
+        }
+        return base + System.nanoTime() % 1_000_000_000L;
     }
 }
 

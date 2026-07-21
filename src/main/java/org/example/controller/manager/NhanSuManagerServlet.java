@@ -115,7 +115,6 @@ public class NhanSuManagerServlet extends HttpServlet {
         String action = req.getParameter("action");
         try {
             if ("add".equals(action)) {
-                String username = req.getParameter("username");
                 String fullName = req.getParameter("fullName");
                 String email = req.getParameter("email");
                 String phoneNumber = req.getParameter("phoneNumber");
@@ -123,22 +122,26 @@ public class NhanSuManagerServlet extends HttpServlet {
                 String password = req.getParameter("password");
 
                 // Trim inputs
-                if (username != null) username = username.trim();
                 if (fullName != null) fullName = fullName.trim();
                 if (email != null) email = email.trim();
                 if (phoneNumber != null) phoneNumber = phoneNumber.trim();
                 if (password != null) password = password.trim();
 
-                // Validate fields
-                java.util.Map<String, String> errors = org.example.util.ValidationUtils.validateStaffCreate(username, email, phoneNumber, fullName, roleId);
+                // Validate fields (username generated internally – not from client)
                 org.example.dao.TaiKhoanDAO taiKhoanDAO = new org.example.dao.impl.TaiKhoanDAOImpl();
-                if (taiKhoanDAO.kiemtraUsername(username)) errors.put("username", "Tên đăng nhập đã tồn tại");
+                java.util.Map<String, String> errors = new java.util.LinkedHashMap<>();
+                if (email == null || email.isEmpty()) errors.put("email", "Email không được để trống");
+                else if (!org.example.util.ValidationUtil.isValidEmail(email)) errors.put("email", "Email không hợp lệ");
                 if (taiKhoanDAO.kiemtraEmail(email)) errors.put("email", "Email đã tồn tại trên hệ thống");
+                if (fullName == null || fullName.isEmpty()) errors.put("fullName", "Họ tên không được để trống");
                 if (password == null || password.isEmpty()) errors.put("password", "Mật khẩu không được để trống");
                 if (!errors.isEmpty()) throw new IllegalArgumentException(errors.toString());
 
                 // Validate strong password
                 org.example.util.ValidationUtils.validateStrongPassword(password);
+
+                // Generate internal username from email
+                String username = generateUniqueUsername(email, taiKhoanDAO);
 
                 // Build TaiKhoan (but do NOT save yet – wait for OTP)
                 TaiKhoan newAcc = new TaiKhoan();
@@ -304,6 +307,21 @@ public class NhanSuManagerServlet extends HttpServlet {
             resp.setContentType("text/plain;charset=UTF-8");
             resp.getWriter().write("Lỗi hệ thống. Vui lòng liên hệ quản trị viên.");
         }
+    }
+
+    private String generateUniqueUsername(String email, org.example.dao.TaiKhoanDAO dao) {
+        String base = email.substring(0, email.indexOf('@'))
+                .toLowerCase()
+                .replaceAll("[^a-z0-9_]", "");
+        if (base.length() < 3) base = (base + "vsport").substring(0, 6);
+        if (base.length() > 30) base = base.substring(0, 30);
+        if (!dao.kiemtraUsername(base)) return base;
+        java.security.SecureRandom rng = new java.security.SecureRandom();
+        for (int i = 0; i < 30; i++) {
+            String cand = base + (100 + rng.nextInt(899900));
+            if (!dao.kiemtraUsername(cand)) return cand;
+        }
+        return base + System.nanoTime() % 1_000_000_000L;
     }
 
     private String buildStaffListJson(List<NhanSuDTO> staffList) {

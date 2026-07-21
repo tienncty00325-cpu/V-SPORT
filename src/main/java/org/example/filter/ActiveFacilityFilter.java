@@ -74,7 +74,7 @@ public class ActiveFacilityFilter implements Filter {
             return;
         }
 
-        httpResponse.sendRedirect(httpRequest.getContextPath() + "/dangnhap?facilityInactive=true");
+        httpResponse.sendRedirect(httpRequest.getContextPath() + "/he-thong/dang-nhap?facilityInactive=true");
     }
 
     private boolean isAjaxRequest(HttpServletRequest req) {

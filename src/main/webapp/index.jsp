@@ -1,1343 +1,976 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
-<%@ page import="org.example.dao.impl.CoSoDAOImpl" %>
-<%@ page import="org.example.dao.impl.LoaiSanDAOImpl" %>
-<%@ page import="org.example.model.CoSo" %>
-<%@ page import="org.example.model.MonTheThao" %>
-<%@ page import="java.util.List" %>
-<%
-    Object roleIdObj = session.getAttribute("roleId");
-    Object fullNameObj = session.getAttribute("fullName");
-    Object emailObj    = session.getAttribute("email");
-
-    int roleId = -1;
-    if (roleIdObj instanceof Number) {
-        roleId = ((Number) roleIdObj).intValue();
-    } else if (roleIdObj instanceof String) {
-        try { roleId = Integer.parseInt((String) roleIdObj); } catch (NumberFormatException ignored) {}
-    }
-
-    String fullName    = fullNameObj != null ? fullNameObj.toString() : "";
-    String email       = emailObj    != null ? emailObj.toString()    : "";
-    boolean isLoggedIn = roleId != -1 || session.getAttribute("user") != null;
-    String displayName = !fullName.trim().isEmpty() ? fullName : (!email.trim().isEmpty() ? email : "Tài khoản");
-    String avatarChar  = !displayName.isEmpty() ? displayName.substring(0, 1).toUpperCase() : "T";
-
-    if (roleId != -1 && roleId != org.example.util.RoleRedirectUtil.ROLE_CUSTOMER) {
-        String homePath = org.example.util.RoleRedirectUtil.getHomePathByRoleId(roleId);
-        response.sendRedirect(request.getContextPath() + homePath);
-        return;
-    }
-    String ctx = request.getContextPath();
-
-    CoSoDAOImpl coSoDAO = new CoSoDAOImpl();
-    LoaiSanDAOImpl loaiSanDAO = new LoaiSanDAOImpl();
-    List<CoSo> dsCoSo = null;
-    List<MonTheThao> dsMon = null;
-    try {
-        dsCoSo = coSoDAO.getAllCoSo();
-        dsMon = loaiSanDAO.getAllMonTheThao();
-    } catch (Exception e) {
-        dsCoSo = new java.util.ArrayList<>();
-        dsMon = new java.util.ArrayList<>();
-    }
-%>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
-<html class="light" lang="vi">
+<html lang="vi">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>V-SPORT - Hệ Thống Đặt Sân Thể Thao</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=DM+Sans:wght@400;500;700&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "secondary-fixed": "#e5e2e1",
-                        "outline-variant": "#c5c9b0",
-                        "surface": "#faf9fd",
-                        "on-primary-fixed-variant": "#3b4d00",
-                        "secondary-fixed-dim": "#c8c6c5",
-                        "on-primary": "#ffffff",
-                        "inverse-on-surface": "#f1f0f4",
-                        "error": "#ba1a1a",
-                        "surface-bright": "#faf9fd",
-                        "primary-container": "#afd639",
-                        "inverse-surface": "#2f3033",
-                        "surface-dim": "#dad9dd",
-                        "on-error-container": "#93000a",
-                        "error-container": "#ffdad6",
-                        "on-tertiary-fixed-variant": "#00419c",
-                        "on-error": "#ffffff",
-                        "on-tertiary": "#ffffff",
-                        "outline": "#757964",
-                        "on-secondary-fixed-variant": "#474646",
-                        "on-surface": "#1a1c1e",
-                        "secondary": "#5f5e5e",
-                        "surface-container-low": "#f4f3f7",
-                        "tertiary-fixed-dim": "#b0c6ff",
-                        "surface-container": "#eeedf1",
-                        "surface-container-lowest": "#ffffff",
-                        "on-secondary-fixed": "#1c1b1b",
-                        "on-background": "#1a1c1e",
-                        "surface-tint": "#506600",
-                        "on-tertiary-container": "#004db6",
-                        "secondary-container": "#e5e2e1",
-                        "on-surface-variant": "#444936",
-                        "tertiary-fixed": "#d9e2ff",
-                        "on-secondary": "#ffffff",
-                        "on-primary-container": "#465a00",
-                        "on-primary-fixed": "#161f00",
-                        "surface-container-highest": "#e3e2e6",
-                        "court-blue": "#427CF0",
-                        "primary-fixed-dim": "#aed538",
-                        "tertiary": "#0458cb",
-                        "primary-fixed": "#c9f253",
-                        "inverse-primary": "#aed538",
-                        "surface-container-high": "#e8e8ec",
-                        "tertiary-container": "#b2c7ff",
-                        "primary": "#506600",
-                        "on-tertiary-fixed": "#001945",
-                        "background": "#faf9fd",
-                        "on-secondary-container": "#656464",
-                        "surface-variant": "#e3e2e6"
-                    },
-                    borderRadius: {
-                        DEFAULT: "0.25rem",
-                        lg: "0.5rem",
-                        xl: "0.75rem",
-                        full: "9999px"
-                    },
-                    spacing: {
-                        base: "8px",
-                        "container-max": "1680px",
-                        "margin-desktop": "32px",
-                        "margin-mobile": "16px",
-                        gutter: "24px"
-                    },
-                    fontFamily: {
-                        "headline-sm": ["Barlow Condensed", "sans-serif"],
-                        "body-md": ["Barlow", "sans-serif"],
-                        "headline-lg": ["Barlow Condensed", "sans-serif"],
-                        "label-md": ["Barlow", "sans-serif"],
-                        "headline-md": ["Barlow Condensed", "sans-serif"],
-                        "headline-lg-mobile": ["Barlow Condensed", "sans-serif"],
-                        "display-lg": ["Barlow Condensed", "sans-serif"],
-                        "label-lg": ["Barlow", "sans-serif"],
-                        "body-lg": ["Barlow", "sans-serif"]
-                    },
-                    fontSize: {
-                        "headline-sm": ["24px", { lineHeight: "1.2", fontWeight: "600" }],
-                        "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
-                        "headline-lg": ["48px", { lineHeight: "1.1", fontWeight: "700" }],
-                        "label-md": ["12px", { lineHeight: "1.0", fontWeight: "500" }],
-                        "headline-md": ["32px", { lineHeight: "1.2", fontWeight: "600" }],
-                        "headline-lg-mobile": ["32px", { lineHeight: "1.1", fontWeight: "700" }],
-                        "display-lg": ["72px", { lineHeight: "1.0", letterSpacing: "-0.02em", fontWeight: "700" }],
-                        "label-lg": ["14px", { lineHeight: "1.0", letterSpacing: "0.05em", fontWeight: "700" }],
-                        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }]
-                    },
-                    keyframes: {
-                        marquee: {
-                            "0%":   { transform: "translateX(0)" },
-                            "100%": { transform: "translateX(-50%)" }
-                        }
-                    },
-                    animation: {
-                        "marquee": "marquee 20s linear infinite"
-                    }
-                }
-            }
-        }
-    </script>
-<style>
-        .hover-outline:hover { box-shadow: 0 0 0 1px #0F0F0F; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Scroll reveal system styles */
-        .scroll-reveal {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-            will-change: opacity, transform;
-        }
-        .scroll-reveal.reveal-fade {
-            transform: none;
-        }
-        .scroll-reveal.reveal-3d {
-            transform: perspective(1000px) rotateX(12deg) translateY(35px) scale(0.96);
-            transform-origin: top center;
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .scroll-reveal.reveal-visible {
-            opacity: 1;
-            transform: translateY(0) rotateX(0deg) scale(1);
-        }
-        .delay-100 { transition-delay: 100ms; }
-        .delay-150 { transition-delay: 150ms; }
-        .delay-200 { transition-delay: 200ms; }
-        .delay-300 { transition-delay: 300ms; }
-
-        /* VIP PRO Premium styles */
-        .shimmer-text {
-            background: linear-gradient(to right, #0F0F0F 20%, #a8cc00 40%, #a8cc00 60%, #0F0F0F 80%);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: shine 4s linear infinite;
-        }
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        .btn-pulse-glow {
-            position: relative;
-            z-index: 1;
-        }
-        .btn-pulse-glow::after {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            background: inherit;
-            border-radius: inherit;
-            z-index: -1;
-            opacity: 0.45;
-            transform: scale(1);
-            animation: pulse-glow 2s infinite;
-            pointer-events: none;
-        }
-        @keyframes pulse-glow {
-            0% { transform: scale(1); opacity: 0.45; }
-            100% { transform: scale(1.08, 1.16); opacity: 0; }
-        }
-
-        .card-glow-sweep {
-            position: relative;
-            overflow: hidden;
-        }
-        .card-glow-sweep::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -85%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 100%);
-            transform: skewX(-25deg);
-            z-index: 10;
-            pointer-events: none;
-            transition: none;
-        }
-        .card-glow-sweep:hover::before {
-            left: 130%;
-            transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .img-ken-burns {
-            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .group:hover .img-ken-burns {
-            transform: scale(1.08) rotate(1deg);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(3deg); }
-        }
-        .animate-float {
-            animation: float 4s ease-in-out infinite;
-        }
-
-        /* Hero Drop Down Animation */
-        @keyframes drop-down {
-            0% {
-                transform: translateY(-100%);
-            }
-            100% {
-                transform: translateY(0);
-            }
-        }
-        .hero-drop {
-            transform: translateY(-100%);
-            animation: drop-down 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .hero-drop-1 {
-            animation-delay: 0.1s;
-        }
-        .hero-drop-2 {
-            animation-delay: 0.3s;
-        }
-        .hero-drop-3 {
-            animation-delay: 0.5s;
-        }
-
-        /* Navigation Links Modern Style */
-        .nav-link {
-            font-family: 'Poppins', sans-serif !important;
-            font-size: 15px !important;
-            font-weight: 500 !important;
-            color: #4b5563 !important; /* gray-600 */
-            text-transform: none !important; /* normal capitalization */
-            letter-spacing: -0.1px !important;
-            padding: 8px 16px !important;
-            border-radius: 9999px !important; /* capsule pill */
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            position: relative !important;
-            display: inline-block !important;
-            text-decoration: none !important;
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background-color: #afd639; /* neon lime green */
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: translateX(-50%);
-        }
-        .nav-link:hover {
-            color: #000000 !important;
-            background-color: #f3f4f6 !important; /* soft grey capsule pill background */
-        }
-        .nav-link:hover::after {
-            width: 30% !important; /* elegant center highlight line */
-        }
-        .nav-link.active {
-            color: #000000 !important;
-            font-weight: 600 !important;
-            background-color: #f3f4f6 !important;
-        }
-        .nav-link.active::after {
-            width: 30% !important;
-        }
-
-        /* Side Drawer Offcanvas CSS */
-        .side-drawer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-            visibility: hidden;
-            transition: visibility 0.3s ease;
-        }
-        .side-drawer.open {
-            visibility: visible;
-        }
-        .side-drawer-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .side-drawer.open .side-drawer-overlay {
-            opacity: 1;
-        }
-        .side-drawer-content {
-            position: absolute;
-            top: 0;
-            right: -360px;
-            width: 360px;
-            height: 100%;
-            background-color: #ffffff;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            transition: right 0.3s ease;
-            padding: 24px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-        .side-drawer.open .side-drawer-content {
-            right: 0;
-        }
-        .side-drawer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-        }
-        .side-drawer-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #999999;
-            transition: color 0.2s;
-            line-height: 1;
-        }
-        .side-drawer-close:hover {
-            color: #333333;
-        }
-        .side-drawer-section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: #999999;
-            letter-spacing: 0.1em;
-            margin-bottom: 16px;
-            margin-top: 0;
-            text-transform: uppercase;
-        }
-        .user-section {
-            background-color: #f9f9f9;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #f0f0f0;
-        }
-        .drawer-user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .avatar-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background-color: #9dc93c;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        .user-details {
-            flex: 1;
-        }
-        .user-name {
-            font-weight: 600;
-            color: #333333;
-            margin: 0;
-            font-size: 15px;
-        }
-        .user-role {
-            font-size: 12px;
-            color: #999999;
-            margin: 0;
-        }
-        .drawer-user-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .btn-drawer-action {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #444444;
-            text-decoration: none;
-            font-size: 14px;
-            padding: 8px;
-            border-radius: 4px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .btn-drawer-action:hover {
-            background-color: #f0f0f0;
-            color: #000000;
-        }
-        .drawer-guest-info {
-            text-align: center;
-            padding: 8px 0;
-        }
-        .guest-msg {
-            font-size: 13px;
-            color: #666666;
-            margin-bottom: 14px;
-        }
-        .btn-drawer-login {
-            background-color: #333333;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 13px;
-            transition: background-color 0.2s;
-            width: 100%;
-        }
-        .btn-drawer-login:hover {
-            background-color: #000000;
-        }
-        .drawer-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #333333;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 600;
-            padding: 10px 0;
-            border-bottom: 1px solid #f9f9f9;
-            transition: color 0.2s, padding-left 0.2s;
-        }
-        .drawer-link:hover {
-            color: #9dc93c;
-            padding-left: 6px;
-        }
-        .support-channels {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .channel-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #333333;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.2s;
-        }
-        .channel-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .zalo-btn {
-            background-color: #f4f8ff;
-            border-color: #cbdcff;
-        }
-        .zalo-btn:hover {
-            background-color: #e8f1ff;
-            border-color: #a3c3ff;
-        }
-        .messenger-btn {
-            background-color: #fff2f9;
-            border-color: #ffdceb;
-        }
-        .messenger-btn:hover {
-            background-color: #ffe6f3;
-            border-color: #ffb8d9;
-        }
-        .channel-icon {
-            width: 24px;
-            height: 24px;
-        }
-        .side-drawer-footer {
-            margin-top: auto;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 20px;
-        }
-        .contact-item {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 12px;
-        }
-        .contact-item .label {
-            font-size: 12px;
-            color: #999999;
-        }
-        .contact-item .value {
-            font-size: 15px;
-            font-weight: 700;
-            color: #333333;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-SPORT - Nền Tảng Đặt Sân Thể Thao Chuyên Nghiệp</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/vsport-customer.css">
+    <link rel="stylesheet" href="assets/css/vsport-home-enhanced.css">
 </head>
-<body class="bg-surface text-on-surface font-body-md antialiased overflow-x-hidden">
+<body>
 
-<!-- TopNavBar -->
-<nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 w-full sticky top-0 z-50 bg-white border-b border-outline-variant select-none">
-    <!-- Logo -->
-    <a href="<%= ctx %>/index.jsp" class="flex items-center gap-2 no-underline hover:scale-[1.03] transition-transform">
-        <img src="<%= ctx %>/resources/logo.png" alt="V-SPORT Logo" class="h-9 w-9 object-cover rounded-md select-none border border-neutral-100 shadow-sm"/>
-        <span class="font-['Poppins'] font-bold text-xl md:text-2xl uppercase text-[#111827] tracking-tight">V-SPORT<span class="text-[#afd639]">.</span></span>
-    </a>
-    
-    <!-- Navigation Links -->
-    <div class="hidden md:flex gap-2 items-center">
-        <a class="nav-link active" href="<%= ctx %>/index.jsp">Trang chủ</a>
-        <a class="nav-link" href="#">Giới thiệu</a>
-        <a class="nav-link" href="#">Sự kiện</a>
-        <a class="nav-link" href="#">Tin tức</a>
-        <a class="nav-link" href="<%= ctx %>/customer/dat-san">Đặt sân</a>
-        <a class="nav-link" href="#">Liên hệ</a>
-    </div>
-    
-    <!-- Action Icons -->
-    <div class="flex items-center gap-6">
-        <!-- Cart / Booking Bag -->
-        <a href="<%= ctx %>/customer/dat-san" class="relative group flex items-center justify-center w-8 h-8 text-[#333333] hover:text-[#000000] transition-transform hover:scale-105 active:scale-95">
-            <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-            </svg>
-            <span class="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] bg-[#9dc93c] rounded-full border border-white flex items-center justify-center text-[9px] font-bold text-white leading-none">0</span>
-        </a>
-        
-        <!-- User Icon -->
-        <div class="relative group">
-            <button id="header-user-btn" onclick="handleUserClick(this)" class="flex items-center justify-center w-8 h-8 text-[#333333] hover:text-[#000000] transition-transform hover:scale-105 active:scale-95">
-                <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                </svg>
-            </button>
-            <% if (isLoggedIn) { %>
-                <!-- Dropdown for Logged-In User -->
-                <div id="user-profile-dropdown" class="absolute right-0 top-full mt-2 w-48 bg-white shadow-xl rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-neutral-100">
-                    <div class="px-4 py-2.5 bg-neutral-50 border-b border-neutral-100">
-                        <p class="text-xs text-neutral-400">Tài khoản</p>
-                        <p class="text-sm font-semibold text-[#0F0F0F] truncate"><%= displayName %></p>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Top Contact Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-left">
+                <span><i class="fa-solid fa-phone"></i> Hỗ trợ: 1900 1234</span>
+                <span class="divider">|</span>
+                <span><i class="fa-solid fa-envelope"></i> contact@v-sport.vn</span>
+            </div>
+            <div class="top-bar-right">
+                <a href="#">Tải Ứng Dụng</a>
+                <span class="divider">|</span>
+                <a href="#">Trở thành đối tác</a>
+                <span class="divider">|</span>
+                <% if (session != null && session.getAttribute("user") != null) {
+                    org.example.model.TaiKhoan user = (org.example.model.TaiKhoan) session.getAttribute("user");
+                    String displayName = (user.getFullName() != null && !user.getFullName().trim().isEmpty()) ? user.getFullName() : "Khách hàng";
+                    String rolePath = org.example.util.RoleRedirectUtil.getHomePathByRoleId(user.getRoleId());
+                %>
+                    <div class="user-profile-menu" style="display:inline-flex; align-items:center; gap: 8px;">
+                        <i class="fa-solid fa-circle-user" style="font-size: 16px; color: var(--accent-red, #ff2433);"></i>
+                        <a href="${pageContext.request.contextPath}<%= rolePath %>" style="font-weight: 600;"><%= displayName %></a>
+                        <span class="divider">|</span>
+                        <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
                     </div>
-                    <a href="<%= ctx %>/customer/tai-khoan" class="block px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-black transition-colors">Tài Khoản</a>
-                    <a href="<%= ctx %>/customer/dat-san?openHistory=true" class="block px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-black transition-colors">Lịch Sử Đặt Sân</a>
-                    <a href="<%= ctx %>/logout" class="block px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors border-t border-neutral-100">Đăng Xuất</a>
-                </div>
-            <% } %>
+                <% } else { %>
+                    <a href="javascript:void(0)" onclick="openAuthModal('login')">Đăng nhập</a>
+                    <a href="javascript:void(0)" onclick="openAuthModal('register')" class="btn-register-topbar">Đăng ký</a>
+                <% } %>
+            </div>
         </div>
-        
-        <!-- Search Icon -->
-        <button class="flex items-center justify-center w-8 h-8 text-[#333333] hover:text-[#000000] transition-transform hover:scale-105 active:scale-95">
-            <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-        </button>
-        
-        <!-- Nine-dots grid -->
-        <button onclick="openSideDrawer()" class="flex items-center justify-center w-8 h-8 text-[#333333] hover:text-[#000000] transition-transform hover:scale-105 active:scale-95">
-            <svg class="w-[20px] h-[20px]" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="4" height="4" rx="0.5" />
-                <rect x="10" y="3" width="4" height="4" rx="0.5" />
-                <rect x="17" y="3" width="4" height="4" rx="0.5" />
-                <rect x="3" y="10" width="4" height="4" rx="0.5" />
-                <rect x="10" y="10" width="4" height="4" rx="0.5" />
-                <rect x="17" y="10" width="4" height="4" rx="0.5" />
-                <rect x="3" y="17" width="4" height="4" rx="0.5" />
-                <rect x="10" y="17" width="4" height="4" rx="0.5" />
-                <rect x="17" y="17" width="4" height="4" rx="0.5" />
-            </svg>
-        </button>
     </div>
-</nav>
 
-<!-- Hero Section -->
-<section class="relative w-full h-[65vh] md:h-[75vh] flex items-center justify-center overflow-hidden bg-neutral-900 select-none">
-    <!-- Background Image -->
-    <div class="absolute inset-0 z-0">
-        <img class="w-full h-full object-cover object-center img-ken-burns opacity-55" alt="Cơ sở thể thao hiện đại V-SPORT" src="<%= ctx %>/assets/images/home/hero-sports-facility.webp"/>
-        <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/60 to-transparent"></div>
-    </div>
-    
-    <!-- Hero Content -->
-    <div class="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
-        <span class="font-label-lg text-label-lg text-[#afd639] uppercase mb-3 tracking-widest text-xs md:text-sm animate-fade-in font-bold">HỆ THỐNG ĐẶT SÂN THỂ THAO HÀNG ĐẦU</span>
-        <h1 class="font-display-lg text-display-lg text-white uppercase mb-4 text-3xl md:text-5xl lg:text-6xl leading-tight shimmer-text font-extrabold tracking-wide">Tìm kiếm và đặt sân thể thao nhanh chóng</h1>
-        <p class="text-neutral-300 font-medium text-sm md:text-base lg:text-lg max-w-2xl mb-8 leading-relaxed font-body-md">
-            Trải nghiệm tìm kiếm thông minh, thanh toán an toàn PayOS và quản lý lịch đặt tiện lợi.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4">
-            <a class="inline-block bg-[#afd639] hover:bg-[#97bd2e] text-neutral-950 font-bold uppercase py-3.5 px-8 tracking-widest text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg btn-pulse-glow" href="<%= ctx %>/customer/dat-san">Đặt sân ngay</a>
-            <a class="inline-block bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold uppercase py-3.5 px-8 tracking-widest text-sm hover:scale-105 active:scale-95 transition-transform backdrop-blur-md" href="<%= ctx %>/customer/dat-san">Khám phá sân</a>
+    <!-- Main Navbar -->
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="#">
+                    V<span class="logo-icon"><i class="fa-solid fa-bolt text-red" style="margin: 0 5px;"></i></span>SPORT
+                </a>
+            </div>
+            <nav class="main-menu">
+                <ul>
+                    <li class="active"><a href="#">TRANG CHỦ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/customer/tim-kiem">TÌM SÂN</a></li>
+                    <li><a href="#matchmaking">GHÉP TRẬN</a></li>
+                    <li><a href="#trusted-players">CỘNG ĐỒNG</a></li>
+                    <li><a href="#">BẢNG GIÁ</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <a href="#" class="action-icon"><i class="fa-solid fa-magnifying-glass"></i></a>
+                <a href="#" class="action-icon cart-icon">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="cart-badge">2</span>
+                </a>
+                <a href="${pageContext.request.contextPath}/customer/tim-kiem" class="btn-primary btn-ripple" style="padding: 10px 20px; font-size: 13px;">Đặt Sân</a>
+            </div>
         </div>
-    </div>
-</section>
+    </header>
 
-<!-- Quick Booking Bar -->
-<section class="max-w-[95%] xl:max-w-[92%] mx-auto px-margin-mobile md:px-margin-desktop relative z-20">
-    <div class="flex justify-center -mt-10 md:-mt-16">
-        <form action="<%= ctx %>/customer/dat-san" method="GET" class="w-full max-w-5xl bg-white border border-neutral-200/80 shadow-2xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-6 select-none relative rounded-none">
-            <!-- Chọn Môn Thể Thao -->
-            <div class="flex flex-col">
-                <label for="sportId" class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">Chọn Môn Thể Thao</label>
-                <div class="relative">
-                    <select id="sportId" name="sportId" class="w-full bg-neutral-50 border border-neutral-200 rounded-none py-3 px-4 text-neutral-800 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-neutral-400 appearance-none cursor-pointer">
-                        <option value="">Tất cả môn thể thao</option>
-                        <% if (dsMon != null) {
-                            for (MonTheThao m : dsMon) { %>
-                                <option value="<%= m.getMonTheThaoID() %>"><%= m.getTenMon() %></option>
-                            <% }
-                        } %>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-400">
-                        <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Chọn Cơ Sở -->
-            <div class="flex flex-col">
-                <label for="branchId" class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">Chọn Cơ Sở</label>
-                <div class="relative">
-                    <select id="branchId" name="branchId" class="w-full bg-neutral-50 border border-neutral-200 rounded-none py-3 px-4 text-neutral-800 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-neutral-400 appearance-none cursor-pointer">
-                        <option value="">Tất cả cơ sở</option>
-                        <% if (dsCoSo != null) {
-                            for (CoSo c : dsCoSo) { %>
-                                <option value="<%= c.getCoSoID() %>"><%= c.getTenCoSo() %></option>
-                            <% }
-                        } %>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-400">
-                        <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Chọn Ngày -->
-            <div class="flex flex-col">
-                <label for="date" class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">Chọn Ngày</label>
-                <input type="date" id="date" name="date" class="w-full bg-neutral-50 border border-neutral-200 rounded-none py-2.5 px-4 text-neutral-800 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer"/>
-            </div>
-            
-            <!-- Nút Tìm Kiếm -->
-            <div class="flex items-end">
-                <button type="submit" class="w-full bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase py-3.5 px-6 rounded-none tracking-wider transition-colors shadow-md hover:shadow-lg active:scale-[0.98] transition-all text-sm">
-                    TÌM SÂN NGAY
-                </button>
-            </div>
-        </form>
+    <!-- Marquee Strip -->
+    <div class="marquee-container">
+        <div class="marquee-content">
+            <span><i class="fa-solid fa-bolt"></i> Đặt sân nhanh</span>
+            <span><i class="fa-solid fa-users"></i> Ghép trận dễ dàng</span>
+            <span><i class="fa-solid fa-shield-check"></i> Uy tín minh bạch</span>
+            <span><i class="fa-solid fa-clock"></i> Check-in đúng giờ</span>
+            <span><i class="fa-solid fa-fire"></i> Cộng đồng thể thao lớn nhất</span>
+            <!-- Repeat for seamless loop -->
+            <span><i class="fa-solid fa-bolt"></i> Đặt sân nhanh</span>
+            <span><i class="fa-solid fa-users"></i> Ghép trận dễ dàng</span>
+            <span><i class="fa-solid fa-shield-check"></i> Uy tín minh bạch</span>
+            <span><i class="fa-solid fa-clock"></i> Check-in đúng giờ</span>
+            <span><i class="fa-solid fa-fire"></i> Cộng đồng thể thao lớn nhất</span>
+        </div>
     </div>
-</section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const homeDateInput = document.getElementById('date');
-        if (homeDateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            homeDateInput.min = today;
-            homeDateInput.value = today;
-        }
-    });
-</script>
-
-<!-- Trust Bar -->
-<div class="bg-court-blue text-on-primary py-4 overflow-hidden whitespace-nowrap border-b border-surface">
-<div class="flex">
-<div class="flex flex-shrink-0 animate-marquee whitespace-nowrap">
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-<span class="font-label-lg text-label-lg uppercase px-12">ĐẶT SÂN NHANH &bull; GIỮ CHỖ AN TOÀN &bull; THANH TOÁN PAYOS &bull; XÁC NHẬN TỰ ĐỘNG</span>
-</div>
-</div>
-</div>
-
-<!-- Partner Logos -->
-<div class="w-full bg-white py-12 border-b border-surface-variant px-margin-mobile md:px-margin-desktop select-none scroll-reveal reveal-fade">
-    <div class="max-w-[95%] xl:max-w-[92%] mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
-        <!-- Left Spacer to balance the text on the right and center the logos -->
-        <div class="hidden lg:block w-[220px] flex-shrink-0"></div>
-        
-        <!-- Logos Centered -->
-        <div class="flex flex-wrap lg:flex-nowrap items-center justify-center gap-8 xl:gap-12 text-[#cccccc] flex-grow">
-            <!-- Deltab -->
-            <div class="flex items-center hover:text-[#999999] transition-colors duration-300 cursor-pointer">
-                <svg class="h-10 w-auto fill-none stroke-current" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 120 32" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 6v20 M14 6v20 M14 6h4a10 10 0 0 1 10 10v0a10 10 0 0 1-10 10h-4"/>
-                    <text x="38" y="23" font-family="'DM Sans', 'Inter', sans-serif" font-weight="700" font-size="19" fill="currentColor" stroke="none" letter-spacing="-0.03em">Deltab</text>
-                </svg>
+    <!-- Hero Banner (Enhanced) -->
+    <section class="hero-banner" style="background: linear-gradient(135deg, rgba(17,17,17,0.95) 0%, rgba(135,15,23,0.85) 100%), url('assets/images/vsport/hero/hero-bg.jpg') center/cover fixed;">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <div class="hero-text reveal">
+                <h1>Đặt Sân Nhanh,<br><span class="text-red" style="position:relative;">Ghép Trận Dễ Dàng<span style="position:absolute; bottom:-5px; left:0; width:100%; height:4px; background:var(--accent-red); border-radius:2px;"></span></span></h1>
+                <p>Nền tảng tìm sân trống theo giờ, xem đánh giá thực tế và kết nối với hàng ngàn người chơi cùng trình độ trong khu vực của bạn.</p>
+                <div class="hero-btns">
+                    <a href="${pageContext.request.contextPath}/customer/tim-kiem" class="btn-primary btn-ripple">Tìm Sân Trống</a>
+                    <a href="#matchmaking" class="btn-secondary btn-ripple">Ghép Trận Ngay</a>
+                </div>
             </div>
             
-            <!-- Tennis Ball -->
-            <div class="flex items-center hover:text-[#999999] transition-colors duration-300 cursor-pointer">
-                <svg class="h-12 w-12 fill-none stroke-current" stroke-width="2" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="16" cy="16" r="13"/>
-                    <path d="M10 6 A 13 13 0 0 0 10 26" stroke-width="1.8"/>
-                    <path d="M22 6 A 13 13 0 0 1 22 26" stroke-width="1.8"/>
-                </svg>
-            </div>
-            
-            <!-- Ausgrid -->
-            <div class="flex items-center hover:text-[#999999] transition-colors duration-300 cursor-pointer">
-                <svg class="h-10 w-auto fill-none stroke-current" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 130 32" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 22l6-6-6-6 M12 22l6-6-6-6 M18 22l6-6-6-6"/>
-                    <text x="38" y="23" font-family="'DM Sans', 'Inter', sans-serif" font-weight="700" font-size="19" fill="currentColor" stroke="none" letter-spacing="-0.02em">Ausgrid</text>
-                </svg>
-            </div>
-            
-            <!-- Crossed Tennis Rackets -->
-            <div class="flex items-center hover:text-[#999999] transition-colors duration-300 cursor-pointer">
-                <svg class="h-12 w-12 fill-none stroke-current" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="translate(16,16) rotate(45) translate(-16,-16)">
-                        <path d="M16 19v9"/>
-                        <ellipse cx="16" cy="11" rx="4.5" ry="6"/>
-                        <path d="M13 11h6 M12.5 8.5h7 M12.5 13.5h7 M16 5v12 M14 6v10 M18 6v10" stroke-width="0.8"/>
-                    </g>
-                    <g transform="translate(16,16) rotate(-45) translate(-16,-16)">
-                        <path d="M16 19v9"/>
-                        <ellipse cx="16" cy="11" rx="4.5" ry="6"/>
-                        <path d="M13 11h6 M12.5 8.5h7 M12.5 13.5h7 M16 5v12 M14 6v10 M18 6v10" stroke-width="0.8"/>
-                    </g>
-                </svg>
-            </div>
-            
-            <!-- Quizlet -->
-            <div class="flex items-center hover:text-[#999999] transition-colors duration-300 cursor-pointer">
-                <svg class="h-10 w-auto" viewBox="0 0 90 32" xmlns="http://www.w3.org/2000/svg">
-                    <text x="5" y="23" font-family="'DM Sans', 'Inter', sans-serif" font-weight="700" font-size="21" fill="currentColor" letter-spacing="-0.02em">Quizlet</text>
-                </svg>
-            </div>
-            
-            <!-- LEAGO -->
-            <div class="flex items-center hover:text-[#999999] transition-colors duration-300 cursor-pointer">
-                <svg class="h-10 w-auto fill-none stroke-current" stroke-width="2.5" viewBox="0 0 120 32" xmlns="http://www.w3.org/2000/svg">
-                    <text x="5" y="23" font-family="'DM Sans', 'Inter', sans-serif" font-weight="900" font-size="19" fill="currentColor" stroke="none" letter-spacing="0.05em">LEAGO</text>
-                    <circle cx="94" cy="16" r="7" stroke-width="2"/>
-                    <circle cx="94" cy="16" r="2.5" fill="currentColor" stroke="none"/>
-                    <path d="M87 16h14 M94 9v14" stroke-width="1"/>
-                </svg>
-            </div>
-        </div>
-        
-        <!-- Text -->
-        <div class="text-center lg:text-right w-full lg:w-[220px] mt-4 lg:mt-0 flex-shrink-0">
-            <h4 class="font-bold text-sm text-[#111111] tracking-wider leading-tight uppercase font-body-md">
-                CHECK OUR BEST<br/>CLIENTS AND PARTNERS
-            </h4>
-        </div>
-    </div>
-</div>
-
-<!-- Sport Categories Grid -->
-<section class="max-w-[95%] xl:max-w-[92%] mx-auto px-margin-mobile md:px-margin-desktop py-16">
-    <div class="scroll-reveal mb-12 text-center">
-        <span class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest block mb-2">DANH MỤC THỂ THAO</span>
-        <h2 class="font-headline-lg text-headline-lg text-on-surface uppercase font-bold">KHÁM PHÁ CÁC BỘ MÔN</h2>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-        <!-- Item 1: Bóng đá -->
-        <div class="group relative overflow-hidden aspect-[3/4] bg-surface-container cursor-pointer scroll-reveal reveal-3d card-glow-sweep rounded-none" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=1'">
-            <img class="w-full h-full object-cover img-ken-burns transition-transform duration-500 group-hover:scale-105" alt="Sân bóng đá cỏ nhân tạo" src="<%= ctx %>/assets/images/home/sport-football.webp"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
-                <div class="flex flex-col w-full text-center">
-                    <h3 class="font-bold text-lg tracking-wider text-white uppercase font-headline-sm">Bóng đá</h3>
-                    <span class="text-xs text-neutral-300 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-label-md">ĐẶT SÂN &rarr;</span>
-                </div>
-            </div>
-        </div>
-        <!-- Item 2: Cầu lông -->
-        <div class="group relative overflow-hidden aspect-[3/4] bg-surface-container cursor-pointer scroll-reveal reveal-3d delay-100 card-glow-sweep rounded-none" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=2'">
-            <img class="w-full h-full object-cover img-ken-burns transition-transform duration-500 group-hover:scale-105" alt="Sân cầu lông trong nhà" src="<%= ctx %>/assets/images/home/sport-badminton.webp"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
-                <div class="flex flex-col w-full text-center">
-                    <h3 class="font-bold text-lg tracking-wider text-white uppercase font-headline-sm">Cầu lông</h3>
-                    <span class="text-xs text-neutral-300 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-label-md">ĐẶT SÂN &rarr;</span>
-                </div>
-            </div>
-        </div>
-        <!-- Item 3: Pickleball -->
-        <div class="group relative overflow-hidden aspect-[3/4] bg-surface-container cursor-pointer scroll-reveal reveal-3d delay-200 card-glow-sweep rounded-none" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=3'">
-            <img class="w-full h-full object-cover img-ken-burns transition-transform duration-500 group-hover:scale-105" alt="Sân pickleball ngoài trời" src="<%= ctx %>/assets/images/home/sport-pickleball.webp"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
-                <div class="flex flex-col w-full text-center">
-                    <h3 class="font-bold text-lg tracking-wider text-white uppercase font-headline-sm">Pickleball</h3>
-                    <span class="text-xs text-neutral-300 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-label-md">ĐẶT SÂN &rarr;</span>
-                </div>
-            </div>
-        </div>
-        <!-- Item 4: Tennis -->
-        <div class="group relative overflow-hidden aspect-[3/4] bg-surface-container cursor-pointer scroll-reveal reveal-3d delay-300 card-glow-sweep rounded-none" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=4'">
-            <img class="w-full h-full object-cover img-ken-burns transition-transform duration-500 group-hover:scale-105" alt="Sân tennis ngoài trời" src="<%= ctx %>/assets/images/home/sport-tennis.webp"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
-                <div class="flex flex-col w-full text-center">
-                    <h3 class="font-bold text-lg tracking-wider text-white uppercase font-headline-sm">Tennis</h3>
-                    <span class="text-xs text-neutral-300 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-label-md">ĐẶT SÂN &rarr;</span>
-                </div>
-            </div>
-        </div>
-        <!-- Item 5: Bóng bàn -->
-        <div class="group relative overflow-hidden aspect-[3/4] bg-surface-container cursor-pointer scroll-reveal reveal-3d delay-100 card-glow-sweep rounded-none" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=5'">
-            <img class="w-full h-full object-cover img-ken-burns transition-transform duration-500 group-hover:scale-105" alt="Sân bóng bàn trong nhà" src="<%= ctx %>/assets/images/home/sport-tabletennis.webp"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
-                <div class="flex flex-col w-full text-center">
-                    <h3 class="font-bold text-lg tracking-wider text-white uppercase font-headline-sm">Bóng bàn</h3>
-                    <span class="text-xs text-neutral-300 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-label-md">ĐẶT SÂN &rarr;</span>
-                </div>
-            </div>
-        </div>
-        <!-- Item 6: Gym / Fitness -->
-        <div class="group relative overflow-hidden aspect-[3/4] bg-surface-container cursor-pointer scroll-reveal reveal-3d delay-200 card-glow-sweep rounded-none" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=6'">
-            <img class="w-full h-full object-cover img-ken-burns transition-transform duration-500 group-hover:scale-105" alt="Phòng tập gym cao cấp" src="<%= ctx %>/assets/images/home/sport-gym.webp"/>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
-                <div class="flex flex-col w-full text-center">
-                    <h3 class="font-bold text-lg tracking-wider text-white uppercase font-headline-sm">Gym / Fitness</h3>
-                    <span class="text-xs text-neutral-300 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-label-md">ĐẶT SÂN &rarr;</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Popular Courts -->
-<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 text-center">
-    <div class="scroll-reveal">
-        <span class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-widest block mb-2">DANH MỤC SÂN ĐẶT HÀNG ĐẦU</span>
-        <h2 class="font-headline-lg text-headline-lg text-on-surface uppercase mb-16 font-bold">CÁC KHU VỰC SÂN PHỔ BIẾN</h2>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-        <!-- Court 1 -->
-        <div class="group cursor-pointer scroll-reveal reveal-3d" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=1'">
-            <div class="bg-surface-container-low aspect-[16/10] mb-6 relative overflow-hidden card-glow-sweep border border-neutral-200/65">
-                <img class="w-full h-full object-cover img-ken-burns" alt="Sân bóng đá cỏ nhân tạo 5 người" src="<%= ctx %>/assets/images/home/sport-football.webp"/>
-            </div>
-            <div>
-                <span class="font-label-md text-xs font-bold text-primary uppercase tracking-wider">BÓNG ĐÁ</span>
-                <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase mb-2 mt-1 font-bold">SÂN BÓNG ĐÁ 5 NGƯỜI TIÊU CHUẨN</h3>
-                <p class="font-label-lg text-label-lg text-on-surface-variant mb-3 font-semibold">Giá từ 150.000đ/giờ</p>
-                <div class="flex text-primary-container text-sm gap-0.5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </div>
-        </div>
-        <!-- Court 2 -->
-        <div class="group cursor-pointer scroll-reveal reveal-3d delay-100" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=2'">
-            <div class="bg-surface-container-low aspect-[16/10] mb-6 relative overflow-hidden card-glow-sweep border border-neutral-200/65">
-                <img class="w-full h-full object-cover img-ken-burns" alt="Sân cầu lông trong nhà" src="<%= ctx %>/assets/images/home/sport-badminton.webp"/>
-            </div>
-            <div>
-                <span class="font-label-md text-xs font-bold text-primary uppercase tracking-wider">CẦU LÔNG</span>
-                <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase mb-2 mt-1 font-bold">SÂN CẦU LÔNG THẢM PVC CHUYÊN NGHIỆP</h3>
-                <p class="font-label-lg text-label-lg text-on-surface-variant mb-3 font-semibold">Giá từ 80.000đ/giờ</p>
-                <div class="flex text-primary-container text-sm gap-0.5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </div>
-        </div>
-        <!-- Court 3 -->
-        <div class="group cursor-pointer scroll-reveal reveal-3d delay-200" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=4'">
-            <div class="bg-surface-container-low aspect-[16/10] mb-6 relative overflow-hidden card-glow-sweep border border-neutral-200/65">
-                <img class="w-full h-full object-cover img-ken-burns" alt="Sân tennis ngoài trời" src="<%= ctx %>/assets/images/home/sport-tennis.webp"/>
-            </div>
-            <div>
-                <span class="font-label-md text-xs font-bold text-primary uppercase tracking-wider">TENNIS</span>
-                <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase mb-2 mt-1 font-bold">SÂN TENNIS ĐẤT CỨNG CHUẨN QUỐC TẾ</h3>
-                <p class="font-label-lg text-label-lg text-on-surface-variant mb-3 font-semibold">Giá từ 120.000đ/giờ</p>
-                <div class="flex text-primary-container text-sm gap-0.5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </div>
-        </div>
-        <!-- Court 4 -->
-        <div class="group cursor-pointer scroll-reveal reveal-3d" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=3'">
-            <div class="bg-surface-container-low aspect-[16/10] mb-6 relative overflow-hidden card-glow-sweep border border-neutral-200/65">
-                <img class="w-full h-full object-cover img-ken-burns" alt="Sân pickleball hiện đại" src="<%= ctx %>/assets/images/home/sport-pickleball.webp"/>
-            </div>
-            <div>
-                <span class="font-label-md text-xs font-bold text-primary uppercase tracking-wider">PICKLEBALL</span>
-                <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase mb-2 mt-1 font-bold">SÂN PICKLEBALL TRONG NHÀ CAO CẤP</h3>
-                <p class="font-label-lg text-label-lg text-on-surface-variant mb-3 font-semibold">Giá từ 100.000đ/giờ</p>
-                <div class="flex text-primary-container text-sm gap-0.5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </div>
-        </div>
-        <!-- Court 5 -->
-        <div class="group cursor-pointer scroll-reveal reveal-3d delay-100" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=5'">
-            <div class="bg-surface-container-low aspect-[16/10] mb-6 relative overflow-hidden card-glow-sweep border border-neutral-200/65">
-                <img class="w-full h-full object-cover img-ken-burns" alt="Sân bóng bàn trong nhà" src="<%= ctx %>/assets/images/home/sport-tabletennis.webp"/>
-            </div>
-            <div>
-                <span class="font-label-md text-xs font-bold text-primary uppercase tracking-wider">BÓNG BÀN</span>
-                <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase mb-2 mt-1 font-bold">SÂN BÓNG BÀN ĐA NĂNG</h3>
-                <p class="font-label-lg text-label-lg text-on-surface-variant mb-3 font-semibold">Giá từ 50.000đ/giờ</p>
-                <div class="flex text-primary-container text-sm gap-0.5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </div>
-        </div>
-        <!-- Court 6 -->
-        <div class="group cursor-pointer scroll-reveal reveal-3d delay-200" onclick="location.href='<%= ctx %>/customer/dat-san?sportId=6'">
-            <div class="bg-surface-container-low aspect-[16/10] mb-6 relative overflow-hidden card-glow-sweep border border-neutral-200/65">
-                <img class="w-full h-full object-cover img-ken-burns" alt="Phòng gym fitness hiện đại" src="<%= ctx %>/assets/images/home/sport-gym.webp"/>
-            </div>
-            <div>
-                <span class="font-label-md text-xs font-bold text-primary uppercase tracking-wider">GYM / FITNESS</span>
-                <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase mb-2 mt-1 font-bold">PHÒNG GYM VA FITNESS CAO CẤP</h3>
-                <p class="font-label-lg text-label-lg text-on-surface-variant mb-3 font-semibold">Giá từ 60.000đ/giờ</p>
-                <div class="flex text-primary-container text-sm gap-0.5">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="mt-16 scroll-reveal">
-        <a class="inline-block bg-[#afd639] hover:bg-[#97bd2e] text-neutral-950 font-bold uppercase py-4 px-8 tracking-widest transition-transform hover:scale-105 active:scale-95 btn-pulse-glow" href="<%= ctx %>/customer/dat-san">XEM TẤT CẢ SÂN</a>
-    </div>
-</section>
-
-<!-- Testimonials -->
-<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 md:py-24 overflow-hidden">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-        <!-- Left Side: Header & Avatars -->
-        <div class="scroll-reveal flex flex-col justify-start">
-            <span class="font-['Barlow_Condensed'] text-[14px] font-bold text-neutral-400 uppercase tracking-[0.15em] block mb-2">ABOUT US</span>
-            <h2 class="font-['Barlow_Condensed'] text-[48px] font-bold text-neutral-900 uppercase leading-[1.1] mb-8">TESTIMONIALS</h2>
-            
-            <!-- Avatars & Dynamic Name Block -->
-            <div class="flex flex-col items-start gap-4">
-                <!-- Avatars Row -->
-                <div class="flex gap-4 items-center" id="testi-avatars">
-                    <button type="button" onclick="vsGoToTesti(0)" data-testi-avatar="0" class="relative w-[64px] h-[64px] rounded-full p-0 cursor-pointer transition-all duration-300 outline-none">
-                        <img class="w-full h-full rounded-full object-cover" alt="Henry Phillips" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZg3AoA6AEoYuJHVQm8eDr5_KJaEfoJf7IjdPd909yrQ13UzEGmS35rBkMz0NwQOhLroGtgtIorWGaQPbbnP8Xa2XStS-P-cmIL-vqMgEURd0zzwlzz1y_zQlFrySB7HQ4WAPARw_XmR3UaR9FRdrYfaWh80dCqaRmPjz4ORCR9FlkLLTOPsFqacukfbrJz2iMM6VF70MZvJKy90-1vSHtvTC9RXHXAsM2VpPZUyDqTKlwu266YHP3"/>
-                        <span data-testi-badge="0" class="absolute -bottom-1 -right-1 w-[20px] h-[20px] rounded-full bg-[#afd639] border border-white flex items-center justify-center shadow-sm">
-                            <svg class="w-2.5 h-2.5 text-black font-bold" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                        </span>
-                    </button>
-                    <button type="button" onclick="vsGoToTesti(1)" data-testi-avatar="1" class="relative w-[64px] h-[64px] rounded-full p-0 cursor-pointer opacity-40 scale-[0.85] transition-all duration-300 outline-none">
-                        <img class="w-full h-full rounded-full object-cover" alt="Blonde Woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmu54KJzg42CGnwOVK8JMJBxKSL1NcQEXwiHq8SJYlqu30VIukeHAqKJtjY2bV5lFizEZxFP5u0Whse3W0e15EEvg8mR7tJVkFjIGve73Iruzu4YKLmGeiH66TWo5MtiU4qJHB5TIZm0UL_cxsN-FWl5edcAhb4Zl2iguPsea-dWHZyGX9jFl8o_ZGMUdEkVF9NVCxJ3lVmosITKh75vSmni9xwBGFA0cHwF9nOdWeYEejDRSGoMdm"/>
-                        <span data-testi-badge="1" class="hidden absolute -bottom-1 -right-1 w-[20px] h-[20px] rounded-full bg-[#afd639] border border-white flex items-center justify-center shadow-sm">
-                            <svg class="w-2.5 h-2.5 text-black font-bold" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                        </span>
-                    </button>
-                    <button type="button" onclick="vsGoToTesti(2)" data-testi-avatar="2" class="relative w-[64px] h-[64px] rounded-full p-0 cursor-pointer opacity-40 scale-[0.85] transition-all duration-300 outline-none">
-                        <img class="w-full h-full rounded-full object-cover" alt="Visor Woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv06aMFJYR3sOdfCnuOAUtbt0Te9kIQPzs6DKqRclM1BzX3LmhysNMm2hlM0rzDy8peJBU4ry2QyoGpSsraCkCvwTJj3-x9TYbNr_3-g24eEwE2hPH7P-f5uSTEfpsX8XQc20eZ3PsvmJSuDU5g8thzC-bX2tzkpiRsJvoO4PVrulDkc_bv56QTh_aQgsUUdad5MYauX07tx_B-YdvNqGYBBzlWub22aw_1WM8CkuN37jaLA921-kW"/>
-                        <span data-testi-badge="2" class="hidden absolute -bottom-1 -right-1 w-[20px] h-[20px] rounded-full bg-[#afd639] border border-white flex items-center justify-center shadow-sm">
-                            <svg class="w-2.5 h-2.5 text-black font-bold" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                        </span>
-                    </button>
-                </div>
+            <div class="hero-visual reveal stagger-1">
+                <img src="assets/images/vsport/hero/hero-player.jpg" alt="Thể thao" class="hero-main-img parallax-el" data-speed="2">
                 
-                <!-- Active Info Block -->
-                <div class="mt-2 min-h-[50px]">
-                    <h4 id="testi-name" class="font-['Barlow_Condensed'] text-[15px] font-bold text-neutral-900 uppercase tracking-wide m-0">HENRY PHILLIPS</h4>
-                    <p id="testi-location" class="font-['DM_Sans'] text-[12px] text-neutral-400 m-0">Sacramento</p>
+                <div class="fc-enhanced fc-e1 parallax-el" data-speed="1.5">
+                    <div class="fc-icon"><i class="fa-solid fa-check"></i></div>
+                    Sân trống gần bạn
+                </div>
+                <div class="fc-enhanced fc-e2 parallax-el" data-speed="-1">
+                    <div class="fc-icon"><i class="fa-solid fa-users"></i></div>
+                    Ghép trận 5v5
+                </div>
+                <div class="fc-enhanced fc-e3 parallax-el" data-speed="2.5">
+                    <div class="fc-icon"><i class="fa-solid fa-shield"></i></div>
+                    Uy tín 98/100
                 </div>
             </div>
         </div>
-        
-        <!-- Right Side: Testimonial Text & Navigation -->
-        <div class="flex flex-col justify-center scroll-reveal delay-150">
-            <div id="testi-quote" class="font-['DM_Sans'] text-[16px] leading-[1.65] text-neutral-600 space-y-4 mb-8">
-                <p>Beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit fugit, sed. Beatae vitae dicta. Adipiscing elit, sed do eiusmod tempor incididunt.</p>
-                <p>Labore et dolore magna aliqua ut enim ad minim. Adipiscing elit, sed do eiusmod tempor incididunt ut labore.</p>
+    </section>
+
+    <!-- Quick Booking Bar -->
+    <section id="quick-booking" class="quick-booking-section">
+        <div class="container">
+            <form action="${pageContext.request.contextPath}/customer/tim-kiem" method="GET" class="quick-booking-bar reveal tilt-card">
+                <div class="booking-field">
+                    <label><i class="fa-solid fa-volleyball text-red"></i> Môn Thể Thao</label>
+                    <select name="sportId">
+                        <option value="">Tất cả</option>
+                        <option value="1">Bóng đá</option>
+                        <option value="2">Cầu lông</option>
+                        <option value="3">Tennis</option>
+                        <option value="4">Pickleball</option>
+                    </select>
+                </div>
+                <div class="booking-field">
+                    <label><i class="fa-solid fa-location-dot text-red"></i> Khu Vực</label>
+                    <input type="text" name="q" placeholder="Nhập tên sân, khu vực..." style="border:1px solid #ddd; padding:8px; border-radius:8px; width:100%; outline:none;">
+                </div>
+                <div class="booking-field">
+                    <label><i class="fa-solid fa-calendar-day text-red"></i> Ngày Chơi</label>
+                    <input type="date" value="2026-07-21">
+                </div>
+                <div class="booking-field">
+                    <label><i class="fa-solid fa-clock text-red"></i> Giờ Bắt Đầu</label>
+                    <select><option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option></select>
+                </div>
+                <button type="submit" class="btn-search btn-ripple"><i class="fa-solid fa-magnifying-glass"></i> Tìm Sân Trống</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Sport Categories -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="section-heading reveal">
+                <div class="sub-title"><span class="line"></span><span class="text">DANH MỤC</span><span class="line"></span></div>
+                <h2>Bạn Muốn Chơi Môn Gì Hôm Nay?</h2>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="vsTestiPrev()" aria-label="Trước" class="w-[42px] h-[42px] rounded-full border border-neutral-200 flex items-center justify-center text-neutral-600 hover:bg-neutral-950 hover:text-white hover:border-neutral-950 transition-all duration-300 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                </button>
-                <button type="button" onclick="vsTestiNext()" aria-label="Tiếp" class="w-[42px] h-[42px] rounded-full border border-neutral-200 flex items-center justify-center text-neutral-600 hover:bg-neutral-950 hover:text-white hover:border-neutral-950 transition-all duration-300 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Booking CTA Banner -->
-<section class="relative w-full py-24 md:py-32 flex items-center justify-center overflow-hidden bg-neutral-900 select-none scroll-reveal">
-    <!-- Background Image -->
-    <div class="absolute inset-0 z-0">
-        <img class="w-full h-full object-cover object-center img-ken-burns opacity-45" alt="Trải nghiệm thể thao V-SPORT" src="<%= ctx %>/assets/images/home/booking-cta.webp"/>
-        <div class="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent"></div>
-    </div>
-    
-    <!-- Content -->
-    <div class="relative z-10 text-left px-margin-mobile md:px-margin-desktop max-w-[95%] xl:max-w-[92%] w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        <div>
-            <h2 class="font-headline-lg text-headline-lg text-white uppercase mb-4 font-extrabold leading-tight">Bạn Đã Sẵn Sàng Trải Nghiệm Sân Chơi?</h2>
-            <p class="text-neutral-300 font-medium text-sm md:text-base max-w-lg mb-8 leading-relaxed font-body-md">
-                Hệ thống đặt sân V-SPORT giúp bạn giữ chỗ chỉ trong 1 phút. Nhanh chóng, tiện lợi, đảm bảo giữ sân.
-            </p>
-            <a class="inline-block bg-[#afd639] hover:bg-[#97bd2e] text-neutral-950 font-bold uppercase py-4 px-10 tracking-widest text-sm hover:scale-105 active:scale-95 transition-transform shadow-lg btn-pulse-glow" href="<%= ctx %>/customer/dat-san">ĐẶT LỊCH NGAY</a>
-        </div>
-    </div>
-</section>
-
-<!-- News -->
-<section class="relative bg-gradient-to-br from-[#4a5424] via-[#232a12] to-[#0a0a09] text-white py-20 md:py-24 px-margin-mobile md:px-margin-desktop border-t border-white/10 overflow-hidden">
-<div class="relative max-w-[1180px] mx-auto text-center">
-<div class="scroll-reveal">
-<span class="font-label-lg text-label-lg uppercase tracking-widest block mb-3 text-white/85">TIN TỨC</span>
-<h2 class="font-headline-lg text-headline-lg uppercase mb-14 text-white">TIN TỨC NỔI BẬT</h2>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter text-left">
-<article class="bg-white text-on-surface flex flex-col scroll-reveal">
-<div class="p-6 pb-4">
-<p class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant mb-3"><span class="font-bold uppercase text-on-surface">Nổi Bật</span><i class="not-italic text-outline-variant">&middot;</i><time datetime="2026-07-08">08/07/2026</time></p>
-<h3 class="font-headline-sm text-headline-sm uppercase leading-tight min-h-[2.3em]">5 Bài Tập Giúp Bạn Bứt Tốc Trên Sân Cầu Lông</h3>
-</div>
-<div class="aspect-square overflow-hidden">
-<img class="w-full h-full object-cover" alt="Cầu lông" loading="lazy" src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=600&q=80"/>
-</div>
-<a href="#" class="flex items-center gap-2 p-6 font-label-lg text-label-lg uppercase hover:text-primary transition-colors">Đọc thêm <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</article>
-<article class="bg-white text-on-surface flex flex-col scroll-reveal delay-100">
-<div class="p-6 pb-4">
-<p class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant mb-3"><span class="font-bold uppercase text-on-surface">Nổi Bật</span><i class="not-italic text-outline-variant">&middot;</i><time datetime="2026-07-05">05/07/2026</time></p>
-<h3 class="font-headline-sm text-headline-sm uppercase leading-tight min-h-[2.3em]">Vì Sao Pickleball Đang Phủ Sóng Khắp Việt Nam?</h3>
-</div>
-<div class="aspect-square overflow-hidden">
-<img class="w-full h-full object-cover" alt="Pickleball" loading="lazy" src="https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80"/>
-</div>
-<a href="#" class="flex items-center gap-2 p-6 font-label-lg text-label-lg uppercase hover:text-primary transition-colors">Đọc thêm <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</article>
-<article class="bg-white text-on-surface flex flex-col scroll-reveal delay-200">
-<div class="p-6 pb-4">
-<p class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant mb-3"><span class="font-bold uppercase text-on-surface">Nổi Bật</span><i class="not-italic text-outline-variant">&middot;</i><time datetime="2026-07-02">02/07/2026</time></p>
-<h3 class="font-headline-sm text-headline-sm uppercase leading-tight min-h-[2.3em]">Đặt Sân Nhóm: Mẹo Chia Chi Phí Cùng Bạn Bè</h3>
-</div>
-<div class="aspect-square overflow-hidden">
-<img class="w-full h-full object-cover" alt="Đặt sân nhóm" loading="lazy" src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=600&q=80"/>
-</div>
-<a href="#" class="flex items-center gap-2 p-6 font-label-lg text-label-lg uppercase hover:text-primary transition-colors">Đọc thêm <span class="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</article>
-</div>
-</div>
-</section>
-
-<script>
-    (function() {
-        var vsTestimonials = [
-            {
-                name: 'HENRY PHILLIPS',
-                location: 'Sacramento',
-                quote: [
-                    'Beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit fugit, sed. Beatae vitae dicta. Adipiscing elit, sed do eiusmod tempor incididunt.',
-                    'Labore et dolore magna aliqua ut enim ad minim. Adipiscing elit, sed do eiusmod tempor incididunt ut labore.'
-                ]
-            },
-            {
-                name: 'SARAH JENKINS',
-                location: 'Los Angeles',
-                quote: [
-                    'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
-                    'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt.'
-                ]
-            },
-            {
-                name: 'AMANDA CLARK',
-                location: 'Miami',
-                quote: [
-                    'Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.',
-                    'Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.'
-                ]
-            }
-        ];
-        var vsTestiIndex = 0;
-
-        window.vsGoToTesti = function(idx) {
-            vsTestiIndex = (idx + vsTestimonials.length) % vsTestimonials.length;
-            var t = vsTestimonials[vsTestiIndex];
-            document.getElementById('testi-name').textContent = t.name;
-            document.getElementById('testi-location').textContent = t.location;
-            document.getElementById('testi-quote').innerHTML = t.quote.map(function(p) { return '<p>' + p + '</p>'; }).join('');
-            
-            document.querySelectorAll('[data-testi-avatar]').forEach(function(btn) {
-                var isActive = Number(btn.getAttribute('data-testi-avatar')) === vsTestiIndex;
-                if (isActive) {
-                    btn.className = 'relative w-[64px] h-[64px] rounded-full p-0 cursor-pointer transition-all duration-300 outline-none';
-                } else {
-                    btn.className = 'relative w-[64px] h-[64px] rounded-full p-0 cursor-pointer opacity-40 scale-[0.85] transition-all duration-300 outline-none';
-                }
-            });
-            
-            document.querySelectorAll('[data-testi-badge]').forEach(function(badge) {
-                var isActive = Number(badge.getAttribute('data-testi-badge')) === vsTestiIndex;
-                if (isActive) {
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            });
-        };
-        window.vsTestiPrev = function() { vsGoToTesti(vsTestiIndex - 1); };
-        window.vsTestiNext = function() { vsGoToTesti(vsTestiIndex + 1); };
-    })();
-</script>
-
-<!-- Footer -->
-<footer class="bg-on-background dark:bg-surface-container-lowest grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-16 w-full text-white flat no shadows scroll-reveal reveal-fade">
-<div>
-<h4 class="font-headline-sm text-headline-sm text-primary-fixed uppercase mb-6">CHÀO MỪNG ĐẾN V-SPORT</h4>
-<p class="font-body-md text-body-md text-secondary-fixed-dim">Hệ thống đặt sân thể thao hàng đầu Việt Nam. Nhanh chóng, tin cậy và tiện lợi.</p>
-</div>
-<div>
-<h4 class="font-headline-sm text-headline-sm text-primary-fixed uppercase mb-6">VĂN PHÒNG</h4>
-<address class="font-body-md text-body-md text-secondary-fixed-dim not-italic space-y-2">
-<p>Việt Nam</p>
-<p>123 Nguyễn Trãi, Quận 1,</p>
-<p>TP. Hồ Chí Minh</p>
-<a class="block text-white hover:text-primary-fixed transition-colors mt-4" href="mailto:support@vsport.vn">support@vsport.vn</a>
-<p class="text-white font-bold mt-2">1900 1234</p>
-</address>
-</div>
-<div>
-<h4 class="font-headline-sm text-headline-sm text-primary-fixed uppercase mb-6">LIÊN KẾT</h4>
-<ul class="font-body-md text-body-md text-secondary-fixed-dim space-y-2">
-<li><a class="hover:text-primary-fixed transition-colors" href="<%= ctx %>/index.jsp">Trang Chủ</a></li>
-<li><a class="hover:text-primary-fixed transition-colors" href="#">Giới Thiệu</a></li>
-<li><a class="hover:text-primary-fixed transition-colors" href="#">Tin Tức</a></li>
-<li><a class="hover:text-primary-fixed transition-colors" href="<%= ctx %>/customer/dat-san">Tìm Sân</a></li>
-<li><a class="hover:text-primary-fixed transition-colors" href="#">Liên Hệ</a></li>
-</ul>
-</div>
-<div>
-<h4 class="font-headline-sm text-headline-sm text-primary-fixed uppercase mb-6">KẾT NỐI</h4>
-<ul class="font-body-md text-body-md text-secondary-fixed-dim space-y-2">
-<li><a class="hover:text-primary-fixed transition-colors flex items-center gap-2" href="#"><span class="w-4">f</span> Facebook</a></li>
-<li><a class="hover:text-primary-fixed transition-colors flex items-center gap-2" href="#"><span class="w-4">𝕏</span> Twitter</a></li>
-<li><a class="hover:text-primary-fixed transition-colors flex items-center gap-2" href="#"><span class="w-4">▶</span> YouTube</a></li>
-<li><a class="hover:text-primary-fixed transition-colors flex items-center gap-2" href="#"><span class="w-4">In</span> Instagram</a></li>
-</ul>
-</div>
-<div class="col-span-1 md:col-span-4 border-t border-white/10 mt-12 pt-8 flex justify-between items-center text-sm text-secondary-fixed-dim">
-<p>V-SPORT © 2025. Bản quyền thuộc về V-SPORT Việt Nam.</p>
-<button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="w-10 h-10 border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors">
-<span class="material-symbols-outlined">arrow_upward</span>
-</button>
-</div>
-</footer>
-
-<script>
-    window.handleUserClick = function(btn) {
-        const isLoggedIn = <%= isLoggedIn ? "true" : "false" %>;
-        if (isLoggedIn) {
-            const userDropdown = document.getElementById('user-profile-dropdown');
-            if (userDropdown) {
-                userDropdown.classList.toggle('opacity-0');
-                userDropdown.classList.toggle('invisible');
-            }
-        } else {
-            openAuthModal('login', btn);
-        }
-    };
-    
-    // Close dropdown on outside click
-    document.addEventListener('click', (e) => {
-        const userDropdown = document.getElementById('user-profile-dropdown');
-        const userBtn = document.getElementById('header-user-btn');
-        if (userDropdown && userBtn && !userDropdown.contains(e.target) && !userBtn.contains(e.target)) {
-            userDropdown.classList.add('opacity-0', 'invisible');
-        }
-    });
-</script>
-
-<!-- Right Sidebar Drawer (Offcanvas Menu) -->
-<div id="side-drawer" class="side-drawer">
-    <div class="side-drawer-overlay" onclick="closeSideDrawer()"></div>
-    <div class="side-drawer-content">
-        <!-- Close button & Logo -->
-        <div class="side-drawer-header">
-            <a href="<%= ctx %>/index.jsp" class="side-drawer-logo flex items-center gap-2">
-                <img alt="V-SPORT Logo" style="height: 36px; border-radius: 4px;" src="<%= ctx %>/resources/logo.png"/>
-                <span class="font-['Poppins'] font-bold text-xl uppercase text-[#111827] tracking-tight">V-SPORT<span class="text-[#afd639]">.</span></span>
-            </a>
-            <button class="side-drawer-close" onclick="closeSideDrawer()">&times;</button>
-        </div>
-
-        <!-- User Profile Section -->
-        <div class="side-drawer-section user-section">
-            <% if (isLoggedIn) { %>
-                <div class="drawer-user-info">
-                    <div class="avatar-circle">
-                        <%= avatarChar %>
-                    </div>
-                    <div class="user-details">
-                        <p class="user-name"><%= displayName %></p>
-                        <p class="user-role">Thành viên</p>
+            <div class="categories-grid reveal">
+                <div class="category-card tilt-card">
+                    <img src="assets/images/vsport/categories/football.jpg" loading="lazy" alt="Bóng đá">
+                    <div class="category-overlay">
+                        <i class="fa-regular fa-futbol category-icon"></i>
+                        <span class="category-name">Bóng đá</span>
                     </div>
                 </div>
-                <div class="drawer-user-actions">
-                    <a href="<%= ctx %>/customer/tai-khoan" class="btn-drawer-action"><i class="fa-regular fa-user"></i> Chỉnh sửa Profile</a>
-                    <a href="<%= ctx %>/customer/dat-san?openHistory=true" class="btn-drawer-action"><i class="fa-regular fa-calendar-check"></i> Lịch sử đặt sân</a>
+                <div class="category-card tilt-card">
+                    <img src="assets/images/vsport/categories/badminton.jpg" loading="lazy" alt="Cầu lông">
+                    <div class="category-overlay">
+                        <i class="fa-solid fa-table-tennis-paddle-ball category-icon"></i>
+                        <span class="category-name">Cầu lông</span>
+                    </div>
                 </div>
-            <% } else { %>
-                <div class="drawer-guest-info">
-                    <p class="guest-msg">Đăng nhập để xem lịch sử đặt sân và quản lý hồ sơ của bạn.</p>
-                    <button class="btn-drawer-login" onclick="closeSideDrawer(); openAuthModal('login')">Đăng Nhập Ngay</button>
+                <div class="category-card tilt-card">
+                    <img src="assets/images/vsport/categories/tennis.jpg" loading="lazy" alt="Tennis">
+                    <div class="category-overlay">
+                        <i class="fa-solid fa-baseball category-icon"></i>
+                        <span class="category-name">Tennis</span>
+                    </div>
                 </div>
-            <% } %>
+                <div class="category-card tilt-card">
+                    <img src="assets/images/vsport/categories/pickleball.jpg" loading="lazy" alt="Pickleball">
+                    <div class="category-overlay">
+                        <i class="fa-solid fa-table-tennis category-icon"></i>
+                        <span class="category-name">Pickleball</span>
+                    </div>
+                </div>
+                <div class="category-card tilt-card">
+                    <img src="assets/images/vsport/categories/basketball.jpg" loading="lazy" alt="Bóng rổ">
+                    <div class="category-overlay">
+                        <i class="fa-solid fa-basketball category-icon"></i>
+                        <span class="category-name">Bóng rổ</span>
+                    </div>
+                </div>
+                <div class="category-card tilt-card">
+                    <img src="assets/images/vsport/categories/volleyball.jpg" loading="lazy" alt="Bóng chuyền">
+                    <div class="category-overlay">
+                        <i class="fa-solid fa-volleyball category-icon"></i>
+                        <span class="category-name">Bóng chuyền</span>
+                    </div>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <!-- Navigation Menu -->
-        <div class="side-drawer-section links-section">
-            <h4 class="section-title">TIỆN ÍCH HỆ THỐNG</h4>
-            <a href="<%= ctx %>/index.jsp" class="drawer-link"><i class="fa-solid fa-house"></i> Trang Chủ</a>
-            <a href="<%= ctx %>/customer/dat-san" class="drawer-link"><i class="fa-solid fa-calendar-days"></i> Tìm Sân Đặt Lịch</a>
-            <a href="<%= ctx %>/index.jsp#pricing" class="drawer-link"><i class="fa-solid fa-tags"></i> Bảng Giá Dịch Vụ</a>
+    <!-- Featured Courts -->
+    <section class="section-padding section-diagonal pattern-bg">
+        <div class="container">
+            <div class="section-heading reveal">
+                <div class="sub-title"><span class="line"></span><span class="text">SÂN NỔI BẬT</span><span class="line"></span></div>
+                <h2>Sân Được Đặt Nhiều Nhất</h2>
+            </div>
+            
+            <div class="courts-grid reveal">
+                <div class="court-card tilt-card shine-hover">
+                    <div class="court-img-wrapper">
+                        <span class="court-tag">Gần bạn</span>
+                        <div class="court-rating"><i class="fa-solid fa-star"></i> 4.9</div>
+                        <img src="assets/images/vsport/courts/court-football.jpg" loading="lazy" alt="Sân">
+                    </div>
+                    <div class="court-info">
+                        <h3>Sân Bóng Chảo Lửa</h3>
+                        <p class="address"><i class="fa-solid fa-location-dot"></i> Tân Bình, TP.HCM</p>
+                        <div class="court-facilities"><span><i class="fa-solid fa-parking"></i> Xe</span><span><i class="fa-solid fa-bottle-water"></i> Nước</span></div>
+                        <div class="court-footer"><div class="court-price">300k <span>/ giờ</span></div><a href="#" class="btn-book btn-ripple">Xem lịch</a></div>
+                    </div>
+                </div>
+                <div class="court-card tilt-card shine-hover">
+                    <div class="court-img-wrapper">
+                        <span class="court-tag" style="background:#4caf50;">Còn sân</span>
+                        <div class="court-rating"><i class="fa-solid fa-star"></i> 4.8</div>
+                        <img src="assets/images/vsport/courts/court-badminton.jpg" loading="lazy" alt="Sân">
+                    </div>
+                    <div class="court-info">
+                        <h3>Sân Cầu Lông V-Star</h3>
+                        <p class="address"><i class="fa-solid fa-location-dot"></i> Quận 7, TP.HCM</p>
+                        <div class="court-facilities"><span><i class="fa-solid fa-shirt"></i> Đồ</span><span><i class="fa-solid fa-wifi"></i> Wifi</span></div>
+                        <div class="court-footer"><div class="court-price">120k <span>/ giờ</span></div><a href="#" class="btn-book btn-ripple">Xem lịch</a></div>
+                    </div>
+                </div>
+                <div class="court-card tilt-card shine-hover">
+                    <div class="court-img-wrapper">
+                        <span class="court-tag" style="background:#ff9800;">Giảm giá</span>
+                        <div class="court-rating"><i class="fa-solid fa-star"></i> 4.7</div>
+                        <img src="assets/images/vsport/courts/court-tennis.jpg" loading="lazy" alt="Sân">
+                    </div>
+                    <div class="court-info">
+                        <h3>Sân Tennis Kỳ Hòa</h3>
+                        <p class="address"><i class="fa-solid fa-location-dot"></i> Quận 10, TP.HCM</p>
+                        <div class="court-facilities"><span><i class="fa-solid fa-parking"></i> Xe</span><span><i class="fa-solid fa-bottle-water"></i> Nước</span></div>
+                        <div class="court-footer"><div class="court-price">250k <span>/ giờ</span></div><a href="#" class="btn-book btn-ripple">Xem lịch</a></div>
+                    </div>
+                </div>
+                <div class="court-card tilt-card shine-hover">
+                    <div class="court-img-wrapper">
+                        <span class="court-tag">Gần bạn</span>
+                        <div class="court-rating"><i class="fa-solid fa-star"></i> 5.0</div>
+                        <img src="assets/images/vsport/courts/court-pickleball.jpg" loading="lazy" alt="Sân">
+                    </div>
+                    <div class="court-info">
+                        <h3>Pickleball Zone</h3>
+                        <p class="address"><i class="fa-solid fa-location-dot"></i> Quận 2, TP.HCM</p>
+                        <div class="court-facilities"><span><i class="fa-solid fa-wifi"></i> Wifi</span><span><i class="fa-solid fa-lightbulb"></i> Đèn</span></div>
+                        <div class="court-footer"><div class="court-price">150k <span>/ giờ</span></div><a href="#" class="btn-book btn-ripple">Xem lịch</a></div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <!-- Support Channels (Zalo & Messenger) -->
-        <div class="side-drawer-section support-section">
-            <h4 class="section-title">HỖ TRỢ TRỰC TUYẾN</h4>
-            <div class="support-channels">
-                <a href="https://zalo.me/0987654321" target="_blank" class="channel-btn zalo-btn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" class="channel-icon" />
-                    <span>Hỗ trợ qua Zalo</span>
+    <!-- Why V-SPORT -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Vì Sao Người Chơi Chọn V-SPORT?</h2>
+            </div>
+            <div class="features-grid reveal">
+                <div class="feature-card tilt-card" style="position:relative; overflow:hidden;">
+                    <div style="font-size:40px; color:var(--accent-red); margin-bottom:15px;"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <h3>Tìm Sân Real-time</h3>
+                    <p>Xem lịch trống thực tế, không cần gọi điện thoại hỏi chủ sân.</p>
+                </div>
+                <div class="feature-card tilt-card">
+                    <div style="font-size:40px; color:var(--accent-red); margin-bottom:15px;"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3>Đặt Sân Nhanh Chóng</h3>
+                    <p>Giữ chỗ chắc chắn chỉ với vài thao tác thanh toán linh hoạt.</p>
+                </div>
+                <div class="feature-card tilt-card">
+                    <div style="font-size:40px; color:var(--accent-red); margin-bottom:15px;"><i class="fa-solid fa-handshake"></i></div>
+                    <h3>Ghép Trận Dễ Dàng</h3>
+                    <p>Tìm đối thủ hoặc đồng đội cùng trình độ đang ở gần bạn.</p>
+                </div>
+                <div class="feature-card tilt-card">
+                    <div style="font-size:40px; color:var(--accent-red); margin-bottom:15px;"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>Uy Tín Rõ Ràng</h3>
+                    <p>Hệ thống đánh giá người chơi giúp xây dựng môi trường văn minh.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ecosystem Section -->
+    <section class="vs-ecosystem-section">
+        <div class="container ecosystem-layout">
+            <div class="ecosystem-orbit-wrapper">
+                <div class="ecosystem-orbit">
+                    <div class="orbit-ring orbit-ring-main"></div>
+                    <div class="orbit-ring orbit-ring-secondary"></div>
+
+                    <div class="ecosystem-center">
+                        <img src="${pageContext.request.contextPath}/assets/images/vsport/community/ecosystem-center.png" alt="V-SPORT App">
+                    </div>
+
+                    <!-- Sports Icons -->
+                    <button class="orbit-icon icon-sport" style="top: 4%; left: 48%;" data-tooltip="Bóng đá"><i class="fa-regular fa-futbol"></i></button>
+                    <button class="orbit-icon icon-sport" style="top: 14%; left: 18%;" data-tooltip="Cầu lông"><i class="fa-solid fa-table-tennis-paddle-ball"></i></button>
+                    <button class="orbit-icon icon-sport" style="top: 20%; right: 8%;" data-tooltip="Tennis"><i class="fa-solid fa-baseball"></i></button>
+                    <button class="orbit-icon icon-sport" style="top: 50%; right: -27px; margin-top:-27px;" data-tooltip="Pickleball"><i class="fa-solid fa-table-tennis-paddle-ball"></i></button>
+                    <button class="orbit-icon icon-sport" style="bottom: 15%; right: 12%;" data-tooltip="Bóng rổ"><i class="fa-solid fa-basketball"></i></button>
+                    <button class="orbit-icon icon-sport" style="bottom: 4%; left: 45%;" data-tooltip="Bóng chuyền"><i class="fa-solid fa-volleyball"></i></button>
+
+                    <!-- Function Icons -->
+                    <button class="orbit-icon icon-func" style="bottom: 16%; left: 10%;" data-tooltip="Đặt sân"><i class="fa-solid fa-calendar-check"></i></button>
+                    <button class="orbit-icon icon-func" style="top: 50%; left: -27px; margin-top:-27px;" data-tooltip="Ghép kèo"><i class="fa-solid fa-handshake"></i></button>
+                    <button class="orbit-icon icon-func" style="top: 10%; right: 28%;" data-tooltip="Bản đồ sân"><i class="fa-solid fa-map-location-dot"></i></button>
+                    <button class="orbit-icon icon-func" style="bottom: 8%; right: 35%;" data-tooltip="Thanh toán"><i class="fa-solid fa-credit-card"></i></button>
+                    <button class="orbit-icon icon-func" style="top: 35%; left: 5%;" data-tooltip="Check-in"><i class="fa-solid fa-qrcode"></i></button>
+                    <button class="orbit-icon icon-func" style="bottom: 35%; left: 2%;" data-tooltip="Uy tín"><i class="fa-solid fa-shield-halved"></i></button>
+                    <button class="orbit-icon icon-func" style="top: 25%; right: 0;" data-tooltip="Đánh giá"><i class="fa-solid fa-star"></i></button>
+                    <button class="orbit-icon icon-func" style="bottom: 25%; right: -15px;" data-tooltip="Thông báo"><i class="fa-solid fa-bell"></i></button>
+                    <button class="orbit-icon icon-func" style="top: -15px; right: 25%;" data-tooltip="Chat"><i class="fa-solid fa-comment-dots"></i></button>
+                    <button class="orbit-icon icon-func" style="bottom: -15px; left: 25%;" data-tooltip="Lịch sử"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                </div>
+            </div>
+            <div class="ecosystem-copy">
+                <h2>Mọi Trải Nghiệm Thể Thao Trong Một Nơi</h2>
+                <p>Từ tìm sân, đặt lịch, ghép kèo, xem bản đồ, thanh toán đến đánh giá sau trận — tất cả được kết nối trong một hệ sinh thái V-SPORT duy nhất.</p>
+                <a href="#booking-steps" class="btn-text-arrow">Tìm hiểu cách hoạt động <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Experience 3 Steps -->
+    <section class="section-padding booking-experience">
+        <div class="container">
+            <div class="section-heading reveal">
+                <div class="sub-title"><span class="line"></span><span class="text">QUY TRÌNH</span><span class="line"></span></div>
+                <h2>Đặt Sân Trong 3 Bước</h2>
+            </div>
+            <div class="steps-grid reveal">
+                <div class="step-item">
+                    <div class="step-icon"><i class="fa-solid fa-calendar-check"></i><span class="step-number">1</span></div>
+                    <h3>Chọn sân & khung giờ</h3>
+                    <p>Tìm kiếm sân trống theo thời gian thực và vị trí của bạn.</p>
+                </div>
+                <div class="step-item stagger-1">
+                    <div class="step-icon"><i class="fa-solid fa-credit-card"></i><span class="step-number">2</span></div>
+                    <h3>Thanh toán & Xác nhận</h3>
+                    <p>Thanh toán an toàn, nhận thông báo xác nhận đặt sân ngay lập tức.</p>
+                </div>
+                <div class="step-item stagger-2">
+                    <div class="step-icon"><i class="fa-solid fa-medal"></i><span class="step-number">3</span></div>
+                    <h3>Ra sân & Trải nghiệm</h3>
+                    <p>Đến sân check-in dễ dàng và bắt đầu trận đấu của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Gallery -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Một Ngày Chơi Thể Thao Cùng V-SPORT</h2>
+            </div>
+            <div class="experience-grid reveal">
+                <a href="assets/images/vsport/experience/experience-playing.jpg" class="exp-main gallery-lightbox-item" data-caption="Trải nghiệm thi đấu tuyệt vời cùng đồng đội">
+                    <img src="assets/images/vsport/experience/experience-playing.jpg" loading="lazy" alt="Ra sân">
+                    <div class="exp-overlay"><h3>Trải nghiệm thi đấu tuyệt vời</h3></div>
                 </a>
-                <a href="https://m.me/vsport" target="_blank" class="channel-btn messenger-btn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Facebook_Messenger_logo_2020.svg" alt="Messenger" class="channel-icon" />
-                    <span>Hỗ trợ qua Messenger</span>
-                </a>
+                <div class="exp-side">
+                    <a href="assets/images/vsport/experience/experience-booking.jpg" class="exp-item gallery-lightbox-item" data-caption="Tìm sân trống theo thời gian thực">
+                        <img src="assets/images/vsport/experience/experience-booking.jpg" loading="lazy" alt="Đặt sân">
+                        <div class="exp-overlay"><h4>Tìm sân trống</h4></div>
+                    </a>
+                    <a href="assets/images/vsport/experience/experience-payment.jpg" class="exp-item gallery-lightbox-item" data-caption="Thanh toán an toàn, tiện lợi">
+                        <img src="assets/images/vsport/experience/experience-payment.jpg" loading="lazy" alt="Thanh toán">
+                        <div class="exp-overlay"><h4>Thanh toán linh hoạt</h4></div>
+                    </a>
+                    <a href="assets/images/vsport/experience/experience-checkin.jpg" class="exp-item gallery-lightbox-item" data-caption="Check-in nhanh gọn tại sân">
+                        <img src="assets/images/vsport/experience/experience-checkin.jpg" loading="lazy" alt="Checkin">
+                        <div class="exp-overlay"><h4>Check-in tại sân</h4></div>
+                    </a>
+                    <a href="assets/images/vsport/experience/experience-matchmaking.jpg" class="exp-item gallery-lightbox-item" data-caption="Ghép trận giao lưu, nâng cao trình độ">
+                        <img src="assets/images/vsport/experience/experience-matchmaking.jpg" loading="lazy" alt="Ghép trận">
+                        <div class="exp-overlay"><h4>Ghép trận cùng trình độ</h4></div>
+                    </a>
+                </div>
             </div>
         </div>
+    </section>
 
-        <!-- Footer / Contact Info -->
-        <div class="side-drawer-footer">
-            <div class="contact-item">
-                <span class="label">Hotline hỗ trợ:</span>
-                <span class="value">1900 1234</span>
+    <!-- Real-time Court Board -->
+    <section class="section-padding pattern-bg">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Bảng Sân Trống Đang Cập Nhật <span class="dot-green status-dot" style="display:inline-block;"></span></h2>
             </div>
-            <div class="contact-item">
-                <span class="label">Email liên hệ:</span>
-                <span class="value">support@vsport.vn</span>
+            <div class="board-container reveal">
+                <div class="board-header">
+                    <div>Tên Sân / Cơ Sở</div>
+                    <div>17:00</div><div>18:00</div><div>19:00</div><div>20:00</div><div>21:00</div><div>22:00</div>
+                </div>
+                <div class="board-row">
+                    <div class="board-cell" style="font-weight:600;"><i class="fa-regular fa-futbol text-red" style="margin-right:10px;"></i> Sân Chảo Lửa</div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 2 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-booked">Đã đặt</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-booked">Đã đặt</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 1 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 3 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 4 sân</span></div>
+                </div>
+                <div class="board-row">
+                    <div class="board-cell" style="font-weight:600;"><i class="fa-solid fa-table-tennis-paddle-ball text-red" style="margin-right:10px;"></i> V-Star Badminton</div>
+                    <div class="board-cell"><span class="slot-badge badge-booked">Đã đặt</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-booked">Đã đặt</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 1 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 2 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 5 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 5 sân</span></div>
+                </div>
+                <div class="board-row">
+                    <div class="board-cell" style="font-weight:600;"><i class="fa-solid fa-baseball text-red" style="margin-right:10px;"></i> Tennis Kỳ Hòa</div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 1 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 1 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-booked">Đã đặt</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-booked">Đã đặt</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 2 sân</span></div>
+                    <div class="board-cell"><span class="slot-badge badge-available">Còn 2 sân</span></div>
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:30px;" class="reveal">
+                <button class="btn-search btn-ripple" style="display:inline-flex; width:auto;"><i class="fa-solid fa-calendar-days"></i> Xem Tất Cả Giờ Trống</button>
             </div>
         </div>
+    </section>
+
+    <!-- Enhanced Matchmaking -->
+    <section id="matchmaking" class="section-padding matchmaking-section">
+        <div class="container">
+            <div class="section-heading reveal">
+                <div class="sub-title"><span class="line"></span><span class="text">GHÉP TRẬN</span><span class="line"></span></div>
+                <h2 style="color:#fff;">Tìm Đối Thủ Cùng Trình Độ</h2>
+            </div>
+            
+            <div class="matchmaking-grid reveal">
+                <div class="match-form-box tilt-card">
+                    <h3>Tạo Kèo Nhanh</h3>
+                    <div class="form-group"><label>Môn Thể Thao</label><select><option>Bóng đá 5v5</option><option>Cầu lông đôi</option></select></div>
+                    <div class="form-group"><label>Trình độ mong muốn</label><select><option>Khá</option><option>Giỏi</option></select></div>
+                    <div class="form-group"><label>Số người còn thiếu</label><input type="number" min="1" value="1"></div>
+                    <button class="btn-search btn-ripple" style="width:100%; justify-content:center; margin-top:10px;" onclick="showEnhancedToast('Đã tạo yêu cầu ghép trận', 'success')">Tạo Trận Phù Hợp</button>
+                </div>
+
+                <div class="match-list">
+                    <div class="match-card-enhanced">
+                        <div class="match-header">
+                            <div class="match-creator">
+                                <img src="assets/images/vsport/matches/match-avatar-01.jpg" loading="lazy" alt="Avatar">
+                                <div><h4 style="margin:0;">FC Hùng Dũng</h4><div style="font-size:12px; color:#aaa;">Uy tín: 95/100</div></div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="color:var(--accent-red); font-weight:700; font-size:18px;">Bóng đá 5v5</div>
+                                <div style="font-size:12px; color:#aaa;">Trình độ: Trung bình khá</div>
+                            </div>
+                        </div>
+                        <div style="font-size:13px; color:#ccc; margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Sân Chảo Lửa • <i class="fa-solid fa-clock"></i> 19:00 Hôm nay</div>
+                        <div class="match-badges">
+                            <span class="m-badge highlight">Thiếu 2 người</span><span class="m-badge">Gần bạn</span><span class="m-badge">Cần chốt sớm</span>
+                        </div>
+                        <div class="match-progress"><div class="progress-bar" style="width: 80%;"></div></div>
+                        <button class="btn-primary btn-ripple" style="width:100%; text-align:center; padding:10px; border-radius:8px;" onclick="showEnhancedToast('Đã gửi yêu cầu tham gia', 'success')">Xin Tham Gia</button>
+                    </div>
+
+                    <div class="match-card-enhanced stagger-1">
+                        <div class="match-header">
+                            <div class="match-creator">
+                                <img src="assets/images/vsport/matches/match-avatar-02.jpg" loading="lazy" alt="Avatar">
+                                <div><h4 style="margin:0;">Team Cầu Lông Cuối Tuần</h4><div style="font-size:12px; color:#aaa;">Uy tín: 98/100</div></div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="color:var(--accent-red); font-weight:700; font-size:18px;">Cầu lông đôi</div>
+                                <div style="font-size:12px; color:#aaa;">Trình độ: Khá</div>
+                            </div>
+                        </div>
+                        <div style="font-size:13px; color:#ccc; margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> V-Star Badminton • <i class="fa-solid fa-clock"></i> 17:00 Ngày mai</div>
+                        <div class="match-badges">
+                            <span class="m-badge highlight">Thiếu 1 người</span><span class="m-badge">Cùng trình độ</span>
+                        </div>
+                        <div class="match-progress"><div class="progress-bar" style="width: 90%;"></div></div>
+                        <button class="btn-primary btn-ripple" style="width:100%; text-align:center; padding:10px; border-radius:8px;" onclick="showEnhancedToast('Đã gửi yêu cầu tham gia', 'success')">Xin Tham Gia</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hot Matches Carousel -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Trận Đang Hot Cần Người</h2>
+            </div>
+            <div class="hot-matches-grid reveal">
+                <div class="hot-match-card tilt-card">
+                    <div class="hot-match-img">
+                        <span class="badge-hot">HOT</span>
+                        <img src="assets/images/vsport/courts/court-football.jpg" loading="lazy" alt="Match">
+                    </div>
+                    <div style="padding: 15px;">
+                        <h4 style="margin-bottom:5px;">Giao lưu bóng đá sân 7</h4>
+                        <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Sân Mini K34</p>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:15px;">
+                            <span class="text-red">Thiếu 3 người</span><span>19:00 Tối nay</span>
+                        </div>
+                        <button class="btn-primary btn-ripple" style="width:100%; padding:8px; text-align:center;" onclick="showEnhancedToast('Chuyển tới trang chi tiết', 'info')">Tham Gia</button>
+                    </div>
+                </div>
+                <!-- Duplicate for carousel effect -->
+                <div class="hot-match-card tilt-card">
+                    <div class="hot-match-img">
+                        <span class="badge-hot">GẤP</span>
+                        <img src="assets/images/vsport/courts/court-tennis.jpg" loading="lazy" alt="Match">
+                    </div>
+                    <div style="padding: 15px;">
+                        <h4 style="margin-bottom:5px;">Đơn Nam Tennis Cấp Độ 3</h4>
+                        <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Sân Tennis Lan Anh</p>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:15px;">
+                            <span class="text-red">Tìm 1 đối thủ</span><span>08:00 Sáng mai</span>
+                        </div>
+                        <button class="btn-primary btn-ripple" style="width:100%; padding:8px; text-align:center;" onclick="showEnhancedToast('Chuyển tới trang chi tiết', 'info')">Tham Gia</button>
+                    </div>
+                </div>
+                <div class="hot-match-card tilt-card">
+                    <div class="hot-match-img">
+                        <span class="badge-hot">HOT</span>
+                        <img src="assets/images/vsport/courts/court-pickleball.jpg" loading="lazy" alt="Match">
+                    </div>
+                    <div style="padding: 15px;">
+                        <h4 style="margin-bottom:5px;">Pickleball Đôi Nam Nữ</h4>
+                        <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Pickleball Zone Q2</p>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:15px;">
+                            <span class="text-red">Thiếu 2 người</span><span>17:00 Chiều nay</span>
+                        </div>
+                        <button class="btn-primary btn-ripple" style="width:100%; padding:8px; text-align:center;" onclick="showEnhancedToast('Chuyển tới trang chi tiết', 'info')">Tham Gia</button>
+                    </div>
+                </div>
+                <div class="hot-match-card tilt-card">
+                    <div class="hot-match-img">
+                        <span class="badge-hot" style="background:#4caf50;">NEW</span>
+                        <img src="assets/images/vsport/courts/court-badminton.jpg" loading="lazy" alt="Match">
+                    </div>
+                    <div style="padding: 15px;">
+                        <h4 style="margin-bottom:5px;">Hội Lông Thủ Tân Bình</h4>
+                        <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Sân Viettel</p>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:15px;">
+                            <span class="text-red">Thiếu 4 người</span><span>20:00 Tối CN</span>
+                        </div>
+                        <button class="btn-primary btn-ripple" style="width:100%; padding:8px; text-align:center;" onclick="showEnhancedToast('Chuyển tới trang chi tiết', 'info')">Tham Gia</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Matchmaking Section -->
+    <section class="vs-community-section">
+        <div class="container community-container">
+            <div class="community-copy">
+                <h2>Chơi Cùng Nhau, Dù Bạn Ở Đâu</h2>
+                <p>V-Sport giúp bạn tìm đồng đội, tạo kèo, tham gia trận gần khu vực và kết nối với những người chơi cùng trình độ.</p>
+                <a href="#matchmaking" class="btn-text-arrow">Khám phá ghép trận <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="community-visual">
+                <div class="community-collage">
+                    <div class="community-photo-card card-left">
+                        <img src="${pageContext.request.contextPath}/assets/images/vsport/community/community-01.jpg" alt="Đội bóng">
+                    </div>
+                    <div class="community-photo-card card-center">
+                        <img src="${pageContext.request.contextPath}/assets/images/vsport/community/community-03.jpg" alt="V-SPORT App">
+                    </div>
+                    <div class="community-photo-card card-right">
+                        <img src="${pageContext.request.contextPath}/assets/images/vsport/community/community-02.jpg" alt="Nhóm bạn">
+                    </div>
+                </div>
+                <div class="community-avatar-stack">
+                    <img src="${pageContext.request.contextPath}/assets/images/vsport/matches/match-avatar-01.jpg" alt="User">
+                    <img src="${pageContext.request.contextPath}/assets/images/vsport/matches/match-avatar-02.jpg" alt="User">
+                    <img src="${pageContext.request.contextPath}/assets/images/vsport/players/person-01.jpg" alt="User">
+                    <span class="avatar-badge">+98</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trusted Players -->
+    <section id="trusted-players" class="section-padding pattern-bg">
+        <div class="container">
+            <div class="section-heading reveal">
+                <div class="sub-title"><span class="line"></span><span class="text">CỘNG ĐỒNG V-SPORT</span><span class="line"></span></div>
+                <h2>Người Chơi Uy Tín & Trình Độ Cao</h2>
+            </div>
+            
+            <div class="player-grid reveal">
+                <div class="player-card tilt-card shine-hover">
+                    <div style="position:absolute; top:10px; left:10px; background:#ffd700; color:#000; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; z-index:10;"><i class="fa-solid fa-crown"></i> TOP 1</div>
+                    <div class="player-img-wrapper">
+                        <div class="arch-bg"></div>
+                        <img src="assets/images/vsport/players/person-01.jpg" loading="lazy" alt="Nguyễn Minh Khang">
+                    </div>
+                    <div class="player-info">
+                        <h3>Nguyễn Minh Khang</h3>
+                        <p class="player-sport">Bóng đá - Giỏi</p>
+                        <div class="player-stats">
+                            <span><i class="fa-solid fa-star"></i> 4.9</span>
+                            <span><i class="fa-solid fa-shield-check text-red"></i> 98</span>
+                        </div>
+                    </div>
+                    <a href="javascript:void(0)" class="btn-invite btn-ripple" onclick="showEnhancedToast('Đã gửi lời mời tới Nguyễn Minh Khang')">Mời chơi</a>
+                </div>
+
+                <div class="player-card tilt-card shine-hover">
+                    <div style="position:absolute; top:10px; left:10px; background:#c0c0c0; color:#000; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; z-index:10;"><i class="fa-solid fa-medal"></i> TOP 2</div>
+                    <div class="player-img-wrapper">
+                        <div class="arch-bg"></div>
+                        <img src="assets/images/vsport/players/person-02.jpg" loading="lazy" alt="Trần Hoàng Nam">
+                    </div>
+                    <div class="player-info">
+                        <h3>Trần Hoàng Nam</h3>
+                        <p class="player-sport">Bóng đá - Khá</p>
+                        <div class="player-stats">
+                            <span><i class="fa-solid fa-star"></i> 4.7</span>
+                            <span><i class="fa-solid fa-shield-check text-red"></i> 95</span>
+                        </div>
+                    </div>
+                    <a href="javascript:void(0)" class="btn-invite btn-ripple" onclick="showEnhancedToast('Đã gửi lời mời tới Trần Hoàng Nam')">Mời chơi</a>
+                </div>
+
+                <div class="player-card tilt-card shine-hover">
+                    <div style="position:absolute; top:10px; left:10px; background:#cd7f32; color:#fff; font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; z-index:10;"><i class="fa-solid fa-award"></i> TOP 3</div>
+                    <div class="player-img-wrapper">
+                        <div class="arch-bg"></div>
+                        <img src="assets/images/vsport/players/person-04.jpg" loading="lazy" alt="Lê Gia Hân">
+                    </div>
+                    <div class="player-info">
+                        <h3>Lê Gia Hân</h3>
+                        <p class="player-sport">Cầu lông - Giỏi</p>
+                        <div class="player-stats">
+                            <span><i class="fa-solid fa-star"></i> 5.0</span>
+                            <span><i class="fa-solid fa-shield-check text-red"></i> 97</span>
+                        </div>
+                    </div>
+                    <a href="javascript:void(0)" class="btn-invite btn-ripple" onclick="showEnhancedToast('Đã gửi lời mời tới Lê Gia Hân')">Mời chơi</a>
+                </div>
+
+                <div class="player-card tilt-card shine-hover">
+                    <div class="player-img-wrapper">
+                        <div class="arch-bg"></div>
+                        <img src="assets/images/vsport/players/person-05.jpg" loading="lazy" alt="Võ Anh Tuấn">
+                    </div>
+                    <div class="player-info">
+                        <h3>Võ Anh Tuấn</h3>
+                        <p class="player-sport">Tennis - Bán chuyên</p>
+                        <div class="player-stats">
+                            <span><i class="fa-solid fa-star"></i> 5.0</span>
+                            <span><i class="fa-solid fa-shield-check text-red"></i> 99</span>
+                        </div>
+                    </div>
+                    <a href="javascript:void(0)" class="btn-invite btn-ripple" onclick="showEnhancedToast('Đã gửi lời mời tới Võ Anh Tuấn')">Mời chơi</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reputation System -->
+    <section class="section-padding" style="background:#fff;">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Chơi Văn Minh Hơn Với Điểm Uy Tín</h2>
+            </div>
+            <div class="reputation-container reveal">
+                <div class="rep-profile tilt-card">
+                    <img src="assets/images/vsport/players/person-01.jpg" alt="Profile" class="rep-avatar">
+                    <h3 style="margin-bottom:10px;">Điểm Uy Tín Của Bạn</h3>
+                    <div class="rep-score counter" data-target="98">0</div>
+                    <p style="color:var(--text-sub); margin-top:10px;">Thành viên Kim Cương</p>
+                    <div style="margin-top:20px; display:flex; justify-content:space-around; font-size:13px; font-weight:600;">
+                        <div><i class="fa-solid fa-clock text-red"></i> 96% Check-in</div>
+                        <div><i class="fa-solid fa-thumbs-up text-red"></i> 120 Trận</div>
+                    </div>
+                </div>
+                <div class="rep-timeline">
+                    <div class="timeline-item stagger-1">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content"><span>Đến sân đúng giờ</span><span class="point-up">+2 điểm</span></div>
+                    </div>
+                    <div class="timeline-item stagger-2">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content"><span>Hoàn thành trận đấu</span><span class="point-up">+3 điểm</span></div>
+                    </div>
+                    <div class="timeline-item stagger-3">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content"><span>Được đối thủ khen ngợi</span><span class="point-up">+5 điểm</span></div>
+                    </div>
+                    <div class="timeline-item stagger-4">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content"><span>Hủy lịch sát giờ</span><span class="point-down">-10 điểm</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Preview -->
+    <section class="section-padding pattern-bg">
+        <div class="container">
+            <div class="map-preview reveal">
+                <div class="map-info">
+                    <div class="sub-title" style="justify-content: flex-start;"><span class="text">BẢN ĐỒ SÂN</span><span class="line"></span></div>
+                    <h2>Tìm Sân Gần Bạn Trong Vài Giây</h2>
+                    <ul>
+                        <li><i class="fa-solid fa-map-location-dot"></i> Hàng trăm sân thể thao trên toàn quốc</li>
+                        <li><i class="fa-solid fa-filter"></i> Lọc nhanh theo môn thể thao & tiện ích</li>
+                        <li><i class="fa-solid fa-route"></i> Xem khoảng cách và chỉ đường đi nhanh nhất</li>
+                    </ul>
+                    <a href="#" class="btn-primary btn-ripple" style="margin-top: 15px;"><i class="fa-solid fa-map"></i> Mở Bản Đồ Sân</a>
+                </div>
+                <div class="map-img tilt-card" style="position:relative;">
+                    <img src="assets/images/vsport/map/map-preview.jpg" loading="lazy" alt="Bản đồ">
+                    <div style="position:absolute; top:40%; left:50%; width:20px; height:20px; background:var(--accent-red); border-radius:50%; transform:translate(-50%, -50%); box-shadow:0 0 0 10px rgba(255,31,45,0.3); animation:pulse 1.5s infinite;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deals -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Ưu Đãi Đặt Sân Hôm Nay</h2>
+            </div>
+            <div class="deals-grid reveal">
+                <div class="deal-card shine-hover tilt-card">
+                    <div class="deal-discount">10%</div>
+                    <h3 style="margin-bottom:10px;">Giờ Thấp Điểm</h3>
+                    <p style="font-size:13px; color:#aaa; margin-bottom:20px;">Giảm giá cho các khung giờ từ 9:00 - 15:00 các ngày trong tuần.</p>
+                    <button class="btn-primary btn-ripple" onclick="showEnhancedToast('Lưu mã thành công', 'success')">Nhận Mã Giảm</button>
+                </div>
+                <div class="deal-card shine-hover tilt-card" style="border-left-color:var(--accent-red);">
+                    <div class="deal-discount">Free</div>
+                    <h3 style="margin-bottom:10px;">Combo Nước Suối</h3>
+                    <p style="font-size:13px; color:#aaa; margin-bottom:20px;">Tặng kèm nước suối miễn phí khi đặt sân trên 2 giờ đồng hồ.</p>
+                    <button class="btn-primary btn-ripple" onclick="showEnhancedToast('Lưu mã thành công', 'success')">Nhận Mã Giảm</button>
+                </div>
+                <div class="deal-card shine-hover tilt-card">
+                    <div class="deal-discount">20%</div>
+                    <h3 style="margin-bottom:10px;">Thành Viên Mới</h3>
+                    <p style="font-size:13px; color:#aaa; margin-bottom:20px;">Ưu đãi đặc quyền dành cho người dùng lần đầu tiên đặt sân.</p>
+                    <button class="btn-primary btn-ripple" onclick="showEnhancedToast('Lưu mã thành công', 'success')">Nhận Mã Giảm</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Mockup -->
+    <section class="section-padding app-section">
+        <div class="container app-container reveal">
+            <div class="app-mockup-wrapper">
+                <img src="assets/images/vsport/app/app-mockup.png" loading="lazy" alt="App V-SPORT" class="app-phone">
+            </div>
+            <div>
+                <h2 style="font-size:40px; font-family:var(--font-heading); margin-bottom:30px;">Đặt Sân Mọi Lúc,<br>Mọi Nơi</h2>
+                <ul class="app-features">
+                    <li><i class="fa-solid fa-mobile-screen"></i><div><h4 style="font-size:18px;">App Tối Ưu, Mượt Mà</h4><p style="color:#aaa; font-size:14px;">Trải nghiệm thao tác trên di động tốt nhất.</p></div></li>
+                    <li><i class="fa-solid fa-bell"></i><div><h4 style="font-size:18px;">Nhận Thông Báo Push</h4><p style="color:#aaa; font-size:14px;">Không bỏ lỡ lịch thi đấu hay thông báo ghép trận.</p></div></li>
+                    <li><i class="fa-solid fa-qrcode"></i><div><h4 style="font-size:18px;">Check-in Bằng QR Code</h4><p style="color:#aaa; font-size:14px;">Đến sân check-in chỉ trong 1 giây nhanh chóng.</p></div></li>
+                </ul>
+                <div style="display:flex; gap:15px; margin-top:30px;">
+                    <a href="#" class="btn-primary btn-ripple"><i class="fa-brands fa-apple"></i> App Store</a>
+                    <a href="#" class="btn-secondary btn-ripple"><i class="fa-brands fa-google-play"></i> Google Play</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Reviews -->
+    <section class="section-padding" style="background:#fff;">
+        <div class="container">
+            <div class="section-heading reveal">
+                <h2>Khách Hàng Nói Gì Về V-SPORT</h2>
+            </div>
+            <div class="reviews-grid reveal">
+                <div class="review-card tilt-card">
+                    <p class="review-text">"Đặt sân rất nhanh, có thể xem giờ trống rõ ràng. Tính năng ghép trận giúp đội mình luôn tìm được đối thủ vào cuối tuần."</p>
+                    <div class="reviewer">
+                        <img src="assets/images/vsport/reviews/review-01.jpg" loading="lazy" alt="Reviewer">
+                        <div class="reviewer-info">
+                            <h4>Trần Đăng Khoa</h4>
+                            <div style='font-size:12px; color:#888; margin-bottom:5px;'><i class='fa-solid fa-location-dot text-red'></i> Sân Chảo Lửa • 2 ngày trước</div>
+                            <div class="reviewer-rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-card tilt-card stagger-1">
+                    <p class="review-text">"Tính năng ghép trận giúp mình tìm được đội chơi cùng trình độ cầu lông. Sân sạch, check-in nhanh, thanh toán cực kì tiện lợi."</p>
+                    <div class="reviewer">
+                        <img src="assets/images/vsport/reviews/review-02.jpg" loading="lazy" alt="Reviewer">
+                        <div class="reviewer-info">
+                            <h4>Nguyễn Thị Mai</h4>
+                            <div style='font-size:12px; color:#888; margin-bottom:5px;'><i class='fa-solid fa-location-dot text-red'></i> V-Star Badminton • 3 ngày trước</div>
+                            <div class="reviewer-rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-card tilt-card stagger-2">
+                    <p class="review-text">"Hệ thống uy tín rất hay, mình luôn biết trước đối thủ là ai, đá có fairplay hay không. Chắc chắn sẽ sử dụng V-SPORT lâu dài."</p>
+                    <div class="reviewer">
+                        <img src="assets/images/vsport/reviews/review-03.jpg" loading="lazy" alt="Reviewer">
+                        <div class="reviewer-info">
+                            <h4>Lê Minh Trí</h4>
+                            <div style='font-size:12px; color:#888; margin-bottom:5px;'><i class='fa-solid fa-location-dot text-red'></i> Tennis Kỳ Hòa • 5 ngày trước</div>
+                            <div class="reviewer-rating"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section" style="background: linear-gradient(rgba(17, 17, 17, 0.9), rgba(135, 15, 23, 0.8)), url('assets/images/vsport/hero/hero-bg.jpg') center/cover; background-attachment: fixed;">
+        <div class="container">
+            <div class="stats-grid reveal">
+                <div class="stat-item"><h3 class="counter" data-target="12000">0</h3><p>Lượt đặt sân</p></div>
+                <div class="stat-item"><h3 class="counter" data-target="4.8">0</h3><p>Điểm đánh giá</p></div>
+                <div class="stat-item"><h3 class="counter" data-target="500">0</h3><p>Trận ghép thành công</p></div>
+                <div class="stat-item"><h3 class="counter" data-target="98">0</h3><p>% Check-in đúng giờ</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section-padding pattern-bg">
+        <div class="container" style="max-width: 800px;">
+            <div class="section-heading reveal">
+                <h2>Câu Hỏi Thường Gặp</h2>
+            </div>
+            <div class="faq-container reveal">
+                <div class="faq-item" onclick="this.classList.toggle('active')">
+                    <div class="faq-question">Đặt sân có cần thanh toán trước không? <i class="fa-solid fa-chevron-down" style="transition:0.3s;"></i></div>
+                    <div class="faq-answer">Hầu hết các sân đều yêu cầu thanh toán trước hoặc đặt cọc một phần để giữ chỗ chắc chắn. V-SPORT hỗ trợ nhiều cổng thanh toán linh hoạt.</div>
+                </div>
+                <div class="faq-item" onclick="this.classList.toggle('active')">
+                    <div class="faq-question">Điểm uy tín hoạt động thế nào? <i class="fa-solid fa-chevron-down" style="transition:0.3s;"></i></div>
+                    <div class="faq-answer">Điểm uy tín tăng khi bạn đi đúng giờ, hoàn thành trận và được đánh giá tốt. Điểm sẽ giảm nếu bạn hủy sát giờ hoặc không đến (no-show).</div>
+                </div>
+                <div class="faq-item" onclick="this.classList.toggle('active')">
+                    <div class="faq-question">Làm sao để tham gia ghép trận? <i class="fa-solid fa-chevron-down" style="transition:0.3s;"></i></div>
+                    <div class="faq-answer">Bạn chỉ cần vào mục Ghép trận, chọn trận có trình độ phù hợp, và bấm "Xin tham gia". Đội trưởng sẽ xét duyệt dựa trên điểm uy tín của bạn.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container reveal">
+            <h2>Sẵn Sàng Cho Trận Đấu Tiếp Theo?</h2>
+            <p>Chọn sân, tìm đồng đội, ghép trận và bắt đầu trải nghiệm thể thao thông minh cùng V-SPORT.</p>
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <a href="#quick-booking" class="btn-primary btn-ripple">Đặt sân ngay</a>
+                <a href="#matchmaking" class="btn-secondary btn-ripple">Tìm trận gần tôi</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-col widget-about">
+                <div class="footer-logo"><a href="#">V<span class="logo-icon"><i class="fa-solid fa-bolt text-red" style="margin: 0 5px;"></i></span>SPORT</a></div>
+                <p class="about-text">Nền tảng đặt sân online, quản lý lịch sân và ghép trận thể thao lớn nhất dành cho cộng đồng người chơi.</p>
+                <div class="contact-info">
+                    <div class="contact-item"><span class="label text-red">TỔNG ĐÀI HỖ TRỢ</span><a href="tel:19001234" class="value">1900 1234</a></div>
+                    <div class="contact-item"><span class="label text-red">EMAIL LIÊN HỆ</span><a href="mailto:contact@v-sport.vn" class="value">contact@v-sport.vn</a></div>
+                </div>
+            </div>
+            <div class="footer-col widget-links">
+                <h3 class="widget-title">Truy cập nhanh</h3>
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Trang chủ</a></li>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Tìm sân trống</a></li>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Ghép trận</a></li>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Bảng giá</a></li>
+                </ul>
+            </div>
+            <div class="footer-col widget-links">
+                <h3 class="widget-title">Dịch vụ</h3>
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Đặt sân online</a></li>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Tìm người chơi</a></li>
+                    <li><a href="#"><i class="fa-solid fa-angle-right"></i> Đánh giá sân bãi</a></li>
+                </ul>
+            </div>
+            <div class="footer-col widget-gallery">
+                <h3 class="widget-title">Thư viện ảnh</h3>
+                <div class="gallery-grid">
+                    <a href="assets/images/vsport/gallery/gallery-01.jpg" class="gallery-item gallery-lightbox-item"><img src="assets/images/vsport/gallery/gallery-01.jpg" loading="lazy" alt="Gallery"></a>
+                    <a href="assets/images/vsport/gallery/gallery-02.jpg" class="gallery-item gallery-lightbox-item"><img src="assets/images/vsport/gallery/gallery-02.jpg" loading="lazy" alt="Gallery"></a>
+                    <a href="assets/images/vsport/gallery/gallery-03.jpg" class="gallery-item gallery-lightbox-item"><img src="assets/images/vsport/gallery/gallery-03.jpg" loading="lazy" alt="Gallery"></a>
+                    <a href="assets/images/vsport/gallery/gallery-04.jpg" class="gallery-item gallery-lightbox-item"><img src="assets/images/vsport/gallery/gallery-04.jpg" loading="lazy" alt="Gallery"></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container bottom-content">
+                <div class="copyright"><p>&copy; Copyright 2026 <span class="text-red">V-SPORT</span>. All Rights Reserved.</p></div>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Sticky CTA -->
+    <div class="mobile-sticky-cta">
+        <a href="#quick-booking" class="active"><i class="fa-solid fa-calendar-check"></i> Đặt Sân</a>
+        <a href="#matchmaking"><i class="fa-solid fa-users"></i> Ghép Trận</a>
+        <a href="#"><i class="fa-solid fa-map-location-dot"></i> Bản Đồ</a>
     </div>
-</div>
 
-<script>
-    window.openSideDrawer = function() {
-        const drawer = document.getElementById('side-drawer');
-        if (drawer) drawer.classList.add('open');
-    };
-    window.closeSideDrawer = function() {
-        const drawer = document.getElementById('side-drawer');
-        if (drawer) drawer.classList.remove('open');
-    };
-</script>
-
-<jsp:include page="/auth/AuthModal.jsp" />
-
-<!-- Scroll reveal Javascript observer initialization -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const reveals = document.querySelectorAll(".scroll-reveal");
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add("reveal-visible");
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.02, // trigger when 2% of the element is visible for snappier responses
-            rootMargin: "0px 0px -10px 0px"
+    <!-- Custom JS -->
+    <script src="assets/js/vsport-customer.js"></script>
+    <script src="assets/js/vsport-home-enhanced.js"></script>
+    <jsp:include page="/auth/AuthModal.jsp" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const authAction = urlParams.get('auth');
+            if (authAction === 'login') {
+                openAuthModal('login');
+            } else if (authAction === 'register') {
+                openAuthModal('register');
+            } else if (authAction === 'forgot-password') {
+                openAuthModal('forgot-password');
+            }
         });
-        
-        reveals.forEach(reveal => {
-            observer.observe(reveal);
-        });
-    });
-</script>
+    </script>
 </body>
 </html>

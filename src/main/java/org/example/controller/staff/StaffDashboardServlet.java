@@ -47,7 +47,7 @@ public class StaffDashboardServlet extends HttpServlet {
         TaiKhoan user = (TaiKhoan) session.getAttribute("user");
 
         if (user == null) {
-            resp.sendRedirect(req.getContextPath() + "/dangnhap");
+            resp.sendRedirect(req.getContextPath() + "/he-thong/dang-nhap");
             return;
         }
 
@@ -59,7 +59,7 @@ public class StaffDashboardServlet extends HttpServlet {
 
         if (user.getCoSoId() == null) {
             session.setAttribute("error", "Tài khoản của bạn chưa được gán chi nhánh cơ sở.");
-            resp.sendRedirect(req.getContextPath() + "/dangnhap");
+            resp.sendRedirect(req.getContextPath() + "/he-thong/dang-nhap");
             return;
         }
 

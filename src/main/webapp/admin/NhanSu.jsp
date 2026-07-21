@@ -171,15 +171,9 @@ body { font-family: 'Inter', sans-serif; }
         
         <!-- Container for staff fields -->
         <div id="staffFieldsContainer" class="flex flex-col gap-3.5">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-zinc-600">Họ và tên <span class="text-red-500">*</span></label>
-              <input type="text" id="staffName" required class="h-9 px-3 rounded-lg border border-zinc-200 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-500 focus:outline-none transition-all">
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-zinc-600">Tên đăng nhập <span class="text-red-500">*</span></label>
-              <input type="text" id="staffUsername" required class="h-9 px-3 rounded-lg border border-zinc-200 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-500 focus:outline-none transition-all">
-            </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-zinc-600">Họ và tên <span class="text-red-500">*</span></label>
+            <input type="text" id="staffName" required class="h-9 px-3 rounded-lg border border-zinc-200 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-500 focus:outline-none transition-all">
           </div>
           
           <div class="grid grid-cols-2 gap-3">
@@ -630,8 +624,6 @@ function openAddStaff() {
   document.getElementById('staffForm').reset();
   document.getElementById('staffModalTitle').innerText = 'Thêm nhân sự mới';
   document.getElementById('staffEditId').value = '';
-  document.getElementById('staffUsername').disabled = false;
-  
   // Reset OTP containers
   document.getElementById('staffFieldsContainer').classList.remove('hidden');
   document.getElementById('otpVerificationSection').classList.add('hidden');
@@ -664,8 +656,6 @@ function editStaff(id) {
   document.getElementById('staffModalTitle').innerText = 'Chỉnh sửa tài khoản';
   document.getElementById('staffEditId').value = s.id;
   document.getElementById('staffName').value = s.name;
-  document.getElementById('staffUsername').value = s.username;
-  document.getElementById('staffUsername').disabled = true;
   document.getElementById('staffEmail').value = s.email;
   document.getElementById('staffPhone').value = s.phone;
   document.getElementById('staffPhone').disabled = true; // Khóa số điện thoại khi chỉnh sửa
@@ -754,7 +744,6 @@ async function handleStaffSubmit(e) {
   const params = new URLSearchParams();
   params.append('action', editId ? 'update' : 'add');
   if (editId) params.append('accountId', editId);
-  else params.append('username', document.getElementById('staffUsername').value);
   
   params.append('fullName', document.getElementById('staffName').value);
   params.append('email', document.getElementById('staffEmail').value);

@@ -31,7 +31,7 @@ public class FilterQuyenManager implements Filter {
                 httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền Quản lý cơ sở để truy cập chức năng này.");
             }
         } else {
-            httpResponse.sendRedirect(httpRequest.getContextPath() + "/dangnhap?admin=true");
+            httpResponse.sendRedirect(httpRequest.getContextPath() + "/he-thong/dang-nhap");
         }
     }
 

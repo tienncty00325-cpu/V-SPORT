@@ -92,7 +92,7 @@
                     <!-- Header -->
                     <div class="mb-6">
                         <div class="inline-flex items-center gap-2 bg-white border border-[#378b76]/30 text-[#378b76] rounded-full py-1 px-3.5 text-[11px] font-bold w-fit shadow-sm mb-3">
-                            <div class="w-1.5 h-1.5 rounded-full bg-[#378b76] animate-pulse"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-[#1677D2] animate-pulse"></div>
                             <span>Xác minh danh tính</span>
                         </div>
                         <h2 class="text-xl font-bold tracking-tight text-slate-900 mb-1">Xác thực OTP</h2>
@@ -128,12 +128,12 @@
                                        style="border-width: 1.5px;">
                             </div>
                         </div>
-                        <button type="submit" id="submit-btn-dashboard" class="w-full h-12 bg-[#378b76] hover:bg-[#2c6f5e] text-white rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all relative overflow-hidden shadow-md shadow-emerald-50">
+                        <button type="submit" id="submit-btn-dashboard" class="w-full h-12 bg-[#FF8A24] hover:bg-[#F97316] text-white rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all relative overflow-hidden shadow-md shadow-orange-100">
                             <span class="btn-text flex items-center gap-1.5">
                                 Xác minh OTP
                                 <span class="material-symbols-outlined text-[18px]">verified_user</span>
                             </span>
-                            <div class="loading-spinner hidden absolute inset-0 bg-[#2c6f5e] flex items-center justify-center">
+                            <div class="loading-spinner hidden absolute inset-0 bg-[#F97316] flex items-center justify-center">
                                 <div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                             </div>
                         </button>
@@ -164,7 +164,7 @@
 
                 <div class="mb-6">
                     <div class="inline-flex items-center gap-2 bg-white border border-[#378b76]/30 text-[#378b76] rounded-full py-1 px-3.5 text-[11px] font-bold w-fit shadow-sm mb-3">
-                        <div class="w-1.5 h-1.5 rounded-full bg-[#378b76] animate-pulse"></div>
+                        <div class="w-1.5 h-1.5 rounded-full bg-[#1677D2] animate-pulse"></div>
                         <span>Xác minh danh tính</span>
                     </div>
                     <h2 class="text-xl font-bold tracking-tight text-slate-900 mb-1">Xác thực OTP</h2>
@@ -197,12 +197,12 @@
                                    style="border-width: 1.5px;">
                         </div>
                     </div>
-                    <button type="submit" id="submit-btn" class="w-full h-12 bg-[#378b76] hover:bg-[#2c6f5e] text-white rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all relative overflow-hidden shadow-md shadow-emerald-50">
+                    <button type="submit" id="submit-btn" class="w-full h-12 bg-[#FF8A24] hover:bg-[#F97316] text-white rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all relative overflow-hidden shadow-md shadow-orange-100">
                         <span class="btn-text flex items-center gap-1.5">
                             Xác minh OTP
                             <span class="material-symbols-outlined text-[18px]">verified_user</span>
                         </span>
-                        <div class="loading-spinner hidden absolute inset-0 bg-[#2c6f5e] flex items-center justify-center">
+                        <div class="loading-spinner hidden absolute inset-0 bg-[#F97316] flex items-center justify-center">
                             <div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                         </div>
                     </button>

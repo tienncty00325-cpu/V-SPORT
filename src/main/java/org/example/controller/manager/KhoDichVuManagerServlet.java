@@ -488,6 +488,87 @@ public class KhoDichVuManagerServlet extends HttpServlet {
                         session.setAttribute("errorMsg", "Lỗi khi thêm danh mục mới.");
                     }
                 }
+            } else if ("update-category".equals(action)) {
+                String catIdStr = req.getParameter("danhMucID");
+                String catName = req.getParameter("tenDanhMuc");
+                if (catIdStr == null || catName == null || catName.trim().isEmpty()) {
+                    session.setAttribute("errorMsg", "Dữ liệu cập nhật nhóm dịch vụ không hợp lệ.");
+                    resp.sendRedirect(req.getContextPath() + "/manager/kho-dich-vu");
+                    return;
+                }
+
+                int catId = Integer.parseInt(catIdStr.trim());
+                String trimmedCatName = catName.trim();
+
+                List<DanhMucSanPham> allCats = categoryDAO.findAll();
+                boolean exists = false;
+                for (DanhMucSanPham dm : allCats) {
+                    if (dm.getDanhMucID() != catId && dm.getTenDanhMuc().trim().equalsIgnoreCase(trimmedCatName)) {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (exists) {
+                    session.setAttribute("errorMsg", "Nhóm dịch vụ '" + trimmedCatName + "' đã tồn tại.");
+                } else {
+                    DanhMucSanPham dm = categoryDAO.findById(catId);
+                    if (dm != null) {
+                        String oldName = dm.getTenDanhMuc();
+                        dm.setTenDanhMuc(trimmedCatName);
+                        boolean success = categoryDAO.update(dm);
+                        if (success) {
+                            session.setAttribute("successMsg", "Cập nhật nhóm dịch vụ '" + trimmedCatName + "' thành công.");
+                            AuditLogService.log(req, user,
+                                AuditLogService.ACTION_UPDATE, "DanhMucSanPham",
+                                String.valueOf(catId), trimmedCatName,
+                                "Manager đổi tên nhóm dịch vụ từ '" + oldName + "' sang '" + trimmedCatName + "'");
+                        } else {
+                            session.setAttribute("errorMsg", "Không thể cập nhật nhóm dịch vụ.");
+                        }
+                    } else {
+                        session.setAttribute("errorMsg", "Nhóm dịch vụ không tồn tại.");
+                    }
+                }
+            } else if ("delete-category".equals(action)) {
+                String catIdStr = req.getParameter("danhMucID");
+                if (catIdStr == null) {
+                    session.setAttribute("errorMsg", "Thiếu ID nhóm dịch vụ cần xóa.");
+                    resp.sendRedirect(req.getContextPath() + "/manager/kho-dich-vu");
+                    return;
+                }
+
+                int catId = Integer.parseInt(catIdStr.trim());
+
+                EntityManager em = JPAUtil.getEntityManager();
+                try {
+                    long count = em.createQuery("SELECT COUNT(p) FROM SanPham_DichVu p WHERE p.DanhMucID = :catId AND p.isDeleted = false", Long.class)
+                            .setParameter("catId", catId)
+                            .getSingleResult();
+
+                    if (count > 0) {
+                        session.setAttribute("errorMsg", "Không thể xóa nhóm dịch vụ này vì có " + count + " mặt hàng/dịch vụ đang thuộc nhóm.");
+                    } else {
+                        DanhMucSanPham dm = categoryDAO.findById(catId);
+                        if (dm != null) {
+                            String catName = dm.getTenDanhMuc();
+                            boolean success = categoryDAO.delete(catId);
+                            if (success) {
+                                session.setAttribute("successMsg", "Đã xóa nhóm dịch vụ '" + catName + "' thành công.");
+                                AuditLogService.log(req, user,
+                                    AuditLogService.ACTION_DELETE, "DanhMucSanPham",
+                                    String.valueOf(catId), catName,
+                                    "Manager xóa nhóm dịch vụ '" + catName + "'");
+                            } else {
+                                session.setAttribute("errorMsg", "Lỗi khi xóa nhóm dịch vụ.");
+                            }
+                        } else {
+                            session.setAttribute("errorMsg", "Nhóm dịch vụ không tồn tại.");
+                        }
+                    }
+                } finally {
+                    em.close();
+                }
             } else if ("add-presets".equals(action)) {
                 String[] presetNames = req.getParameterValues("presetNames");
                 String[] presetCatNames = req.getParameterValues("presetCatNames");

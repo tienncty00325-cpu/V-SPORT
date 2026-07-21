@@ -33,6 +33,7 @@ public class InvoiceView {
     private final String courtTypeName;
 
     private final String customerName;
+    private final String customerPhone;
     private final String cashierName;
 
     private final String playMode;
@@ -69,7 +70,7 @@ public class InvoiceView {
     public InvoiceView(int hoaDonId, String invoiceType, Integer parentHoaDonId, String paymentStatus,
                         String paymentMethod, Date paidAt, String facilityName, String facilityAddress,
                         String facilityPhone, String courtName, String courtTypeName, String customerName,
-                        String cashierName, String playMode, LocalDateTime actualStartAt, LocalDateTime actualEndAt,
+                        String customerPhone, String cashierName, String playMode, LocalDateTime actualStartAt, LocalDateTime actualEndAt,
                         String actualStartLabel, String actualEndLabel, boolean crossesMidnight,
                         long actualDurationMinutes, long chargedDurationMinutes,
                         String actualDurationLabel, String chargedDurationLabel,
@@ -94,6 +95,7 @@ public class InvoiceView {
         this.courtName = courtName;
         this.courtTypeName = courtTypeName;
         this.customerName = customerName;
+        this.customerPhone = customerPhone;
         this.cashierName = cashierName;
         this.playMode = playMode;
         this.playModeLabel = "OPEN_ENDED".equals(playMode) ? "Giờ không cố định" : "Giờ cố định";
@@ -142,6 +144,7 @@ public class InvoiceView {
     public String getCourtTypeName() { return courtTypeName; }
 
     public String getCustomerName() { return customerName; }
+    public String getCustomerPhone() { return customerPhone; }
     public String getCashierName() { return cashierName; }
 
     public String getPlayMode() { return playMode; }

@@ -25,8 +25,14 @@ public class FilterLuong implements Filter {
         String path = httpRequest.getServletPath();
 
         if (path.equals("/nhapma")) {
-            // Phải có OTP trong session hoặc đang cần resend OTP
-            if (session == null || (session.getAttribute("otp") == null && session.getAttribute("needResend") == null)) {
+            // Luồng quên mật khẩu mới không lưu OTP raw trong session mà dùng
+            // challenge băm (resetChallenge) — cho qua để servlet tự kiểm tra.
+            boolean forgotChallenge = session != null
+                    && "FORGOT_PASSWORD".equals(session.getAttribute("authType"))
+                    && session.getAttribute("resetChallenge") != null;
+            // Các luồng cũ (REGISTER/ADMIN/MANAGER) vẫn phải có OTP trong session
+            if (!forgotChallenge && (session == null
+                    || (session.getAttribute("otp") == null && session.getAttribute("needResend") == null))) {
                 String authType = (session != null) ? (String) session.getAttribute("authType") : null;
                 if ("ADMIN_ADD".equals(authType) || "ADMIN_EDIT".equals(authType)) {
                     httpResponse.sendRedirect(httpRequest.getContextPath() + "/admin/nhan-su");

@@ -545,7 +545,7 @@ public class CheckInDAO {
      * toán/cọc - chỉ tự hủy khi hóa đơn thực sự chưa thu tiền gì (an toàn, không mất dấu vết cần
      * hoàn tiền/giữ cọc thủ công).
      */
-    public void huyLichKhachBung(int datSanId, int staffAccountId, int requiredCoSoId) throws CheckInException {
+    public void huyLichKhachBung(int datSanId, int staffAccountId, int requiredCoSoId, String ipAddress) throws CheckInException {
         Connection conn = null;
         PreparedStatement psSelect = null;
         PreparedStatement psUpdateBooking = null;
@@ -559,7 +559,7 @@ public class CheckInDAO {
             conn.setAutoCommit(false); // Quản lý Transaction thủ công
 
             // 1. Khóa đơn đặt lịch + join San để xác minh cơ sở
-            String sqlSelect = "SELECT l.TrangThai, l.GhiChu, l.NgayDat, l.GioBatDau, s.CoSoID " +
+            String sqlSelect = "SELECT l.TrangThai, l.GhiChu, l.NgayDat, l.GioBatDau, l.AccountID, s.CoSoID " +
                     "FROM LichDatSan l WITH (UPDLOCK, ROWLOCK) JOIN San s ON s.SanID = l.SanID WHERE l.DatSanID = ?";
             psSelect = conn.prepareStatement(sqlSelect);
             psSelect.setInt(1, datSanId);
@@ -575,6 +575,8 @@ public class CheckInDAO {
             }
 
             String trangThaiBooking = rs.getString("TrangThai");
+            int customerAccountId = rs.getInt("AccountID");
+            boolean hasCustomerAccount = !rs.wasNull();
             String ghiChu = rs.getString("GhiChu");
             java.time.LocalDate ngayDat = rs.getDate("NgayDat").toLocalDate();
             java.time.LocalTime gioBatDau = rs.getTime("GioBatDau").toLocalTime();
@@ -597,6 +599,14 @@ public class CheckInDAO {
             psUpdateBooking.setInt(3, datSanId);
             if (psUpdateBooking.executeUpdate() != 1) {
                 throw new CheckInException("Trạng thái đơn đặt sân vừa thay đổi bởi một thao tác khác. Vui lòng tải lại.");
+            }
+
+            // 2b. Trừ điểm uy tín NO_SHOW - chỉ chạy khi booking thực sự vừa được đánh dấu ở bước trên
+            // (nếu executeUpdate() != 1 đã throw ở trên, nên tới đây chắc chắn là lần đánh dấu đầu tiên).
+            if (hasCustomerAccount) {
+                org.example.service.reputation.CustomerReputationService.applyDelta(conn, customerAccountId, datSanId,
+                        org.example.util.Constants.REPUTATION_ACTION_NO_SHOW, org.example.util.Constants.NO_SHOW_PENALTY,
+                        "Khách không đến (No Show)", staffAccountId, ipAddress);
             }
 
             // 3. Hóa đơn MAIN: chỉ tự hủy nếu THỰC SỰ chưa thu tiền gì - nếu đã thanh toán/cọc,
@@ -625,6 +635,12 @@ public class CheckInDAO {
                             " [Khách bùng - đã thu tiền, cần xử lý hoàn tiền/giữ cọc thủ công]").trim());
                     psUpdateInvoice.setInt(2, hoaDonId);
                     psUpdateInvoice.executeUpdate();
+
+                    try (PreparedStatement psFlagBooking = conn.prepareStatement(
+                            "UPDATE LichDatSan SET RequiresRefundReview = 1 WHERE DatSanID = ?")) {
+                        psFlagBooking.setInt(1, datSanId);
+                        psFlagBooking.executeUpdate();
+                    }
                 }
             }
 
@@ -770,13 +786,24 @@ public class CheckInDAO {
             String sql = "SELECT lds.DatSanID, s.SanID, s.TenSan, acc.FullName AS TenKhachHang, acc.PhoneNumber AS SoDienThoai, " +
                          "ls.TenLoai AS TenLoaiSan, " +
                          "lds.NgayDat, lds.GioBatDau, lds.GioKetThuc, lds.TongTienDuKien, " +
-                         "lds.TrangThai, lds.GhiChu, hd.TrangThaiThanhToan, lds.NguonDatSan " +
+                         "lds.TrangThai, lds.GhiChu, hd.TrangThaiThanhToan, lds.NguonDatSan, " +
+                         "acc.DiemUyTin, acc.LateCancelCount, acc.NoShowCount " +
                          "FROM LichDatSan lds " +
                          "INNER JOIN San s ON lds.SanID = s.SanID " +
                          "LEFT JOIN LoaiSan ls ON s.LoaiSanID = ls.LoaiSanID " +
                          "LEFT JOIN Accounts acc ON lds.AccountID = acc.AccountID " +
                          invoiceJoin +
                          "WHERE lds.NgayDat = ? AND s.CoSoID = ? " +
+                         // Check-in chỉ hiển thị đơn đủ điều kiện vận hành. LOẠI TRỪ triệt để:
+                         //  - N'Chờ thanh toán' (PayOS chưa xác nhận qua webhook) — không được lộ ở quầy.
+                         //  - N'Đã hủy' và N'Quá hạn' — đơn đã kết thúc, không có gì để check-in.
+                         // GIỮ N'Chờ xác nhận' (trả tại quầy) để nhân viên mở sân/duyệt tại chỗ theo luồng hiện có.
+                         "AND lds.TrangThai IN (" +
+                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_CHO_XAC_NHAN + "', " +
+                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_DA_XAC_NHAN + "', " +
+                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_DANG_SU_DUNG + "', " +
+                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_DA_HOAN_THANH + "', " +
+                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_KHONG_DEN + "') " +
                          "ORDER BY lds.GioBatDau ASC";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
@@ -801,6 +828,13 @@ public class CheckInDAO {
                     dto.setTrangThaiThanhToan(paymentStatus != null ? paymentStatus : PAYMENT_STATUS_UNPAID);
                     String nguonDat = rs.getString("NguonDatSan");
                     dto.setNguonDatSan(nguonDat != null ? nguonDat : "Walk-in");
+                    int diemUyTin = rs.getInt("DiemUyTin");
+                    if (!rs.wasNull()) {
+                        dto.setReputationScore(diemUyTin);
+                        dto.setReputationLabel(org.example.service.reputation.ReputationLabel.of(diemUyTin));
+                        dto.setLateCancelCount(rs.getInt("LateCancelCount"));
+                        dto.setNoShowCount(rs.getInt("NoShowCount"));
+                    }
                     list.add(dto);
                 }
             }
@@ -871,6 +905,23 @@ public class CheckInDAO {
 
         public String getNguonDatSan() { return nguonDatSan; }
         public void setNguonDatSan(String nguonDatSan) { this.nguonDatSan = nguonDatSan; }
+
+        private Integer reputationScore;
+        private String reputationLabel;
+        private Integer lateCancelCount;
+        private Integer noShowCount;
+
+        public Integer getReputationScore() { return reputationScore; }
+        public void setReputationScore(Integer reputationScore) { this.reputationScore = reputationScore; }
+
+        public String getReputationLabel() { return reputationLabel; }
+        public void setReputationLabel(String reputationLabel) { this.reputationLabel = reputationLabel; }
+
+        public Integer getLateCancelCount() { return lateCancelCount; }
+        public void setLateCancelCount(Integer lateCancelCount) { this.lateCancelCount = lateCancelCount; }
+
+        public Integer getNoShowCount() { return noShowCount; }
+        public void setNoShowCount(Integer noShowCount) { this.noShowCount = noShowCount; }
     }
 
     /**

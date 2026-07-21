@@ -107,6 +107,21 @@ public class Lichdatsan {
     @Column(name = "NoShowAt")
     private LocalDateTime noShowAt;
 
+    @Column(name = "CancelType", length = 20)
+    private String cancelType;
+
+    @Column(name = "CancelReason", length = 255)
+    private String cancelReason;
+
+    @Column(name = "CancelledAt")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "CancelledBy")
+    private Integer cancelledBy;
+
+    @Column(name = "RequiresRefundReview")
+    private boolean requiresRefundReview;
+
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SanID", insertable = false, updatable = false)
@@ -374,6 +389,46 @@ public class Lichdatsan {
 
     public void setNoShowAt(LocalDateTime noShowAt) {
         this.noShowAt = noShowAt;
+    }
+
+    public String getCancelType() {
+        return cancelType;
+    }
+
+    public void setCancelType(String cancelType) {
+        this.cancelType = cancelType;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public void setCancelledAt(LocalDateTime cancelledAt) {
+        this.cancelledAt = cancelledAt;
+    }
+
+    public Integer getCancelledBy() {
+        return cancelledBy;
+    }
+
+    public void setCancelledBy(Integer cancelledBy) {
+        this.cancelledBy = cancelledBy;
+    }
+
+    public boolean getRequiresRefundReview() {
+        return requiresRefundReview;
+    }
+
+    public void setRequiresRefundReview(boolean requiresRefundReview) {
+        this.requiresRefundReview = requiresRefundReview;
     }
 
     @Override

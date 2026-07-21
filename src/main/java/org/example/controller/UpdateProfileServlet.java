@@ -90,34 +90,85 @@ public class UpdateProfileServlet extends HttpServlet {
             String fullName = req.getParameter("fullName");
             String email = req.getParameter("email");
             String phoneNumber = req.getParameter("phoneNumber");
+            String birthdayParam = req.getParameter("birthday");
+            String genderParam = req.getParameter("gender");
 
             if (fullName != null) fullName = fullName.trim();
             if (email != null) email = email.trim();
             if (phoneNumber != null) phoneNumber = phoneNumber.trim();
+            if (genderParam != null) genderParam = genderParam.trim();
 
-            if (fullName == null || fullName.isEmpty() ||
-                email == null || email.isEmpty() ||
-                phoneNumber == null || phoneNumber.isEmpty()) {
-                resp.getWriter().write("{\"success\":false,\"message\":\"Vui lòng điền đầy đủ thông tin!\"}");
+            java.util.Map<String, String> fieldErrors = new java.util.LinkedHashMap<>();
+
+            if (fullName == null || fullName.isEmpty()) {
+                fieldErrors.put("fullName", "Họ và tên không được để trống.");
+            } else if (fullName.length() < 2 || fullName.length() > 100) {
+                fieldErrors.put("fullName", "Họ và tên phải từ 2 đến 100 ký tự.");
+            }
+
+            if (email == null || email.isEmpty()) {
+                fieldErrors.put("email", "Email không được để trống.");
+            } else if (!org.example.util.ValidationUtil.isValidEmail(email)) {
+                fieldErrors.put("email", "Email không hợp lệ và không được chứa khoảng trắng.");
+            }
+
+            if (phoneNumber == null || phoneNumber.isEmpty()) {
+                fieldErrors.put("phone", "Số điện thoại không được để trống.");
+            } else if (!org.example.util.ValidationUtil.isValidVNPhone(phoneNumber)) {
+                fieldErrors.put("phone", "Số điện thoại không hợp lệ.");
+            }
+
+            java.time.LocalDate birthday = null;
+            boolean clearBirthday = false;
+            if (birthdayParam != null) {
+                birthdayParam = birthdayParam.trim();
+                if (birthdayParam.isEmpty()) {
+                    clearBirthday = true;
+                } else {
+                    try {
+                        birthday = java.time.LocalDate.parse(birthdayParam);
+                        if (birthday.isAfter(java.time.LocalDate.now())) {
+                            fieldErrors.put("birthday", "Ngày sinh không được ở tương lai.");
+                        }
+                    } catch (Exception e) {
+                        fieldErrors.put("birthday", "Ngày sinh không hợp lệ.");
+                    }
+                }
+            }
+
+            java.util.Set<String> allowedGenders = java.util.Set.of("Nam", "Nữ", "Khác");
+            boolean clearGender = false;
+            if (genderParam != null) {
+                if (genderParam.isEmpty()) {
+                    clearGender = true;
+                } else if (!allowedGenders.contains(genderParam)) {
+                    fieldErrors.put("gender", "Giới tính không hợp lệ.");
+                }
+            }
+
+            if (!fieldErrors.isEmpty()) {
+                resp.getWriter().write(validationErrorJson(fieldErrors));
                 return;
             }
 
-            if (!org.example.util.ValidationUtil.isValidEmail(email)) {
-                resp.getWriter().write("{\"success\":false,\"message\":\"Email không hợp lệ và không được chứa khoảng trắng!\"}");
-                return;
-            }
-
-            if (!org.example.util.ValidationUtil.isValidVNPhone(phoneNumber)) {
-                resp.getWriter().write("{\"success\":false,\"message\":\"Số điện thoại không hợp lệ!\"}");
-                return;
-            }
+            boolean birthdayProvided = birthdayParam != null;
+            java.sql.Date newBirthdayValue = birthday != null ? java.sql.Date.valueOf(birthday) : null;
+            boolean genderProvided = genderParam != null;
+            String newGenderValue = (genderProvided && !clearGender) ? genderParam : null;
 
             try {
                 TaiKhoan account = taiKhoanDAO.getAccountById(sessionUser.getAccountId());
                 if (account != null) {
+                    if (birthdayProvided) {
+                        account.setNgaySinh(newBirthdayValue);
+                    }
+                    if (genderProvided) {
+                        account.setGioiTinh(newGenderValue);
+                    }
+
                     boolean emailChanged = account.getEmail() == null || !email.equalsIgnoreCase(account.getEmail());
                     if (emailChanged && taiKhoanDAO.kiemtraEmail(email)) {
-                        resp.getWriter().write("{\"success\":false,\"message\":\"Email đã tồn tại trên hệ thống!\"}");
+                        resp.getWriter().write(validationErrorJson(java.util.Map.of("email", "Email đã được sử dụng bởi tài khoản khác.")));
                         return;
                     }
 
@@ -128,6 +179,10 @@ public class UpdateProfileServlet extends HttpServlet {
                         session.setAttribute("profilePendingFullName", fullName);
                         session.setAttribute("profilePendingEmail", email);
                         session.setAttribute("profilePendingPhone", phoneNumber);
+                        session.setAttribute("profilePendingBirthdayProvided", birthdayProvided);
+                        session.setAttribute("profilePendingBirthdayValue", newBirthdayValue);
+                        session.setAttribute("profilePendingGenderProvided", genderProvided);
+                        session.setAttribute("profilePendingGenderValue", newGenderValue);
 
                         final String targetEmail = email;
                         final String targetName = fullName;
@@ -202,13 +257,19 @@ public class UpdateProfileServlet extends HttpServlet {
 
                 if (!email.equalsIgnoreCase(account.getEmail()) && taiKhoanDAO.kiemtraEmail(email)) {
                     clearProfileOtpSession(session);
-                    resp.getWriter().write("{\"success\":false,\"message\":\"Email đã tồn tại trên hệ thống!\"}");
+                    resp.getWriter().write(validationErrorJson(java.util.Map.of("email", "Email đã được sử dụng bởi tài khoản khác.")));
                     return;
                 }
 
                 account.setFullName(fullName);
                 account.setEmail(email);
                 account.setPhoneNumber(phoneNumber);
+                if (Boolean.TRUE.equals(session.getAttribute("profilePendingBirthdayProvided"))) {
+                    account.setNgaySinh((java.sql.Date) session.getAttribute("profilePendingBirthdayValue"));
+                }
+                if (Boolean.TRUE.equals(session.getAttribute("profilePendingGenderProvided"))) {
+                    account.setGioiTinh((String) session.getAttribute("profilePendingGenderValue"));
+                }
 
                 boolean success = taiKhoanDAO.updateAccount(account);
                 if (success) {
@@ -226,9 +287,11 @@ public class UpdateProfileServlet extends HttpServlet {
         } else if ("changePassword".equals(action)) {
             String currentPassword = req.getParameter("currentPassword");
             String newPassword = req.getParameter("newPassword");
+            String confirmPassword = req.getParameter("confirmPassword");
 
             if (currentPassword != null) currentPassword = currentPassword.trim();
             if (newPassword != null) newPassword = newPassword.trim();
+            if (confirmPassword != null) confirmPassword = confirmPassword.trim();
 
             if (currentPassword == null || currentPassword.isEmpty() ||
                 newPassword == null || newPassword.isEmpty()) {
@@ -241,11 +304,21 @@ public class UpdateProfileServlet extends HttpServlet {
                 return;
             }
 
+            if (confirmPassword != null && !newPassword.equals(confirmPassword)) {
+                resp.getWriter().write("{\"success\":false,\"message\":\"Xác nhận mật khẩu mới không khớp.\"}");
+                return;
+            }
+
             try {
                 TaiKhoan account = taiKhoanDAO.getAccountById(sessionUser.getAccountId());
                 if (account != null) {
                     if (!BCrypt.checkpw(currentPassword, account.getPassword())) {
                         resp.getWriter().write("{\"success\":false,\"message\":\"Mật khẩu hiện tại không chính xác!\"}");
+                        return;
+                    }
+
+                    if (BCrypt.checkpw(newPassword, account.getPassword())) {
+                        resp.getWriter().write("{\"success\":false,\"message\":\"Mật khẩu mới không được trùng với mật khẩu hiện tại.\"}");
                         return;
                     }
 
@@ -282,14 +355,38 @@ public class UpdateProfileServlet extends HttpServlet {
         session.removeAttribute("profilePendingFullName");
         session.removeAttribute("profilePendingEmail");
         session.removeAttribute("profilePendingPhone");
+        session.removeAttribute("profilePendingBirthdayProvided");
+        session.removeAttribute("profilePendingBirthdayValue");
+        session.removeAttribute("profilePendingGenderProvided");
+        session.removeAttribute("profilePendingGenderValue");
     }
 
     private String profileSuccessJson(String message, TaiKhoan account) {
+        String birthdayStr = account.getNgaySinh() != null
+                ? new java.text.SimpleDateFormat("yyyy-MM-dd").format(account.getNgaySinh())
+                : "";
         return "{\"success\":true,\"message\":\"" + json(message) + "\","
                 + "\"fullName\":\"" + json(account.getFullName()) + "\","
                 + "\"email\":\"" + json(account.getEmail()) + "\","
                 + "\"phoneNumber\":\"" + json(account.getPhoneNumber()) + "\","
-                + "\"avatarUrl\":\"" + json(account.getAvatarUrl()) + "\"}";
+                + "\"avatarUrl\":\"" + json(account.getAvatarUrl()) + "\","
+                + "\"birthday\":\"" + json(birthdayStr) + "\","
+                + "\"gender\":\"" + json(account.getGioiTinh()) + "\"}";
+    }
+
+    private String validationErrorJson(java.util.Map<String, String> fieldErrors) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"success\":false,\"code\":\"VALIDATION_ERROR\",\"message\":\"");
+        sb.append(json(fieldErrors.values().iterator().next()));
+        sb.append("\",\"fieldErrors\":{");
+        boolean first = true;
+        for (java.util.Map.Entry<String, String> entry : fieldErrors.entrySet()) {
+            if (!first) sb.append(",");
+            sb.append("\"").append(json(entry.getKey())).append("\":\"").append(json(entry.getValue())).append("\"");
+            first = false;
+        }
+        sb.append("}}");
+        return sb.toString();
     }
 
     private String saveAvatarFile(HttpServletRequest req, Part avatarPart, int accountId) throws IOException {

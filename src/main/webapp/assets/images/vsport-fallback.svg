@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" width="400" height="225">
+  <rect width="400" height="225" fill="#DDF6FF"/>
+  <g transform="translate(200,112.5)" fill="none" stroke="#0B2E59" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <circle r="42" />
+    <path d="M -42 0 A 42 42 0 0 1 42 0" />
+    <path d="M 0 -42 L 0 42" />
+    <path d="M -30 -30 L 30 30" opacity="0.001"/>
+  </g>
+  <text x="200" y="180" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" fill="#0B2E59" text-anchor="middle">V-SPORT</text>
+</svg>

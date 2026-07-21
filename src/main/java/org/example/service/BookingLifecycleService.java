@@ -52,7 +52,7 @@ public class BookingLifecycleService {
                 "    GhiChu = CONCAT(ISNULL(GhiChu, N''), N' [Tự động: Quá hạn giữ chỗ thanh toán]') " +
                 "WHERE TrangThai = ? " +
                 "AND HoldExpiresAt IS NOT NULL " +
-                "AND HoldExpiresAt < GETDATE()";
+                "AND HoldExpiresAt < SYSUTCDATETIME()";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

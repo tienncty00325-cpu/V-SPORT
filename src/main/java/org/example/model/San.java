@@ -30,7 +30,7 @@ public class San {
     private String hinhAnh;
 
     @Column(name = "IsDeleted")
-    private boolean isDeleted;
+    private Boolean isDeleted;
 
     @Column(name = "DeletedAt")
     private LocalDateTime deletedAt;
@@ -153,9 +153,9 @@ public class San {
         this.hinhAnh = hinhAnh;
     }
 
-    public boolean isDeleted() { return isDeleted; }
+    public boolean isDeleted() { return isDeleted != null && isDeleted; }
 
-    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+    public void setDeleted(Boolean deleted) { isDeleted = deleted; }
 
     public LocalDateTime getDeletedAt() { return deletedAt; }
 

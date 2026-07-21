@@ -73,4 +73,27 @@ public class DanhMucSanPhamDAOImpl implements DanhMucSanPhamDAO {
             em.close();
         }
     }
+
+    @Override
+    public boolean delete(int id) {
+        EntityManager em = getEntityManager();
+        EntityTransaction trans = em.getTransaction();
+        try {
+            trans.begin();
+            DanhMucSanPham category = em.find(DanhMucSanPham.class, id);
+            if (category != null) {
+                em.remove(category);
+            }
+            trans.commit();
+            return true;
+        } catch (Exception e) {
+            if (trans.isActive()) {
+                trans.rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 }

@@ -8,4 +8,5 @@ public interface DanhMucSanPhamDAO {
     DanhMucSanPham findById(int id);
     boolean insert(DanhMucSanPham category);
     boolean update(DanhMucSanPham category);
+    boolean delete(int id);
 }

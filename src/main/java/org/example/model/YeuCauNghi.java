@@ -28,7 +28,7 @@ public class YeuCauNghi {
     private String LyDo;
 
     @Column(name = "MucDoKhanCap")
-    private boolean MucDoKhanCap;
+    private Boolean MucDoKhanCap;
 
     @Column(name = "TrangThai")
     private String TrangThai;
@@ -72,7 +72,7 @@ public class YeuCauNghi {
     private String username;
 
     @Column(name = "IsDeleted")
-    private boolean isDeleted;
+    private Boolean isDeleted;
 
     @Column(name = "DeletedAt")
     private LocalDateTime deletedAt;
@@ -142,10 +142,10 @@ public class YeuCauNghi {
     }
 
     public boolean isMucDoKhanCap() {
-        return MucDoKhanCap;
+        return MucDoKhanCap != null && MucDoKhanCap;
     }
 
-    public void setMucDoKhanCap(boolean MucDoKhanCap) {
+    public void setMucDoKhanCap(Boolean MucDoKhanCap) {
         this.MucDoKhanCap = MucDoKhanCap;
     }
 
@@ -254,9 +254,9 @@ public class YeuCauNghi {
         this.username = username;
     }
 
-    public boolean isDeleted() { return isDeleted; }
+    public boolean isDeleted() { return isDeleted != null && isDeleted; }
 
-    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+    public void setDeleted(Boolean deleted) { isDeleted = deleted; }
 
     public LocalDateTime getDeletedAt() { return deletedAt; }
 

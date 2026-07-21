@@ -190,13 +190,23 @@
           </thead>
           <tbody id="bookingTableBody" class="divide-y divide-purple-50">
             <c:forEach var="item" items="${dsLich}">
-              <tr class="hover:bg-purple-50/10 transition-colors booking-row" 
-                  data-status="${item.trangThai}" 
-                  data-customer="${item.account != null ? item.account.fullName : 'Khách vãng lai'}" 
-                  data-phone="${item.account != null ? item.account.phoneNumber : ''}" 
-                  data-court="${item.san.tenSan}">
-                
-                <td class="px-5 py-4"><span class="font-mono text-xs text-purple-800 font-bold">#${item.datSanId}</span></td>
+              <tr class="hover:bg-purple-50/10 transition-colors booking-row"
+                  data-status="${item.trangThai}"
+                  data-customer="${item.account != null ? item.account.fullName : 'Khách vãng lai'}"
+                  data-phone="${item.account != null ? item.account.phoneNumber : ''}"
+                  data-court="${item.san.tenSan}"
+                  data-created="${item.createdTime}">
+
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono text-xs text-purple-800 font-bold">#${item.datSanId}</span>
+                    <span class="new-order-badge hidden px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-bold uppercase tracking-wide">Mới</span>
+                  </div>
+                  <c:if test="${not empty item.createdTime}">
+                    <fmt:parseDate value="${item.createdTime.toString().substring(0,16)}" pattern="yyyy-MM-dd'T'HH:mm" var="createdParsed"/>
+                    <p class="text-[9px] text-zinc-400 mt-0.5 whitespace-nowrap">Đặt lúc <fmt:formatDate value="${createdParsed}" pattern="dd/MM HH:mm"/></p>
+                  </c:if>
+                </td>
                 
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-2.5">
@@ -206,6 +216,25 @@
                     <div>
                       <p class="text-xs font-semibold text-zinc-900">${item.account != null ? item.account.fullName : 'Khách vãng lai'}</p>
                       <p class="text-[10px] text-zinc-400">${item.account != null ? item.account.phoneNumber : 'N/A'}</p>
+                      <c:if test="${item.account != null}">
+                        <c:choose>
+                          <c:when test="${item.account.diemUyTin >= 80}">
+                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] font-bold">Uy tín: ${item.account.diemUyTin}/100 — Uy tín tốt</span>
+                          </c:when>
+                          <c:when test="${item.account.diemUyTin >= 50}">
+                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[9px] font-bold">Uy tín: ${item.account.diemUyTin}/100 — Cần theo dõi</span>
+                          </c:when>
+                          <c:otherwise>
+                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-red-50 text-red-700 text-[9px] font-bold">Uy tín: ${item.account.diemUyTin}/100 — Rủi ro cao</span>
+                          </c:otherwise>
+                        </c:choose>
+                        <c:if test="${item.account.lateCancelCount > 0 || item.account.noShowCount > 0}">
+                          <p class="text-[9px] text-zinc-400 mt-0.5">${item.account.lateCancelCount} lần hủy sát giờ, ${item.account.noShowCount} lần không đến</p>
+                        </c:if>
+                        <c:if test="${item.account.diemUyTin < 50}">
+                          <p class="text-[9px] text-red-600 font-bold mt-0.5">⚠ Khách hàng này có lịch sử bùng kèo. Vui lòng cân nhắc trước khi duyệt.</p>
+                        </c:if>
+                      </c:if>
                     </div>
                   </div>
                 </td>
@@ -526,10 +555,27 @@
       document.getElementById('badge-canceled').innerText = canceled;
     }
 
+    // Highlight recently created bookings ("Mới") theo CreatedTime — chỉ hiển thị, không đổi dữ liệu/logic duyệt.
+    function highlightNewOrders() {
+      const NEW_THRESHOLD_MS = 60 * 60 * 1000; // 60 phút
+      const now = Date.now();
+      document.querySelectorAll('.booking-row').forEach(row => {
+        const createdRaw = row.getAttribute('data-created');
+        if (!createdRaw) return;
+        const createdMs = new Date(createdRaw).getTime();
+        if (!isNaN(createdMs) && now - createdMs >= 0 && now - createdMs <= NEW_THRESHOLD_MS) {
+          row.classList.add('bg-amber-50/40');
+          const badge = row.querySelector('.new-order-badge');
+          if (badge) badge.classList.remove('hidden');
+        }
+      });
+    }
+
     // Run on load
     window.addEventListener('DOMContentLoaded', () => {
       calculateStats();
       applyFilters(true);
+      highlightNewOrders();
     });
   </script>
 </body>

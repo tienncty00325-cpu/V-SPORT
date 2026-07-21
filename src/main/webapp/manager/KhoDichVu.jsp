@@ -560,13 +560,17 @@
                   <td class="px-5 py-4 text-center">
                     <c:choose>
                       <c:when test="${isOut}">
-                        <span class="inline-block w-full max-w-[80px] font-bold text-[12px] text-rose-600 bg-rose-50 border border-rose-100 py-1 rounded-lg">Hết hàng</span>
+                        <span class="inline-flex items-center justify-center gap-1 w-full max-w-[92px] font-bold text-[12px] text-rose-600 bg-rose-50 border border-rose-100 py-1 rounded-lg">
+                          <span class="material-symbols-outlined text-[13px]">remove_shopping_cart</span>Hết hàng
+                        </span>
                       </c:when>
                       <c:when test="${isLow}">
-                        <span class="inline-block w-full max-w-[80px] font-bold text-[12px] text-amber-700 bg-amber-50 border border-amber-100 py-1 rounded-lg">${sp.soLuongTon} ${sp.donViTinh != null ? sp.donViTinh : 'cái'}</span>
+                        <span class="inline-flex items-center justify-center gap-1 w-full max-w-[92px] font-bold text-[12px] text-amber-700 bg-amber-50 border border-amber-100 py-1 rounded-lg">
+                          <span class="material-symbols-outlined text-[13px]">warning</span>${sp.soLuongTon} ${sp.donViTinh != null ? sp.donViTinh : 'cái'}
+                        </span>
                       </c:when>
                       <c:otherwise>
-                        <span class="inline-block w-full max-w-[80px] font-bold text-[12px] text-slate-700 bg-slate-50 border border-slate-100 py-1 rounded-lg">${sp.soLuongTon} ${sp.donViTinh != null ? sp.donViTinh : 'cái'}</span>
+                        <span class="inline-block w-full max-w-[92px] font-bold text-[12px] text-slate-700 bg-slate-50 border border-slate-100 py-1 rounded-lg">${sp.soLuongTon} ${sp.donViTinh != null ? sp.donViTinh : 'cái'}</span>
                       </c:otherwise>
                     </c:choose>
                   </td>
@@ -582,20 +586,25 @@
                   </td>
                   <td class="px-5 py-4">
                     <div class="flex items-center justify-end gap-1.5">
+                      <button onclick="openDetailModal(${sp.sanPhamID}, '${sp.skuCode}', '${sp.tenSanPham}', ${sp.danhMucID}, ${sp.donGia}, ${sp.giaNhap}, '${sp.donViTinh}', ${sp.soLuongTon}, '${sp.trangThai}', '${sp.moTa}')"
+                              title="Xem chi tiết"
+                              class="w-8 h-8 rounded-lg hover:bg-sky-50 text-sky-600 flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                      </button>
                       <button onclick="openStockModal(${sp.sanPhamID}, '${sp.skuCode}', '${sp.tenSanPham}', ${sp.soLuongTon}, '${sp.donViTinh}')"
-                              title="Nhập kho"
+                              title="Nhập kho / cập nhật số lượng"
                               class="w-8 h-8 rounded-lg hover:bg-violet-50 text-violet-600 flex items-center justify-center transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">inventory</span>
+                        <span class="material-symbols-outlined text-[18px]">add_box</span>
                       </button>
                       <button onclick="openEditModal(${sp.sanPhamID}, '${sp.skuCode}', '${sp.tenSanPham}', ${sp.danhMucID}, ${sp.donGia}, ${sp.giaNhap}, '${sp.donViTinh}', ${sp.soLuongTon}, '${sp.trangThai}', '${sp.moTa}')"
                               title="Chỉnh sửa"
-                              class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-colors">
+                              class="w-8 h-8 rounded-lg hover:bg-indigo-50 text-indigo-600 flex items-center justify-center transition-colors">
                         <span class="material-symbols-outlined text-[18px]">edit</span>
                       </button>
                       <button onclick="confirmDelete(${sp.sanPhamID}, '${sp.tenSanPham}')"
-                              title="Xóa"
+                              title="Xóa mềm (khôi phục tại Thùng rác)"
                               class="w-8 h-8 rounded-lg hover:bg-rose-50 text-rose-500 flex items-center justify-center transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                        <span class="material-symbols-outlined text-[18px]">delete_outline</span>
                       </button>
                     </div>
                   </td>
@@ -705,6 +714,68 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<%-- ═══════════════════════════════════════════
+     MODAL: XEM CHI TIẾT (CHỈ ĐỌC)
+════════════════════════════════════════════ --%>
+<div id="detailModal" class="modal-overlay hidden z-[80] flex items-center justify-center p-4">
+  <div class="modal-box relative w-full max-w-[480px] z-10">
+    <div class="modal-header">
+      <div class="flex items-center gap-3">
+        <div class="modal-icon bg-sky-50 text-sky-600">
+          <span class="material-symbols-outlined text-[24px]">visibility</span>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Chi tiết mặt hàng</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Thông tin đầy đủ, chỉ xem — không chỉnh sửa tại đây.</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeDetailModal()" class="modal-close"><span class="material-symbols-outlined text-[20px]">close</span></button>
+    </div>
+
+    <div class="px-6 py-5 flex flex-col gap-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tên mặt hàng</p>
+          <p class="font-extrabold text-slate-900 text-base" id="detailName">—</p>
+        </div>
+        <span class="font-mono text-[11px] text-slate-500 font-bold bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg shrink-0" id="detailSku">—</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Nhóm dịch vụ</p>
+          <p class="font-bold text-slate-800 text-[13px]" id="detailCategory">—</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Trạng thái</p>
+          <p class="font-bold text-slate-800 text-[13px]" id="detailStatus">—</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Giá nhập</p>
+          <p class="font-bold text-slate-800 text-[13px]" id="detailGiaNhap">—</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Giá bán lẻ</p>
+          <p class="font-extrabold text-slate-900 text-[13px]" id="detailGiaBan">—</p>
+        </div>
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 col-span-2">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Tồn kho hiện tại</p>
+          <p class="font-bold text-slate-800 text-[13px]" id="detailStock">—</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Mô tả</p>
+        <p class="text-[13px] text-slate-600 leading-relaxed" id="detailDesc">—</p>
+      </div>
+
+      <div class="flex justify-end pt-4 border-t border-slate-100">
+        <button type="button" onclick="closeDetailModal()" class="btn-ghost text-sm">Đóng</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -874,11 +945,19 @@
             </c:when>
             <c:otherwise>
               <c:forEach items="${categories}" var="cat">
-                <div class="flex items-center gap-3 px-3 py-2.5 bg-white rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/30 transition-colors shadow-2xs">
+                <div class="flex items-center gap-3 px-3 py-2 bg-white rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/30 transition-colors shadow-2xs">
                   <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[16px]">label</span>
                   </div>
-                  <span class="text-sm font-bold text-slate-800 flex-1">${cat.tenDanhMuc}</span>
+                  <span class="text-sm font-bold text-slate-800 flex-1 truncate">${cat.tenDanhMuc}</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" onclick="editCategory(${cat.danhMucID}, '${cat.tenDanhMuc}')" title="Sửa nhóm" class="w-7 h-7 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors">
+                      <span class="material-symbols-outlined text-[15px]">edit</span>
+                    </button>
+                    <button type="button" onclick="deleteCategory(${cat.danhMucID}, '${cat.tenDanhMuc}')" title="Xóa nhóm" class="w-7 h-7 rounded hover:bg-rose-50 text-rose-500 flex items-center justify-center transition-colors">
+                      <span class="material-symbols-outlined text-[15px]">delete</span>
+                    </button>
+                  </div>
                 </div>
               </c:forEach>
             </c:otherwise>
@@ -1184,6 +1263,31 @@
     document.getElementById('addModal').classList.remove('flex');
   }
 
+  // ── Detail Modal (read-only) ──
+  const PRODUCT_CATEGORIES = {
+    <c:forEach items="${categories}" var="cat" varStatus="catSt">"${cat.danhMucID}": "${fn:escapeXml(cat.tenDanhMuc)}"<c:if test="${!catSt.last}">,</c:if></c:forEach>
+  };
+  function formatMoney(v) {
+    const n = Number(v) || 0;
+    return n.toLocaleString('vi-VN') + 'đ';
+  }
+  function openDetailModal(id, sku, name, catId, donGia, giaNhap, unit, stock, status, desc) {
+    document.getElementById('detailSku').innerText = (sku && sku !== 'null') ? sku : 'N/A';
+    document.getElementById('detailName').innerText = name;
+    document.getElementById('detailCategory').innerText = PRODUCT_CATEGORIES[catId] || '-';
+    document.getElementById('detailStatus').innerText = status;
+    document.getElementById('detailGiaNhap').innerText = formatMoney(giaNhap);
+    document.getElementById('detailGiaBan').innerText = formatMoney(donGia);
+    document.getElementById('detailStock').innerText = stock + ' ' + (unit && unit !== 'null' ? unit : 'cái');
+    document.getElementById('detailDesc').innerText = (desc && desc !== 'null' && desc.trim()) ? desc : 'Không có mô tả.';
+    document.getElementById('detailModal').classList.remove('hidden');
+    document.getElementById('detailModal').classList.add('flex');
+  }
+  function closeDetailModal() {
+    document.getElementById('detailModal').classList.add('hidden');
+    document.getElementById('detailModal').classList.remove('flex');
+  }
+
   // ── Edit Modal ──
   function openEditModal(id, sku, name, catId, donGia, giaNhap, unit, stock, status, desc) {
     document.getElementById('editSanPhamID').value = id;
@@ -1296,6 +1400,39 @@
       const b = document.createElement('input'); b.type='hidden'; b.name='id'; b.value=id; form.appendChild(b);
       document.body.appendChild(form);
       setTimeout(() => form.submit(), 1200);
+    });
+  }
+
+  function editCategory(id, currentName) {
+    const newName = prompt("Nhập tên mới cho nhóm dịch vụ '" + currentName + "':", currentName);
+    if (newName === null) return;
+    const trimmed = newName.trim();
+    if (trimmed === "") {
+      showToast("Tên nhóm dịch vụ không được để trống!", "error");
+      return;
+    }
+    if (trimmed.toLowerCase() === currentName.toLowerCase()) {
+      return;
+    }
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '${pageContext.request.contextPath}/manager/kho-dich-vu';
+    const a = document.createElement('input'); a.type='hidden'; a.name='action'; a.value='update-category'; form.appendChild(a);
+    const b = document.createElement('input'); b.type='hidden'; b.name='danhMucID'; b.value=id; form.appendChild(b);
+    const c = document.createElement('input'); c.type='hidden'; c.name='tenDanhMuc'; c.value=trimmed; form.appendChild(c);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function deleteCategory(id, name) {
+    showCustomConfirm("Bạn có chắc chắn muốn xóa nhóm dịch vụ '" + name + "'? Thao tác này không thể khôi phục.", () => {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '${pageContext.request.contextPath}/manager/kho-dich-vu';
+      const a = document.createElement('input'); a.type='hidden'; a.name='action'; a.value='delete-category'; form.appendChild(a);
+      const b = document.createElement('input'); b.type='hidden'; b.name='danhMucID'; b.value=id; form.appendChild(b);
+      document.body.appendChild(form);
+      form.submit();
     });
   }
 

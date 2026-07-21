@@ -146,6 +146,7 @@ public class InvoiceViewService {
                 san.getTenSan(),
                 loaiSan != null ? loaiSan.getTenLoai() : "-",
                 khachHang != null && khachHang.getFullName() != null ? khachHang.getFullName() : "Khách vãng lai",
+                khachHang != null ? khachHang.getPhoneNumber() : null,
                 nhanVien != null ? nhanVien.getFullName() : "-",
                 lich.getTimeMode(),
                 startAt, endAt, startLabel, endLabel, crossesMidnight,

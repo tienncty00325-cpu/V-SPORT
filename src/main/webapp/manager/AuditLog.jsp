@@ -70,6 +70,7 @@
           <option value="LoaiSan" <c:if test="${entityType == 'LoaiSan'}">selected</c:if>>Loại sân</option>
           <option value="SanPham" <c:if test="${entityType == 'SanPham'}">selected</c:if>>Sản phẩm / Dịch vụ</option>
           <option value="YeuCauNghi" <c:if test="${entityType == 'YeuCauNghi'}">selected</c:if>>Yêu cầu nghỉ</option>
+          <option value="HoaDon" <c:if test="${entityType == 'HoaDon'}">selected</c:if>>Hóa đơn</option>
         </select>
       </div>
       <div class="flex flex-col gap-1">
@@ -116,13 +117,14 @@
             <th class="px-5 py-3 text-left">Hành động</th>
             <th class="px-5 py-3 text-left">Đối tượng tác động</th>
             <th class="px-5 py-3 text-left">Mô tả chi tiết</th>
+            <th class="px-5 py-3 text-left">IP</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-purple-50 text-xs">
           <c:choose>
             <c:when test="${empty logs}">
               <tr>
-                <td colspan="5" class="text-center py-16 text-purple-300">
+                <td colspan="6" class="text-center py-16 text-purple-300">
                   <span class="material-symbols-outlined text-[36px] block mb-2 text-purple-200">history</span>
                   <p class="font-semibold text-xs text-purple-400">Không tìm thấy bản ghi nhật ký thao tác nào</p>
                 </td>
@@ -185,12 +187,18 @@
                         <c:when test="${log.entityType == 'CoSo'}">Chi nhánh</c:when>
                         <c:when test="${log.entityType == 'CaLamViec'}">Ca làm việc</c:when>
                         <c:when test="${log.entityType == 'YeuCauNghi'}">Yêu cầu nghỉ</c:when>
+                        <c:when test="${log.entityType == 'HoaDon'}">Hóa đơn</c:when>
                         <c:when test="${not empty log.entityType}"><c:out value="${log.entityType}"/></c:when>
                       </c:choose>
                     </div>
                   </td>
                   <td class="px-5 py-4 text-zinc-650 max-w-xs md:max-w-md break-words leading-relaxed">
                     <c:out value="${log.details}"/>
+                  </td>
+                  <td class="px-5 py-4 whitespace-nowrap">
+                    <span class="text-[11px] font-mono text-purple-400 bg-purple-50 border border-purple-100/60 px-2.5 py-1 rounded-lg">
+                      <c:out value="${log.ipAddress}" default="—"/>
+                    </span>
                   </td>
                 </tr>
               </c:forEach>

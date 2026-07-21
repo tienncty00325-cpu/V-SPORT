@@ -217,15 +217,36 @@ public class CheckoutService {
 
     /** Idempotent: 0 dòng bị ảnh hưởng nghĩa là đã Complete/release từ trước, KHÔNG phải lỗi. */
     private void completeBookingAndReleaseCourtIfNeeded(Connection c, int datSanId) throws SQLException {
+        Integer accountId = null;
+        try (PreparedStatement ps = c.prepareStatement("SELECT AccountID FROM LichDatSan WHERE DatSanID = ?")) {
+            ps.setInt(1, datSanId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int acc = rs.getInt("AccountID");
+                    if (!rs.wasNull()) accountId = acc;
+                }
+            }
+        }
+
+        int rowsUpdated;
         try (PreparedStatement ps = c.prepareStatement(
                 "UPDATE LichDatSan SET TrangThai=N'Đã hoàn thành' WHERE DatSanID=? AND TrangThai=N'Đang sử dụng'")) {
             ps.setInt(1, datSanId);
-            ps.executeUpdate();
+            rowsUpdated = ps.executeUpdate();
         }
         try (PreparedStatement ps = c.prepareStatement(
                 "UPDATE San SET TrangThai=N'Sẵn sàng' WHERE SanID=(SELECT SanID FROM LichDatSan WHERE DatSanID=?) AND TrangThai=N'Đang sử dụng'")) {
             ps.setInt(1, datSanId);
             ps.executeUpdate();
+        }
+
+        // Cộng điểm uy tín hoàn thành booking - CHỈ khi UPDATE ở trên vừa thực sự chuyển trạng thái
+        // (idempotent: nếu đã "Đã hoàn thành" từ trước, rowsUpdated=0, không cộng điểm lần hai).
+        if (rowsUpdated > 0 && accountId != null) {
+            org.example.service.reputation.CustomerReputationService.applyDelta(c, accountId, datSanId,
+                    org.example.util.Constants.REPUTATION_ACTION_COMPLETED_BOOKING,
+                    org.example.util.Constants.COMPLETED_BOOKING_REWARD,
+                    "Hoàn thành booking thành công", null, null);
         }
     }
 

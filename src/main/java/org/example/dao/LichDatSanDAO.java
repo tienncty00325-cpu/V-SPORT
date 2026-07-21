@@ -9,6 +9,13 @@ public interface LichDatSanDAO {
     Lichdatsan getLichById(int id);
     boolean addLichDatSan(Lichdatsan lich);
     boolean updateTrangThai(int id, String trangThai);
+    /**
+     * Hủy booking do khách tự thao tác — atomic UPDATE với WHERE guard trạng thái nguồn để
+     * chống double-click/retry (0 dòng ảnh hưởng nghĩa là đã hủy/đổi trạng thái từ trước, KHÔNG
+     * phải lỗi). Chỉ cho phép hủy từ: Chờ xác nhận, Đã xác nhận, hoặc Chờ thanh toán còn hạn giữ chỗ.
+     * @return số dòng bị ảnh hưởng (0 hoặc 1).
+     */
+    int cancelByCustomer(java.sql.Connection conn, int datSanId, int accountId, String cancelType, String cancelReason) throws java.sql.SQLException;
     boolean updateGhiChu(int id, String ghiChu);
     /** Xóa cứng lịch đặt sân khỏi DB */
     boolean hardDelete(int id);

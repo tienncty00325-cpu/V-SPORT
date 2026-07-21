@@ -149,11 +149,9 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-purple-200 text-xs font-bold text-purple-800 uppercase tracking-wider bg-purple-50/50">
-              <th class="px-5 py-3.5">Mã sân</th>
               <th class="px-5 py-3.5">Tên sân</th>
               <th class="px-5 py-3.5">Loại sân / Bộ môn</th>
-              <th class="px-5 py-3.5">Giá không đèn / Có đèn</th>
-              <th class="px-5 py-3.5">Thời gian lên đèn</th>
+              <th class="px-5 py-3.5">Giá ngày / tối (giờ đèn)</th>
               <th class="px-5 py-3.5">Trạng thái</th>
               <th class="px-5 py-3.5 text-right">Thao tác</th>
             </tr>
@@ -276,36 +274,6 @@
         </div>
       </div>
 
-      <!-- Preview cấu hình loại sân -->
-      <div id="courtTypePreview" class="hidden flex flex-col gap-2 rounded-2xl border border-purple-100 bg-purple-50/60 px-4 py-3">
-        <p class="text-xs font-bold text-purple-800 flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-[15px]">info</span>
-          Cấu hình loại sân đã chọn
-        </p>
-        <div class="grid grid-cols-2 gap-2">
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[10px] font-semibold text-purple-500 uppercase tracking-wide">Môn thể thao</span>
-            <span id="previewSport" class="text-sm font-semibold text-purple-900">—</span>
-          </div>
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[10px] font-semibold text-purple-500 uppercase tracking-wide">Tên loại sân</span>
-            <span id="previewTypeName" class="text-sm font-semibold text-purple-900">—</span>
-          </div>
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[10px] font-semibold text-purple-500 uppercase tracking-wide">Giá không đèn</span>
-            <span id="previewPriceNoLight" class="text-sm font-bold text-emerald-700">—</span>
-          </div>
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[10px] font-semibold text-purple-500 uppercase tracking-wide">Giá có đèn</span>
-            <span id="previewPriceWithLight" class="text-sm font-bold text-amber-700">—</span>
-          </div>
-          <div id="previewLightWrap" class="col-span-2 flex flex-col gap-0.5">
-            <span class="text-[10px] font-semibold text-purple-500 uppercase tracking-wide">Giờ bật đèn</span>
-            <span id="previewLightHours" class="text-sm font-semibold text-purple-900">—</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Mô tả -->
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-semibold text-purple-900">Mô tả chi tiết</label>
@@ -361,9 +329,9 @@
           <div class="p-3">
             <h4 id="cardPrevName" class="font-bold text-purple-950 text-sm">Tên sân...</h4>
             <p id="cardPrevType" class="text-[10px] text-purple-500 font-semibold mt-0.5">Loại sân</p>
-            <div class="flex justify-between text-[11px] text-zinc-500 mt-1.5">
-              <span>Giá ngày / tối:</span>
+            <div class="flex items-center justify-between text-[11px] mt-1.5">
               <span id="cardPrevPrice" class="font-bold text-zinc-800">—</span>
+              <span id="cardPrevLightHours" class="text-zinc-400 text-[10px]">—</span>
             </div>
           </div>
         </div>
@@ -409,12 +377,10 @@
       <input type="hidden" name="khongDungDen" id="typeKhongDungDenHidden" value="false">
 
       <!-- Checkbox: Sân không dùng đèn -->
-      <label class="flex items-start gap-3 px-3 py-2.5 rounded-xl border border-purple-200 cursor-pointer hover:bg-purple-50/60 select-none transition-colors">
-        <input type="checkbox" id="typeNoLight" onchange="toggleTypeNoLight()" class="mt-0.5 w-4 h-4 accent-purple-600 shrink-0">
-        <div>
-          <span class="text-xs font-semibold text-purple-900">Sân không dùng đèn</span>
-          <p class="text-[10px] text-purple-500 mt-0.5 leading-relaxed">Tích vào nếu sân dùng ánh sáng tự nhiên hoặc đã tính đèn vào giá — không phụ thu thêm buổi tối.</p>
-        </div>
+      <label class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-purple-200 cursor-pointer hover:bg-purple-50/60 select-none transition-colors"
+             title="Tích vào nếu sân dùng ánh sáng tự nhiên hoặc đã tính đèn vào giá — không phụ thu thêm buổi tối.">
+        <input type="checkbox" id="typeNoLight" onchange="toggleTypeNoLight()" class="w-4 h-4 accent-purple-600 shrink-0">
+        <span class="text-xs font-semibold text-purple-900">Sân không dùng đèn (không phụ thu buổi tối)</span>
       </label>
 
       <div class="grid grid-cols-2 gap-3">
@@ -447,10 +413,10 @@
             <input type="time" name="gioKetThucLenDen" id="typeLightEnd" value="22:00" class="h-10 px-3 rounded-xl border border-purple-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-400">
           </div>
         </div>
-        <div class="mt-2 flex flex-col gap-1">
-          <p class="text-[10px] text-purple-500">💡 Có thể cấu hình qua ngày, ví dụ <span class="font-bold">17:00</span> đến <span class="font-bold">05:00</span> sáng hôm sau.</p>
-          <p class="text-[10px] text-purple-500">💡 Nếu giờ bắt đầu bằng giờ kết thúc, giá có đèn được áp dụng toàn thời gian (phù hợp sân trong nhà như Cầu lông).</p>
-        </div>
+        <p class="mt-2 text-[10px] text-purple-500 flex items-center gap-1"
+           title="Có thể cấu hình qua ngày (VD 17:00–05:00). Nếu giờ bắt đầu = giờ kết thúc, giá có đèn áp dụng toàn thời gian (phù hợp sân trong nhà như Cầu lông).">
+          <span class="material-symbols-outlined text-[12px]">info</span>Hỗ trợ khung giờ qua đêm &amp; sân trong nhà — di chuột để biết thêm
+        </p>
       </div>
 
       <div class="flex justify-end gap-2 pt-3 border-t border-purple-50">
@@ -626,27 +592,9 @@
 
   function onCourtTypeChange() {
     const select = document.getElementById('courtTypeSelect');
-    const preview = document.getElementById('courtTypePreview');
     const typeId = parseInt(select.value);
     const type = mockLoaiSan.find(t => t.id === typeId);
-    if (!type) { preview.classList.add('hidden'); return; }
-
-    const sport = mockSports.find(s => s.id === type.sportId);
-    const fmt = v => Number(v).toLocaleString('vi-VN') + ' đ/giờ';
-
-    document.getElementById('previewSport').textContent = sport ? sport.name : '—';
-    document.getElementById('previewTypeName').textContent = type.name || '—';
-    document.getElementById('previewPriceNoLight').textContent = fmt(type.priceNoLight);
-    document.getElementById('previewPriceWithLight').textContent = fmt(type.priceWithLight);
-
-    const lightWrap = document.getElementById('previewLightWrap');
-    if (type.lightStart && type.lightEnd) {
-      document.getElementById('previewLightHours').textContent = type.lightStart + ' – ' + type.lightEnd;
-      lightWrap.classList.remove('hidden');
-    } else {
-      lightWrap.classList.add('hidden');
-    }
-    preview.classList.remove('hidden');
+    if (!type) { updateCardPreview(); return; }
 
     // Gợi ý tên tự động (chỉ khi tạo mới và manager chưa tự gõ tên)
     if (document.getElementById('courtAction').value === 'add' && !courtNameEdited) {
@@ -673,6 +621,18 @@
     return d.innerHTML;
   }
 
+  // Card action menu (⋯) — chỉ 1 menu mở tại 1 thời điểm
+  function toggleCardMenu(event, id) {
+    event.stopPropagation();
+    const menu = document.getElementById('cardMenu-' + id);
+    const wasOpen = !menu.classList.contains('hidden');
+    document.querySelectorAll('[id^="cardMenu-"]').forEach(m => m.classList.add('hidden'));
+    if (!wasOpen) menu.classList.remove('hidden');
+  }
+  document.addEventListener('click', () => {
+    document.querySelectorAll('[id^="cardMenu-"]').forEach(m => m.classList.add('hidden'));
+  });
+
   // Mini-card preview: mô phỏng card sân trên danh sách
   function updateCardPreview() {
     const name = document.getElementById('courtName').value.trim();
@@ -690,6 +650,9 @@
     priceEl.textContent = (type.priceNoLight != null)
       ? formatCurrency(type.priceNoLight) + ' / ' + formatCurrency(type.priceWithLight)
       : '—';
+
+    const lightHoursEl = document.getElementById('cardPrevLightHours');
+    lightHoursEl.textContent = (type.lightStart && type.lightEnd) ? (type.lightStart + '-' + type.lightEnd) : '';
 
     const statusEl = document.getElementById('cardPrevStatus');
     statusEl.textContent = status;
@@ -918,38 +881,44 @@
 
       return `
         <div class="card card-hover overflow-hidden flex flex-col">
-          <div class="relative h-40 bg-zinc-100">
+          <div class="relative h-32 bg-zinc-100">
             <img src="\${img}" class="w-full h-full object-cover" alt="\${c.name}">
-            <div class="absolute top-3 right-3">
+            <div class="absolute top-2.5 right-2.5">
               <span class="badge \${badgeColor}">\${c.status}</span>
             </div>
-            <div class="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1 uppercase">
-              <span class="material-symbols-outlined text-[12px]">\${sport.icon || 'sports'}</span>\${sport.name || 'Bộ môn'}
+            <div class="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[9px] font-bold text-white flex items-center gap-1 uppercase">
+              <span class="material-symbols-outlined text-[11px]">\${sport.icon || 'sports'}</span>\${sport.name || 'Bộ môn'}
             </div>
           </div>
-          <div class="p-4 flex-1 flex flex-col gap-3">
+          <div class="p-3.5 flex-1 flex flex-col gap-2.5">
             <div>
-              <h4 class="font-bold text-purple-950 text-sm tracking-tight">\${c.name}</h4>
+              <h4 class="font-bold text-purple-950 text-sm tracking-tight leading-tight">\${c.name}</h4>
               <p class="text-[10px] text-purple-500 font-semibold mt-0.5">\${type.name || 'Loại sân'}</p>
             </div>
-            <div class="text-[11px] text-zinc-500 space-y-1 bg-purple-50/30 p-2.5 rounded-xl border border-purple-50/50">
-              <div class="flex justify-between"><span>Giá ngày:</span><span class="font-bold text-zinc-800">\${formatCurrency(type.priceNoLight || 0)}</span></div>
-              <div class="flex justify-between"><span>Giá tối:</span><span class="font-bold text-purple-700">\${formatCurrency(type.priceWithLight || 0)} (\${type.lightStart || '17:30'} - \${type.lightEnd || '22:00'})</span></div>
+            <div class="flex items-center justify-between text-[11px] bg-purple-50/40 px-2.5 py-1.5 rounded-lg">
+              <span class="font-bold text-zinc-800">\${formatCurrency(type.priceNoLight || 0)}</span>
+              <span class="text-purple-300">/</span>
+              <span class="font-bold text-purple-700">\${formatCurrency(type.priceWithLight || 0)}</span>
+              <span class="text-zinc-400 text-[10px]">\${type.lightStart || '17:30'}-\${type.lightEnd || '22:00'}</span>
             </div>
-            <p class="text-xs text-zinc-500 line-clamp-2 mt-1 min-h-[2rem]">\${c.desc || 'Không có mô tả chi tiết cho sân đấu này.'}</p>
-            <div class="flex items-center gap-1.5 mt-auto pt-3 border-t border-purple-50">
+            <div class="relative flex items-center gap-1.5 mt-auto pt-2.5 border-t border-purple-50">
               <button onclick="openEditModal(\${c.id})" class="flex-1 h-8 text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg flex items-center justify-center gap-1 transition-colors">
                 <span class="material-symbols-outlined text-[13px]">edit</span>Sửa
               </button>
-              <button onclick="duplicateCourt(\${c.id})" class="h-8 w-8 text-sky-600 hover:bg-sky-50 rounded-lg flex items-center justify-center transition-colors" title="Nhân bản sân này">
-                <span class="material-symbols-outlined text-[15px]">content_copy</span>
-              </button>
               <button onclick="openPriceConfigModal(\${c.id})" class="flex-1 h-8 text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg flex items-center justify-center gap-1 transition-colors">
-                <span class="material-symbols-outlined text-[13px]">payments</span>Cấu hình giá
+                <span class="material-symbols-outlined text-[13px]">payments</span>Giá
               </button>
-              <button onclick="deleteCourt(\${c.id})" class="h-8 w-8 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-[16px]">delete</span>
+              <button onclick="toggleCardMenu(event, \${c.id})" class="h-8 w-8 text-zinc-500 hover:bg-zinc-100 rounded-lg flex items-center justify-center transition-colors" title="Thêm thao tác">
+                <span class="material-symbols-outlined text-[16px]">more_vert</span>
               </button>
+              <div id="cardMenu-\${c.id}" class="hidden absolute right-0 bottom-10 z-10 w-36 bg-white rounded-xl shadow-lg border border-zinc-100 py-1">
+                <button onclick="duplicateCourt(\${c.id}); toggleCardMenu(event, \${c.id})" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-sky-700 hover:bg-sky-50">
+                  <span class="material-symbols-outlined text-[14px]">content_copy</span>Nhân bản
+                </button>
+                <button onclick="deleteCourt(\${c.id})" class="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-50">
+                  <span class="material-symbols-outlined text-[14px]">delete</span>Xóa
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -969,7 +938,6 @@
 
       return `
         <tr class="hover:bg-purple-50/20 transition-colors">
-          <td class="px-5 py-4 font-mono font-bold text-purple-900">\${c.code}</td>
           <td class="px-5 py-4 font-bold text-zinc-800">\${c.name}</td>
           <td class="px-5 py-4">
             <div class="flex flex-col">
@@ -980,15 +948,15 @@
             </div>
           </td>
           <td class="px-5 py-4 font-medium">
-            <span class="text-zinc-700 font-semibold">\${formatCurrency(type.priceNoLight || 0)}</span> / 
+            <span class="text-zinc-700 font-semibold">\${formatCurrency(type.priceNoLight || 0)}</span> /
             <span class="text-purple-700 font-bold">\${formatCurrency(type.priceWithLight || 0)}</span>
+            <span class="text-zinc-400 text-[10px] block mt-0.5">\${type.lightStart || '17:30'} - \${type.lightEnd || '22:00'}</span>
           </td>
-          <td class="px-5 py-4 text-zinc-500">\${type.lightStart || '17:30'} - \${type.lightEnd || '22:00'}</td>
           <td class="px-5 py-4"><span class="badge \${badgeColor}">\${c.status}</span></td>
           <td class="px-5 py-4 text-right">
             <div class="flex items-center justify-end gap-1">
-              <button onclick="openPriceConfigModal(\${c.id})" class="p-1 hover:bg-emerald-50 text-emerald-700 rounded-lg transition-colors" title="Cấu hình giá"><span class="material-symbols-outlined text-[16px]">payments</span></button>
               <button onclick="openEditModal(\${c.id})" class="p-1 hover:bg-purple-50 text-purple-700 rounded-lg transition-colors" title="Chỉnh sửa"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+              <button onclick="openPriceConfigModal(\${c.id})" class="p-1 hover:bg-emerald-50 text-emerald-700 rounded-lg transition-colors" title="Cấu hình giá"><span class="material-symbols-outlined text-[16px]">payments</span></button>
               <button onclick="duplicateCourt(\${c.id})" class="p-1 hover:bg-sky-50 text-sky-600 rounded-lg transition-colors" title="Nhân bản sân"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
               <button onclick="deleteCourt(\${c.id})" class="p-1 hover:bg-red-50 text-red-500 rounded-lg transition-colors" title="Xóa"><span class="material-symbols-outlined text-[16px]">delete</span></button>
             </div>

@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#17130E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..700&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
 /* ============================== TOKENS ============================== */
@@ -30,7 +30,7 @@
 --ease:cubic-bezier(.16,1,.3,1);      /* signature: fast start, long settle */
 --ease-soft:cubic-bezier(.19,1,.22,1);
 --serif:"Fraunces",Georgia,serif;
---sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+--sans:"Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 --maxw:1320px;
 --pad:clamp(20px,5vw,84px);
 }
@@ -76,16 +76,17 @@ padding:22px var(--pad);
 transition:padding .5s var(--ease),background .5s var(--ease),color .5s var(--ease);
 color:var(--paper);mix-blend-mode:difference;
 }
-header.nav.solid{mix-blend-mode:normal;background:rgba(243,236,224,.86);backdrop-filter:blur(12px);
-color:var(--ink);padding:14px var(--pad);border-bottom:1px solid var(--line)}
+header.nav.solid{mix-blend-mode:normal;background:rgba(4,12,24,.9);backdrop-filter:blur(12px);
+color:var(--paper);padding:14px var(--pad);border-bottom:1px solid rgba(255,255,255,0.1)}
 .brand{font-family:var(--serif);font-weight:600;font-size:1.28rem;letter-spacing:.04em}
 .brand span{color:var(--accent)}
 .nav-links{display:flex;gap:34px;align-items:center}
 .nav-links a{font-size:.82rem;letter-spacing:.04em;font-weight:500;opacity:.85;transition:opacity .3s}
 .nav-links a:hover{opacity:1}
 .nav-cta{border:1px solid currentColor;border-radius:100px;padding:9px 20px;font-size:.78rem;
-letter-spacing:.06em;font-weight:500;transition:background .35s var(--ease),color .35s var(--ease)}
-header.nav.solid .nav-cta:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+letter-spacing:.06em;font-weight:500;transition:background .35s var(--ease),color .35s var(--ease),transform .35s}
+header.nav.solid .nav-cta{background:var(--accent);color:#fff;border-color:var(--accent)}
+header.nav.solid .nav-cta:hover{background:var(--accent-2);transform:translateY(-2px)}
 @media(max-width:760px){.nav-links a:not(.nav-cta){display:none}}
 /* custom cursor (desktop pointer only) */
 .cursor{position:fixed;top:0;left:0;z-index:9500;pointer-events:none;
@@ -117,26 +118,27 @@ font-weight:600;overflow:hidden}
 .veil .vbar{width:min(220px,50vw);height:1px;background:var(--line-d);position:relative;overflow:hidden}
 .veil .vbar i{position:absolute;inset:0;background:var(--accent);transform:scaleX(0);transform-origin:0 50%}
 /* ============================== HERO ============================== */
-.hero{position:relative;height:100svh;min-height:640px;overflow:hidden;background:var(--ink);color:var(--paper)}
+.hero{position:relative;height:100svh;min-height:820px;overflow:hidden;background:var(--ink);color:var(--paper)}
 .hero-media{position:absolute;inset:-8% -4%;will-change:transform}
-.hero-media img{width:100%;height:100%;object-fit:cover;transform:scale(1.05)}
+.hero-media img{width:100%;height:100%;object-fit:cover;object-position:center right;transform:scale(1.05)}
 .hero::after{content:"";position:absolute;inset:0;
-background:linear-gradient(180deg,rgba(19,16,11,.55) 0%,rgba(19,16,11,.12) 32%,rgba(19,16,11,.18) 60%,rgba(19,16,11,.82) 100%)}
+background:linear-gradient(90deg,rgba(4,12,24,.94) 0%,rgba(4,12,24,.82) 28%,rgba(4,12,24,.35) 58%,rgba(4,12,24,.08) 100%),linear-gradient(0deg,rgba(3,9,18,.6) 0%,rgba(3,9,18,.05) 55%);}
 .hero-inner{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;justify-content:flex-end;
 padding:0 var(--pad) clamp(40px,8vh,90px);max-width:var(--maxw);margin-inline:auto}
-.hero .eyebrow{margin-bottom:24px}
-.hero h1{font-size:clamp(2.2rem,5.2vw,5.1rem);max-width:14ch;margin-top:2px}
+.hero-content-wrap{max-width:65%;}
+.hero .eyebrow{margin-bottom:24px;font-size:clamp(11px,1.2vw,13px);}
+.hero h1{font-size:clamp(54px,6vw,92px);max-width:14ch;margin-top:2px}
 .hero .line-wrap{overflow:hidden;display:block}
 .hero-sub{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-end;justify-content:space-between;margin-top:34px}
-.hero-sub .lead{color:rgba(243,236,224,.86)}
+.hero-sub .lead{color:rgba(243,236,224,.86);font-size:clamp(17px,1.8vw,20px);}
 .cta-split{display:flex;align-items:center;gap:14px;flex-shrink:0}
 .pill{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#fff;
-border-radius:100px;padding:16px 28px;font-weight:600;font-size:.92rem;letter-spacing:.02em;
+border-radius:100px;padding:16px 28px;font-weight:600;font-size:clamp(14px,1vw,16px);letter-spacing:.02em;
 transition:transform .4s var(--ease),background .4s var(--ease);will-change:transform}
-.pill:hover{background:var(--accent-2)}
+.pill:hover{background:var(--accent-2);transform:translateY(-2px)}
 .disc{width:54px;height:54px;border-radius:50%;border:1px solid rgba(243,236,224,.5);
 display:grid;place-items:center;color:var(--paper);flex-shrink:0;transition:.4s var(--ease)}
-.disc:hover{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.disc:hover{background:var(--paper);color:var(--ink);border-color:var(--paper);transform:translateY(-2px)}
 .disc svg{width:18px;height:18px}
 .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:4;
 display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(243,236,224,.7)}
@@ -145,7 +147,17 @@ display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(243,23
 animation:cue 2.1s var(--ease) infinite}
 @keyframes cue{0%{transform:translateY(-110%)}60%,100%{transform:translateY(260%)}}
 .scrollcue span{font-size:.62rem;letter-spacing:.3em;text-transform:uppercase}
-@media(max-width:760px){.scrollcue{display:none}}
+@media(max-width:980px){
+  .hero-content-wrap{max-width:100%;}
+  .hero h1{font-size:clamp(40px,7vw,60px);}
+}
+@media(max-width:760px){
+  .scrollcue{display:none}
+  .hero-media img{object-position:70% center;}
+  .hero::after{background:linear-gradient(180deg,rgba(4,12,24,.4) 0%,rgba(4,12,24,.95) 100%),linear-gradient(90deg,rgba(4,12,24,.9) 0%,rgba(4,12,24,.4) 100%);}
+  .hero-sub{flex-direction:column;align-items:flex-start;gap:20px;}
+  .cta-split{width:100%;justify-content:space-between;}
+}
 /* ============================== MANIFESTO ============================== */
 .manifesto{position:relative;padding:clamp(110px,16vh,210px) 0;background:var(--paper)}
 .manifesto .ghost{position:absolute;top:8%;left:50%;transform:translateX(-50%);
@@ -346,21 +358,27 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
 
   <!-- HERO -->
   <section class="hero" id="hero" data-geo="Khởi hành|dark">
-    <div class="hero-media" data-speed="0.82"><img data-mimg="hero" alt="A lone road winding through immense mountains at sunrise"></div>
+    <div class="hero-media" data-speed="0.82"><img src="${pageContext.request.contextPath}/assets/images/owner/owner-hero-vsport.webp" alt="V-SPORT Sports Management Platform"></div>
     <div class="hero-inner">
-      <p class="eyebrow">V-Sport · Giải pháp vận hành</p>
-      <h1>
-        <span class="line-wrap"><span class="ln">Nâng tầm</span></span>
-        <span class="line-wrap"><span class="ln">quản lý</span></span>
-        <span class="line-wrap"><span class="ln thin">cơ sở thể thao của bạn.</span></span>
-      </h1>
-      <div class="hero-sub">
-        <p class="lead reveal">Hệ thống quản lý thông minh giúp tối ưu lịch đặt sân, quản lý hội viên và tăng doanh thu hiệu quả với công nghệ tiên tiến.</p>
-        <div class="cta-split reveal">
-          <a href="#begin" class="pill magnetic" data-cursor="Đăng ký ngay">Bắt đầu miễn phí</a>
-          <a href="#journeys" class="disc magnetic" aria-label="Tìm hiểu thêm" data-cursor="Xem tính năng">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-          </a>
+      <div class="hero-content-wrap">
+        <p class="eyebrow">V-SPORT · GIẢI PHÁP VẬN HÀNH THỂ THAO</p>
+        <h1>
+          <span class="line-wrap"><span class="ln">Nâng tầm vận hành</span></span>
+          <span class="line-wrap"><span class="ln thin">cơ sở thể thao của bạn.</span></span>
+        </h1>
+        <div class="hero-sub">
+          <p class="lead reveal">Quản lý lịch sân, nhân sự, thanh toán và doanh thu trên một nền tảng duy nhất — giúp cơ sở vận hành chính xác và phát triển bền vững.</p>
+          <div class="cta-split reveal">
+            <a href="#begin" class="pill magnetic" data-cursor="Đăng ký cơ sở">Đăng ký cơ sở miễn phí</a>
+            <a href="#journeys" class="disc magnetic" aria-label="Khám phá giải pháp" data-cursor="Khám phá">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </a>
+          </div>
+        </div>
+        <div class="hero-benefits reveal" style="margin-top: 40px; display: flex; gap: 24px; flex-wrap: wrap;">
+           <div style="display:flex; align-items:center; gap: 8px; font-size: 0.95rem; color: rgba(243,236,224,.85)"><span class="material-symbols-outlined text-[#C9612F]" style="font-size: 20px;">event_available</span> Quản lý lịch sân tập trung</div>
+           <div style="display:flex; align-items:center; gap: 8px; font-size: 0.95rem; color: rgba(243,236,224,.85)"><span class="material-symbols-outlined text-[#C9612F]" style="font-size: 20px;">monitoring</span> Theo dõi doanh thu theo thời gian thực</div>
+           <div style="display:flex; align-items:center; gap: 8px; font-size: 0.95rem; color: rgba(243,236,224,.85)"><span class="material-symbols-outlined text-[#C9612F]" style="font-size: 20px;">groups</span> Vận hành nhân sự và dịch vụ hiệu quả</div>
         </div>
       </div>
     </div>

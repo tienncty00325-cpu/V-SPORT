@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
@@ -201,15 +201,9 @@
       
       <!-- Container for staff fields -->
       <div id="staffFieldsContainer" class="flex flex-col gap-4">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-violet-900">Họ và tên <span class="text-red-500">*</span></label>
-              <input type="text" id="staffName" required class="h-9 px-3 rounded-lg border border-violet-100 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none">
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-violet-900">Tên đăng nhập <span class="text-red-500">*</span></label>
-              <input type="text" id="staffUsername" required class="h-9 px-3 rounded-lg border border-violet-100 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none">
-            </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-violet-900">Họ và tên <span class="text-red-500">*</span></label>
+            <input type="text" id="staffName" required class="h-9 px-3 rounded-lg border border-violet-100 text-sm focus:ring-2 focus:ring-violet-400 focus:outline-none">
           </div>
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold text-violet-900">Vai trò <span class="text-red-500">*</span></label>
@@ -455,7 +449,6 @@ function openAddStaff() {
     document.getElementById('staffForm').reset();
     document.getElementById('staffModalTitle').innerText = 'Thêm nhân viên mới';
     document.getElementById('staffEditId').value = '';
-    document.getElementById('staffUsername').disabled = false;
     document.getElementById('staffPassword').required = true;
     
     // Reset OTP containers
@@ -473,8 +466,6 @@ function editStaff(id) {
     document.getElementById('staffModalTitle').innerText = 'Chỉnh sửa tài khoản nhân viên';
     document.getElementById('staffEditId').value = s.id;
     document.getElementById('staffName').value = s.name;
-    document.getElementById('staffUsername').value = s.username;
-    document.getElementById('staffUsername').disabled = true;
     document.getElementById('staffEmail').value = s.email;
     document.getElementById('staffPhone').value = s.phone;
     
@@ -548,8 +539,6 @@ async function handleStaffSubmit(e) {
     params.append('action', editId ? 'update' : 'add');
     if (editId) {
         params.append('accountId', editId);
-    } else {
-        params.append('username', document.getElementById('staffUsername').value);
     }
     params.append('fullName', document.getElementById('staffName').value);
     params.append('email', document.getElementById('staffEmail').value);
@@ -739,11 +728,16 @@ async function loadLeaveRequests() {
             renderLeaveTable();
         } else {
             console.error('Failed to load leave requests');
-            // Fallback: maybe endpoint returns HTML, we'd need to parse
+            let errorText = 'Lỗi máy chủ khi tải yêu cầu nghỉ';
+            try {
+                const errData = await response.json();
+                if (errData && errData.error) errorText = errData.error;
+            } catch (e) {}
+            showNotification('error', errorText);
         }
     } catch (error) {
         console.error('Error loading leave requests:', error);
-        alert('Lỗi tải dữ liệu yêu cầu nghỉ');
+        showNotification('error', 'Lỗi tải dữ liệu yêu cầu nghỉ.');
     }
 }
 

@@ -161,9 +161,11 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
                     String diaChi = chiNhanh.getDiaChi() != null ? chiNhanh.getDiaChi().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") : "";
                     String sdt = chiNhanh.getSoDienThoai() != null ? chiNhanh.getSoDienThoai().replace("\"", "\\\"") : "";
                     String trangThai = chiNhanh.getTrangThai() != null ? chiNhanh.getTrangThai().replace("\"", "\\\"") : "";
-                    String gioMo = chiNhanh.getGioMoCua() != null ? chiNhanh.getGioMoCua().toString() : "00:00";
-                    String gioDong = chiNhanh.getGioDongCua() != null ? chiNhanh.getGioDongCua().toString() : "00:00";
-                    
+                    String gioMo = chiNhanh.getGioMoCua() != null ? chiNhanh.getGioMoCua().toString() : null;
+                    String gioDong = chiNhanh.getGioDongCua() != null ? chiNhanh.getGioDongCua().toString() : null;
+                    String viDo = chiNhanh.getViDo() != null ? chiNhanh.getViDo().toPlainString() : "";
+                    String kinhDo = chiNhanh.getKinhDo() != null ? chiNhanh.getKinhDo().toPlainString() : "";
+
                     out.print("{"
                         + "\"success\":true,"
                         + "\"coSoID\":" + chiNhanh.getCoSoID() + ","
@@ -171,9 +173,11 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
                         + "\"diaChi\":\"" + diaChi + "\","
                         + "\"soDienThoai\":\"" + sdt + "\","
                         + "\"trangThai\":\"" + trangThai + "\","
-                        + "\"gioMoCua\":\"" + gioMo + "\","
-                        + "\"gioDongCua\":\"" + gioDong + "\","
+                        + "\"gioMoCua\":" + (gioMo != null ? "\"" + gioMo + "\"" : "null") + ","
+                        + "\"gioDongCua\":" + (gioDong != null ? "\"" + gioDong + "\"" : "null") + ","
                         + "\"soLuongSanDuKien\":" + chiNhanh.getSoLuongSanDuKien() + ","
+                        + "\"viDo\":\"" + viDo + "\","
+                        + "\"kinhDo\":\"" + kinhDo + "\","
                         + "\"countBongDa\":" + countBongDa + ","
                         + "\"countCauLong\":" + countCauLong + ","
                         + "\"countTennis\":" + countTennis + ","
@@ -235,6 +239,29 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
 
         String moTa = req.getParameter("moTa");
 
+        // Vị trí (ViDo/KinhDo): parse an toàn, validate range, và bắt buộc phải có
+        // đủ cả cặp — không chấp nhận chỉ có một trong hai (tránh lưu vị trí sai lệch).
+        String viDoRaw = req.getParameter("viDo");
+        String kinhDoRaw = req.getParameter("kinhDo");
+        java.math.BigDecimal viDo = null;
+        java.math.BigDecimal kinhDo = null;
+        boolean viDoInvalid = false;
+        boolean kinhDoInvalid = false;
+        if (viDoRaw != null && !viDoRaw.trim().isEmpty()) {
+            try { viDo = new java.math.BigDecimal(viDoRaw.trim()); } catch (NumberFormatException e) { viDoInvalid = true; }
+        }
+        if (kinhDoRaw != null && !kinhDoRaw.trim().isEmpty()) {
+            try { kinhDo = new java.math.BigDecimal(kinhDoRaw.trim()); } catch (NumberFormatException e) { kinhDoInvalid = true; }
+        }
+        if (viDoInvalid || kinhDoInvalid || (viDo == null) != (kinhDo == null)
+                || (viDo != null && (viDo.compareTo(java.math.BigDecimal.valueOf(-90)) < 0 || viDo.compareTo(java.math.BigDecimal.valueOf(90)) > 0))
+                || (kinhDo != null && (kinhDo.compareTo(java.math.BigDecimal.valueOf(-180)) < 0 || kinhDo.compareTo(java.math.BigDecimal.valueOf(180)) > 0))) {
+            req.getSession().setAttribute("error",
+                    "Vị trí cơ sở chưa hợp lệ. Vui lòng chọn lại vị trí trên bản đồ hoặc nhập đầy đủ tọa độ.");
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh");
+            return;
+        }
+
         // Xử lý nhiều môn thể thao từ checkbox
         String[] loaiHinhArray = req.getParameterValues("loaiHinhKinhDoanh");
         String loaiHinh = (loaiHinhArray != null) ? String.join(", ", loaiHinhArray) : "";
@@ -260,20 +287,22 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
             }
         }
 
-        CoSo chiNhanh = new CoSo();
-        chiNhanh.setTenCoSo(tenCoSo);
-        chiNhanh.setDiaChi(diaChi);
-        chiNhanh.setSoDienThoai(soDienThoai);
-        chiNhanh.setTrangThai(trangThai);
-        chiNhanh.setGioMoCua(gioMo);
-        chiNhanh.setGioDongCua(gioDong);
-        chiNhanh.setMoTa(moTa);
-        chiNhanh.setLoaiHinhKinhDoanh(loaiHinh);
-        chiNhanh.setSoLuongSanDuKien(totalCourts);
-
         TaiKhoan user = (TaiKhoan) req.getSession().getAttribute("user");
 
         if (path.equals("/admin/chi-nhanh/them")) {
+            CoSo chiNhanh = new CoSo();
+            chiNhanh.setTenCoSo(tenCoSo);
+            chiNhanh.setDiaChi(diaChi);
+            chiNhanh.setSoDienThoai(soDienThoai);
+            chiNhanh.setTrangThai(trangThai);
+            chiNhanh.setGioMoCua(gioMo);
+            chiNhanh.setGioDongCua(gioDong);
+            chiNhanh.setMoTa(moTa);
+            chiNhanh.setLoaiHinhKinhDoanh(loaiHinh);
+            chiNhanh.setSoLuongSanDuKien(totalCourts);
+            chiNhanh.setViDo(viDo);
+            chiNhanh.setKinhDo(kinhDo);
+
             chiNhanhDAO.addCoSo(chiNhanh);
             // Dynamic court synchronization for new branch
             syncCourtsForBranch(chiNhanh.getCoSoID(), sportCounts);
@@ -285,10 +314,41 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
             }
         } else if (path.equals("/admin/chi-nhanh/sua")) {
             int id = Integer.parseInt(req.getParameter("id"));
-            chiNhanh.setCoSoID(id);
+
+            // Nạp bản ghi hiện có rồi chỉnh sửa tại chỗ — KHÔNG merge() một entity rỗng
+            // mới tạo, vì merge() sẽ ghi đè mọi field không được set (bao gồm ViDo/KinhDo,
+            // AccountID_QuanLy, HinhAnh, IsDeleted...) thành NULL trên bản ghi DB.
+            CoSo chiNhanh = chiNhanhDAO.getCoSoById(id);
+            if (chiNhanh == null) {
+                req.getSession().setAttribute("error", "Chi nhánh không tồn tại.");
+                resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh");
+                return;
+            }
+            chiNhanh.setTenCoSo(tenCoSo);
+            chiNhanh.setDiaChi(diaChi);
+            chiNhanh.setSoDienThoai(soDienThoai);
+            chiNhanh.setTrangThai(trangThai);
+            // Chỉ ghi đè giờ hoạt động khi form thực sự gửi giá trị — không tự gán
+            // mặc định 8:00/22:00 (đó chỉ dùng cho "Thêm Cơ Sở"). Nếu form để trống,
+            // giữ nguyên giá trị đã nạp từ DB ở trên (kể cả khi giá trị đó là NULL).
+            if (gioMoStr != null && !gioMoStr.isEmpty()) {
+                chiNhanh.setGioMoCua(LocalTime.parse(gioMoStr));
+            }
+            if (gioDongStr != null && !gioDongStr.isEmpty()) {
+                chiNhanh.setGioDongCua(LocalTime.parse(gioDongStr));
+            }
+            chiNhanh.setMoTa(moTa);
+            // Môn thể thao / số sân KHÔNG được chỉnh ở form sửa cơ sở (Admin) — thuộc
+            // quyền Quản lý cơ sở tại trang "Quản lý Sân". Không gọi setLoaiHinhKinhDoanh/
+            // setSoLuongSanDuKien/syncCourtsForBranch ở đây để tránh xóa nhầm sân/lịch đặt.
+            // Chỉ cập nhật vị trí khi form gửi tọa độ mới; nếu không đổi vị trí thì
+            // giữ nguyên ViDo/KinhDo cũ đã nạp từ DB ở trên.
+            if (viDo != null && kinhDo != null) {
+                chiNhanh.setViDo(viDo);
+                chiNhanh.setKinhDo(kinhDo);
+            }
+
             chiNhanhDAO.updateCoSo(chiNhanh);
-            // Dynamic court synchronization for edited branch
-            syncCourtsForBranch(id, sportCounts);
             if (user != null) {
                 AuditLogService.log(req, user,
                     AuditLogService.ACTION_UPDATE, AuditLogService.ENTITY_CO_SO,

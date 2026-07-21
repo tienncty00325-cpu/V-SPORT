@@ -1,0 +1,22 @@
+@media print {
+    body { background: #fff; }
+    .sidebar, .header, .toolbar, .controls, .search-box { display: none !important; }
+    .main-content { overflow: visible; display: block; }
+    .diagram-container { padding: 0; background: #fff; overflow: visible; display: block; }
+    .diagram-card {
+        box-shadow: none; border: none; margin: 0; page-break-after: always;
+        max-width: none;
+    }
+    .canvas-wrapper {
+        height: auto; min-height: 400px; overflow: visible; page-break-inside: avoid;
+    }
+    .canvas-inner {
+        transform: none !important; width: 100% !important; height: auto !important;
+    }
+    svg { max-width: 100%; height: auto; }
+    .card-header { border-bottom: none; text-align: center; padding: 10px 0; }
+    .card-title { font-size: 14pt; }
+    .info-panel { page-break-inside: avoid; }
+    /* Hide grid lines for print */
+    pattern#grid path { stroke: transparent !important; }
+}

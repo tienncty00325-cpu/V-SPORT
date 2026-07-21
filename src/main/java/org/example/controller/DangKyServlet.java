@@ -24,10 +24,11 @@ public class DangKyServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        jakarta.servlet.http.HttpSession session = req.getSession();
-        if (session.getAttribute("user") != null) {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session != null && session.getAttribute("user") != null) {
             resp.sendRedirect(req.getContextPath() + "/index.jsp");
         } else {
+            // Điều hướng sang trang chủ với biến auth để mở modal
             resp.sendRedirect(req.getContextPath() + "/index.jsp?auth=register");
         }
     }
@@ -60,7 +61,10 @@ public class DangKyServlet extends HttpServlet {
             String[] sports = req.getParameterValues("sport");
             String[] dongy = req.getParameterValues("agree");
 
-            System.out.println("Đang xử lý đăng ký cho: " + username + " (" + email + ")");
+            // Giữ lại giá trị người dùng đã nhập khi form bị trả về vì lỗi validation.
+            req.setAttribute("phone", phone);
+            req.setAttribute("regEmail", email);
+            req.setAttribute("fullname", fullname);
 
             String requestedWith = req.getHeader("X-Requested-With");
             boolean isAjax = "XMLHttpRequest".equals(requestedWith);
@@ -98,7 +102,10 @@ public class DangKyServlet extends HttpServlet {
                 return;
             }
 
-            if (!ValidationUtil.isValidUsername(username)) {
+            // Form đăng ký mới không còn field tên đăng nhập: tự sinh username duy nhất
+            // từ email. Nếu client cũ vẫn gửi username thì giữ nguyên validation cũ.
+            boolean usernameProvided = username != null && !username.isEmpty();
+            if (usernameProvided && !ValidationUtil.isValidUsername(username)) {
                 if (isAjax) {
                     resp.setContentType("application/json;charset=UTF-8");
                     resp.getWriter().write("{\"success\": false, \"loi\": \"Tên đăng nhập không hợp lệ (3-50 ký tự, không chứa khoảng trắng)!\"}");
@@ -120,18 +127,45 @@ public class DangKyServlet extends HttpServlet {
                 return;
             }
 
-            if (!ValidationUtil.isValidVNPhone(phone)) {
+            String normalizedPhone = org.example.util.PhoneUtil.normalizeVN(phone);
+            if (normalizedPhone == null) {
                 if (isAjax) {
                     resp.setContentType("application/json;charset=UTF-8");
-                    resp.getWriter().write("{\"success\": false, \"loi\": \"Số điện thoại không hợp lệ (VN)!\"}");
+                    resp.getWriter().write("{\"success\": false, \"loi\": \"Số điện thoại không hợp lệ. Vui lòng nhập số di động Việt Nam (0, +84 hoặc 84).\"}");
                     return;
                 }
-                req.setAttribute("loi", "Số điện thoại không hợp lệ (VN)!");
+                req.setAttribute("loi", "Số điện thoại không hợp lệ. Vui lòng nhập số di động Việt Nam (0, +84 hoặc 84).");
                 req.getRequestDispatcher("/auth/DangKy.jsp").forward(req, resp);
                 return;
             }
 
-            if (TaiKhoanDAO.kiemtraUsername(username)) {
+            if (fullname == null || fullname.isEmpty() || fullname.length() < 2 || fullname.length() > 100) {
+                if (isAjax) {
+                    resp.setContentType("application/json;charset=UTF-8");
+                    resp.getWriter().write("{\"success\": false, \"loi\": \"Vui lòng nhập họ và tên hợp lệ (2-100 ký tự).\"}");
+                    return;
+                }
+                req.setAttribute("loi", "Vui lòng nhập họ và tên hợp lệ (2-100 ký tự).");
+                req.getRequestDispatcher("/auth/DangKy.jsp").forward(req, resp);
+                return;
+            }
+
+            if (TaiKhoanDAO.kiemtraPhone(org.example.util.PhoneUtil.lookupVariants(normalizedPhone))) {
+                if (isAjax) {
+                    resp.setContentType("application/json;charset=UTF-8");
+                    resp.getWriter().write("{\"success\": false, \"loi\": \"Số điện thoại đã được đăng ký. Vui lòng dùng số khác hoặc đăng nhập.\"}");
+                    return;
+                }
+                req.setAttribute("loi", "Số điện thoại đã được đăng ký. Vui lòng dùng số khác hoặc đăng nhập.");
+                req.getRequestDispatcher("/auth/DangKy.jsp").forward(req, resp);
+                return;
+            }
+
+            if (!usernameProvided) {
+                username = generateUniqueUsername(email);
+            }
+
+            if (usernameProvided && TaiKhoanDAO.kiemtraUsername(username)) {
                 if (isAjax) {
                     resp.setContentType("application/json;charset=UTF-8");
                     resp.getWriter().write("{\"success\": false, \"loi\": \"Tên đăng nhập đã tồn tại!\"}");
@@ -171,7 +205,7 @@ public class DangKyServlet extends HttpServlet {
             tempAccount.setUsername(username);
             tempAccount.setPassword(BCrypt.hashpw(password, BCrypt.gensalt(12)));
             tempAccount.setFullName(fullname);
-            tempAccount.setPhoneNumber(phone);
+            tempAccount.setPhoneNumber(normalizedPhone);
             tempAccount.setEmail(email);
             tempAccount.setGioiTinh(gender);
             tempAccount.setNgaySinh(dob);
@@ -184,7 +218,6 @@ public class DangKyServlet extends HttpServlet {
             req.getSession().setAttribute("authType", "REGISTER");
 
             req.setAttribute("email", email);
-            System.out.println("Đang chuyển hướng sang trang nhập mã OTP...");
 
             if (isAjax) {
                 resp.setContentType("application/json;charset=UTF-8");
@@ -213,6 +246,33 @@ public class DangKyServlet extends HttpServlet {
             req.setAttribute("loi", "Lỗi hệ thống: " + e.getMessage());
             req.getRequestDispatcher("/auth/DangKy.jsp").forward(req, resp);
         }
+    }
+
+    /**
+     * Sinh username duy nhất từ phần local của email (form đăng ký không còn field
+     * tên đăng nhập). Đảm bảo khớp USERNAME_REGEX của ValidationUtil: [A-Za-z0-9_]{3,50}.
+     */
+    private String generateUniqueUsername(String email) {
+        String base = email.substring(0, email.indexOf('@'))
+                .toLowerCase()
+                .replaceAll("[^a-z0-9_]", "");
+        if (base.length() < 3) {
+            base = (base + "vsport").substring(0, 6);
+        }
+        if (base.length() > 30) {
+            base = base.substring(0, 30);
+        }
+        if (!TaiKhoanDAO.kiemtraUsername(base)) {
+            return base;
+        }
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        for (int attempt = 0; attempt < 30; attempt++) {
+            String candidate = base + (100 + random.nextInt(899900));
+            if (!TaiKhoanDAO.kiemtraUsername(candidate)) {
+                return candidate;
+            }
+        }
+        return base + System.nanoTime() % 1_000_000_000L;
     }
 }
 

@@ -13,9 +13,23 @@ public interface TaiKhoanDAO {
     Boolean kiemtraUsername(String username);
     Boolean kiemtraEmail(String email);
     TaiKhoan dangNhapKhachHang(String usernameOrEmail, String password);
+
+    /**
+     * Tìm các tài khoản đang hoạt động (không khóa, không xóa mềm) có PhoneNumber
+     * khớp một trong các biến thể đã chuẩn hóa (0..., +84..., 84...).
+     * Trả về list để caller phát hiện trường hợp trùng số giữa nhiều tài khoản.
+     */
+    List<TaiKhoan> timTaiKhoanHoatDongTheoPhone(List<String> phoneVariants);
+
+    /** true nếu đã có tài khoản (chưa xóa mềm) dùng một trong các biến thể số điện thoại này. */
+    Boolean kiemtraPhone(List<String> phoneVariants);
+
+    /** Tài khoản chưa xóa mềm theo email (phục vụ quên mật khẩu); null nếu không có. */
+    TaiKhoan timTaiKhoanTheoEmail(String email);
     Boolean kiemTraEmailTonTai(String email);
     Boolean capNhatMatKhau(String email, String newPassword);
     TaiKhoan findByUsername(String username);
+    TaiKhoan findByEmail(String email);
 
     // Logic previously in service
     String sendRegistrationOTP(String email, String fullName);

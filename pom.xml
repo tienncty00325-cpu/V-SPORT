@@ -139,6 +139,20 @@
             <artifactId>payos-java</artifactId>
             <version>2.0.1</version>
         </dependency>
+
+        <!-- ZXing: render the VietQR payload PayOS returns into a PNG SERVER-SIDE
+             (no external CDN, no fake QR, payload never leaves the server as an image). -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

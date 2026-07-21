@@ -67,6 +67,15 @@ public class TaiKhoan {
     @Column(name = "DiemTrinhDo", columnDefinition = "int default 1000")
     private int diemTrinhDo = 1000;
 
+    @Column(name = "LateCancelCount", columnDefinition = "int default 0")
+    private int lateCancelCount = 0;
+
+    @Column(name = "NoShowCount", columnDefinition = "int default 0")
+    private int noShowCount = 0;
+
+    @Column(name = "CompletedBookingCount", columnDefinition = "int default 0")
+    private int completedBookingCount = 0;
+
     @Column(name = "MaNganHang")
     private String maNganHang;
 
@@ -325,6 +334,30 @@ public class TaiKhoan {
 
     public void setDiemTrinhDo(int diemTrinhDo) {
         this.diemTrinhDo = diemTrinhDo;
+    }
+
+    public int getLateCancelCount() {
+        return lateCancelCount;
+    }
+
+    public void setLateCancelCount(int lateCancelCount) {
+        this.lateCancelCount = lateCancelCount;
+    }
+
+    public int getNoShowCount() {
+        return noShowCount;
+    }
+
+    public void setNoShowCount(int noShowCount) {
+        this.noShowCount = noShowCount;
+    }
+
+    public int getCompletedBookingCount() {
+        return completedBookingCount;
+    }
+
+    public void setCompletedBookingCount(int completedBookingCount) {
+        this.completedBookingCount = completedBookingCount;
     }
 
     public String getMaNganHang() {

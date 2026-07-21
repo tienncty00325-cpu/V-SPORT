@@ -1,0 +1,770 @@
+/* 
+   FITKIT Team Page CSS
+   Color Palette: Black, Bright Red, White
+*/
+
+:root {
+    --bg-dark: #111111;
+    --bg-header: #151515;
+    --bg-footer: #0c0c0c;
+    --accent-red: #ff1f2d;
+    --accent-red-hover: #d91624;
+    --text-main: #1f1f1f;
+    --text-sub: #777777;
+    --text-light: #999999;
+    --text-white: #ffffff;
+    --bg-body: #ffffff;
+    
+    --font-heading: 'Poppins', sans-serif;
+    --font-body: 'Montserrat', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.text-red {
+    color: var(--accent-red) !important;
+}
+
+/* ================= Top Contact Bar ================= */
+.top-bar {
+    background-color: var(--bg-dark);
+    color: #ccc;
+    font-size: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.top-bar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-bar-left span, .top-bar-right a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.top-bar-right a:hover {
+    color: var(--accent-red);
+}
+
+.top-bar .divider {
+    margin: 0 15px;
+    color: #444;
+}
+
+.top-bar-left i {
+    color: var(--accent-red);
+}
+
+/* ================= Main Navbar ================= */
+.navbar {
+    background-color: var(--bg-header);
+    padding: 15px 0;
+    position: relative;
+    z-index: 100;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo a {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-white);
+    display: flex;
+    align-items: center;
+    letter-spacing: 1px;
+}
+
+.logo .logo-icon {
+    display: inline-block;
+    margin: 0 2px;
+    position: relative;
+    top: -2px;
+}
+
+.main-menu ul {
+    display: flex;
+    gap: 30px;
+}
+
+.main-menu a {
+    color: var(--text-white);
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.main-menu a i {
+    font-size: 10px;
+    color: #888;
+}
+
+.main-menu li.active a, .main-menu a:hover {
+    color: var(--accent-red);
+}
+
+.nav-actions {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.action-icon {
+    color: var(--text-white);
+    font-size: 18px;
+    position: relative;
+}
+
+.action-icon:hover {
+    color: var(--accent-red);
+}
+
+.cart-icon .cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background-color: var(--accent-red);
+    color: var(--text-white);
+    font-size: 10px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ================= Hero Banner ================= */
+.hero-banner {
+    position: relative;
+    background: linear-gradient(135deg, rgba(17, 17, 17, 0.9) 0%, rgba(74, 0, 0, 0.8) 50%, rgba(153, 0, 0, 0.8) 100%), url('../assets/images/hero/hero-football-field.jpg') center/cover no-repeat;
+    height: 250px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('assets/images/texture-overlay.png') center/cover;
+    opacity: 0.1;
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.hero-text {
+    flex: 1;
+}
+
+.hero-text h1 {
+    font-family: var(--font-heading);
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--text-white);
+    margin-bottom: 5px;
+    text-transform: capitalize;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-white);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+}
+
+.breadcrumb .separator {
+    color: #888;
+    font-size: 12px;
+}
+
+.hero-image {
+    position: absolute;
+    right: 0;
+    bottom: -30px; /* Slight overflow at bottom depending on image */
+    height: 300px;
+}
+
+.bodybuilder-img {
+    height: 100%;
+    object-fit: contain;
+    object-position: right bottom;
+}
+
+/* ================= Trainer Section ================= */
+.trainer-section {
+    padding: 80px 0 100px;
+    position: relative;
+    background-color: var(--bg-body);
+}
+
+.watermark-bg {
+    position: absolute;
+    top: 20%;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: url('assets/images/team/dumbbell-watermark.png') center/contain no-repeat;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.trainer-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.sub-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.sub-title .line {
+    width: 40px;
+    height: 2px;
+    background-color: var(--accent-red);
+}
+
+.sub-title .text {
+    color: var(--accent-red);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.section-heading h2 {
+    font-family: var(--font-heading);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.trainer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-bottom: 50px;
+}
+
+.trainer-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    text-align: center;
+    position: relative;
+    padding-bottom: 35px;
+    margin-top: 40px; /* Space for the popped-out head */
+    overflow: visible; /* Important to let image pop out */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.trainer-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+}
+
+.trainer-img-wrapper {
+    position: relative;
+    height: 250px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    overflow: visible;
+}
+
+.arch-bg {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 210px;
+    background-color: #050505;
+    border-radius: 100px 100px 0 0;
+    z-index: 1;
+}
+
+.trainer-img-wrapper img {
+    position: relative;
+    z-index: 2;
+    margin: 0 auto;
+    width: 190px;
+    height: 270px; /* Taller than arch-bg to pop out on top */
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 100px 100px 0 0; /* Crop JPGs to oval */
+    display: block;
+}
+
+.trainer-info h3 {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 5px;
+}
+
+.trainer-info p {
+    font-size: 13px;
+    color: var(--accent-red);
+    font-weight: 500;
+}
+
+.btn-plus {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: var(--accent-red);
+    color: var(--text-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(255, 31, 45, 0.4);
+    z-index: 3;
+}
+
+.btn-plus:hover {
+    background-color: var(--accent-red-hover);
+    color: var(--text-white);
+}
+
+.load-more-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn-load-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--accent-red);
+    color: var(--text-white);
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 30px;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(255, 31, 45, 0.3);
+}
+
+.btn-load-more:hover {
+    background-color: var(--accent-red-hover);
+}
+
+/* ================= Newsletter Section ================= */
+.newsletter-section {
+    background-color: var(--bg-dark);
+    position: relative;
+    padding: 60px 0 30px;
+    margin-top: 50px;
+}
+
+/* Red curve at the top */
+.newsletter-curve {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: var(--accent-red);
+    /* For a curved effect, we can use a pseudo element or border-radius on a container */
+}
+
+.newsletter-curve::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    border-top: 6px solid var(--accent-red);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.newsletter-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+.newsletter-text h2 {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 5px;
+}
+
+.newsletter-text p {
+    color: #ccc;
+    font-size: 14px;
+}
+
+.newsletter-form form {
+    display: flex;
+    align-items: center;
+    background-color: #1a1a24;
+    border-radius: 30px;
+    padding: 5px;
+    width: 450px;
+    max-width: 100%;
+}
+
+.newsletter-form input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 15px 25px;
+    color: var(--text-white);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+}
+
+.newsletter-form input::placeholder {
+    color: #888;
+}
+
+.btn-subscribe {
+    background-color: var(--accent-red);
+    color: var(--text-white);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-subscribe:hover {
+    background-color: var(--accent-red-hover);
+}
+
+.newsletter-watermark {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.newsletter-watermark p {
+    font-size: 24px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 1px;
+}
+
+/* ================= Footer ================= */
+.site-footer {
+    background-color: var(--bg-footer);
+    color: var(--text-light);
+    padding-top: 80px;
+    position: relative;
+    background-image: url('assets/images/footer-texture.png'); /* Sublte texture */
+    background-size: cover;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+    gap: 40px;
+    padding-bottom: 60px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.footer-logo {
+    margin-bottom: 20px;
+}
+
+.footer-logo a {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-white);
+    display: flex;
+    align-items: center;
+    letter-spacing: 1px;
+}
+
+.about-text {
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.contact-item .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    margin-bottom: 3px;
+}
+
+.contact-item .value {
+    color: var(--text-white);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-heading);
+}
+
+.widget-title {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 25px;
+}
+
+.widget-links ul {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.widget-links a {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.widget-links a i {
+    font-size: 10px;
+    color: var(--text-sub);
+}
+
+.widget-links a:hover {
+    color: var(--accent-red);
+}
+
+.widget-links a:hover i {
+    color: var(--accent-red);
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.gallery-item img {
+    border-radius: 8px;
+    width: 100%;
+    height: 70px;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+.footer-bottom {
+    padding: 20px 0;
+}
+
+.bottom-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.copyright p {
+    font-size: 13px;
+}
+
+.social-links {
+    display: flex;
+    gap: 10px;
+}
+
+.social-links a {
+    width: 35px;
+    height: 35px;
+    background-color: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-white);
+    font-size: 14px;
+}
+
+.social-links a:hover {
+    background-color: var(--accent-red);
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 1199px) {
+    .trainer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .newsletter-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 991px) {
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero-text h1 {
+        font-size: 36px;
+    }
+    
+    .top-bar .container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .main-menu {
+        display: none; /* Add hamburger menu logic for mobile */
+    }
+}
+
+@media (max-width: 767px) {
+    .trainer-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-banner {
+        height: auto;
+        padding: 40px 0;
+    }
+    
+    .hero-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .hero-image {
+        position: relative;
+        bottom: 0;
+        height: 200px;
+    }
+    
+    .breadcrumb {
+        justify-content: center;
+    }
+    
+    .newsletter-form form {
+        width: 100%;
+        flex-direction: column;
+        border-radius: 15px;
+        background: transparent;
+        gap: 10px;
+    }
+    
+    .newsletter-form input {
+        background-color: #1a1a24;
+        border-radius: 30px;
+        width: 100%;
+    }
+    
+    .btn-subscribe {
+        width: 100%;
+    }
+    
+    .bottom-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}

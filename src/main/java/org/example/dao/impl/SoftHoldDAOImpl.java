@@ -86,7 +86,7 @@ public class SoftHoldDAOImpl implements SoftHoldDAO {
 
                 // Overlap chuẩn - PHẢI khớp đúng whitelist trạng thái với DatSanServlet (nguồn sự
                 // thật duy nhất): Đã xác nhận/Đang sử dụng/Chờ xác nhận luôn chặn; Chờ thanh toán chỉ
-                // chặn khi còn hạn giữ chỗ thật (HoldExpiresAt > GETDATE(), không phải DATEDIFF(CreatedTime)
+                // chặn khi còn hạn giữ chỗ thật (HoldExpiresAt > SYSUTCDATETIME(), không phải DATEDIFF(CreatedTime)
                 // - hold có thể được gia hạn/khác PENDING_PAYMENT_TIMEOUT_MINUTES). Đã hoàn thành/Quá
                 // hạn/Đã hủy/Không đến KHÔNG được chặn.
                 String checkBookingSql = "SELECT COUNT(*) FROM LichDatSan " +
@@ -94,7 +94,7 @@ public class SoftHoldDAOImpl implements SoftHoldDAO {
                         "AND (TrangThai IN (N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_DA_XAC_NHAN + "', " +
                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_DANG_SU_DUNG + "', " +
                         "N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_CHO_XAC_NHAN + "') " +
-                        "     OR (TrangThai = N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_CHO_THANH_TOAN + "' AND HoldExpiresAt > GETDATE())) " +
+                        "     OR (TrangThai = N'" + org.example.util.Constants.TRANG_THAI_DAT_SAN_CHO_THANH_TOAN + "' AND HoldExpiresAt > SYSUTCDATETIME())) " +
                         "AND NOT (GioKetThuc <= CAST(? AS time) OR GioBatDau >= CAST(? AS time))";
                 try (PreparedStatement bkPs = conn.prepareStatement(checkBookingSql)) {
                     bkPs.setInt(1, sanId);

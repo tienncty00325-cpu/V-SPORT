@@ -222,6 +222,25 @@
                     <div>
                       <p class="text-xs font-semibold text-zinc-900">${item.account != null ? item.account.fullName : 'Khách vãng lai'}</p>
                       <p class="text-[10px] text-zinc-400">${item.account != null ? item.account.phoneNumber : 'N/A'}</p>
+                      <c:if test="${item.account != null}">
+                        <c:choose>
+                          <c:when test="${item.account.diemUyTin >= 80}">
+                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] font-bold">Uy tín: ${item.account.diemUyTin}/100 — Uy tín tốt</span>
+                          </c:when>
+                          <c:when test="${item.account.diemUyTin >= 50}">
+                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[9px] font-bold">Uy tín: ${item.account.diemUyTin}/100 — Cần theo dõi</span>
+                          </c:when>
+                          <c:otherwise>
+                            <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-red-50 text-red-700 text-[9px] font-bold">Uy tín: ${item.account.diemUyTin}/100 — Rủi ro cao</span>
+                          </c:otherwise>
+                        </c:choose>
+                        <c:if test="${item.account.lateCancelCount > 0 || item.account.noShowCount > 0}">
+                          <p class="text-[9px] text-zinc-400 mt-0.5">${item.account.lateCancelCount} lần hủy sát giờ, ${item.account.noShowCount} lần không đến</p>
+                        </c:if>
+                        <c:if test="${item.account.diemUyTin < 50}">
+                          <p class="text-[9px] text-red-600 font-bold mt-0.5">⚠ Khách hàng này có lịch sử bùng kèo. Vui lòng cân nhắc trước khi duyệt.</p>
+                        </c:if>
+                      </c:if>
                     </div>
                   </div>
                 </td>

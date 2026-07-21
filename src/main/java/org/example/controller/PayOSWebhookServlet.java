@@ -11,7 +11,6 @@ import org.example.dao.impl.PayOSPaymentAttemptDAOImpl;
 import org.example.dto.payment.PayOSCredentials;
 import org.example.dto.payment.PayOSFinalizeResult;
 import org.example.service.PayOSConfigurationService;
-import org.example.service.PayOSService;
 import org.example.service.payos.PayOSClientFactory;
 import org.example.service.payos.PayOSLegacyBookingFinalizationService;
 import org.example.service.payos.PayOSPaymentFinalizationService;
@@ -31,11 +30,12 @@ import java.util.logging.Logger;
  * Webhook PUBLIC nhận thông báo thanh toán từ PayOS. Route: /payos/webhook (không yêu cầu
  * đăng nhập, không qua session).
  *
- * HAI LUỒNG dùng chung route này:
- * 1. (MỚI) Manager/Staff checkout qua PayOSPaymentService: orderCode nằm trong bảng
- *    PayOSPaymentAttempt, mỗi CoSo có checksum key riêng - phải tra CoSoID trước khi verify.
- * 2. (CŨ, giữ nguyên) Khách đặt sân online qua DatSanServlet: orderCode = DatSanID, verify
- *    bằng credentials toàn cục PayOSService.getInstance() (biến môi trường) như trước nay.
+ * HAI LUỒNG dùng chung route này, CẢ HAI đều verify bằng checksum key RIÊNG của từng CoSo (không
+ * còn credentials toàn cục/biến môi trường):
+ * 1. Manager/Staff checkout qua PayOSPaymentService: orderCode nằm trong bảng
+ *    PayOSPaymentAttempt, tra CoSoID qua PayOSPaymentAttemptDAO trước khi verify.
+ * 2. Khách đặt sân online qua DatSanServlet: orderCode = DatSanID, tra CoSoID qua
+ *    LichDatSan/San trước khi verify.
  *
  * orderCode không được tin trước khi verify chữ ký - chỉ dùng để TRA xem nên verify bằng
  * checksum key nào, rồi verify lại bằng đúng SDK/checksum đó trước khi tin bất kỳ field nào khác.
@@ -69,7 +69,7 @@ public class PayOSWebhookServlet extends HttpServlet {
         if (attemptCoSoId != null) {
             handleNewFlowWebhook(rawBody, peekedOrderCode, attemptCoSoId, resp);
         } else {
-            handleLegacyCustomerBookingWebhook(rawBody, resp);
+            handleLegacyCustomerBookingWebhook(rawBody, peekedOrderCode, resp);
         }
     }
 
@@ -92,6 +92,21 @@ public class PayOSWebhookServlet extends HttpServlet {
             return row != null ? row.coSoId : null;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "PayOS webhook: lỗi tra CoSoID cho orderCode=" + orderCode, e);
+            return null;
+        }
+    }
+
+    /** Luồng cũ: orderCode = DatSanID. Tra CoSoID qua LichDatSan -> San (không tin field khác của webhook). */
+    private Integer lookupLegacyBookingCoSoId(long datSanId) {
+        String sql = "SELECT s.CoSoID FROM LichDatSan l JOIN San s ON s.SanID = l.SanID WHERE l.DatSanID = ?";
+        try (java.sql.Connection c = DBUtil.getConnection();
+             java.sql.PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setLong(1, datSanId);
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("CoSoID") : null;
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "PayOS webhook (legacy): lỗi tra CoSoID cho DatSanID=" + datSanId, e);
             return null;
         }
     }
@@ -141,24 +156,41 @@ public class PayOSWebhookServlet extends HttpServlet {
         }
     }
 
-    // ── Luồng CŨ: đặt sân online của khách hàng, credentials toàn cục (KHÔNG đổi hành vi) ──
+    // ── Luồng CŨ: khách đặt sân online, orderCode=DatSanID, credentials RIÊNG của cơ sở sân đó ──
 
-    private void handleLegacyCustomerBookingWebhook(String rawBody, HttpServletResponse resp) throws IOException {
+    private void handleLegacyCustomerBookingWebhook(String rawBody, long peekedOrderCode, HttpServletResponse resp) throws IOException {
+        Integer coSoId = lookupLegacyBookingCoSoId(peekedOrderCode);
+        if (coSoId == null) {
+            LOGGER.warning("PayOS webhook (legacy): không tìm thấy booking cho DatSanID=" + peekedOrderCode);
+            respondOk(resp, "Booking not found, ignored");
+            return;
+        }
+        PayOSCredentials credentials = payOSConfigurationService.getCredentialsForPayment(coSoId);
+        if (credentials == null) {
+            LOGGER.warning(String.format(
+                    "PayOS webhook (legacy): CoSoID=%d chưa cấu hình đủ PayOS, DatSanID=%d", coSoId, peekedOrderCode));
+            respondOk(resp, "CoSo not configured, ignored");
+            return;
+        }
+
         WebhookData data;
+        PayOS client = PayOSClientFactory.create(credentials);
         try {
-            data = PayOSService.getInstance().verifyWebhook(rawBody);
+            data = client.webhooks().verify(rawBody);
         } catch (PayOSException e) {
-            LOGGER.log(Level.WARNING, "PayOS webhook: xác thực chữ ký thất bại - " + e.getMessage());
+            LOGGER.log(Level.WARNING, "PayOS webhook (legacy): xác thực chữ ký thất bại - " + e.getMessage());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.setContentType("text/plain; charset=UTF-8");
             resp.getWriter().write("Invalid webhook");
             return;
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "PayOS webhook: lỗi không xác định khi xác thực", e);
+            LOGGER.log(Level.WARNING, "PayOS webhook (legacy): lỗi không xác định khi xác thực", e);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.setContentType("text/plain; charset=UTF-8");
             resp.getWriter().write("Invalid webhook");
             return;
+        } finally {
+            client.close();
         }
 
         Long orderCode = data.getOrderCode();

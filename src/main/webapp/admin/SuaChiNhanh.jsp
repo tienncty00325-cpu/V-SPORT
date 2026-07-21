@@ -85,85 +85,9 @@ body { font-family: 'Inter', sans-serif; }
                 </select>
             </div>
 
-            <div class="flex flex-col gap-1.5 col-span-1 md:col-span-2">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Môn thể thao (Cung cấp tại Cơ Sở)</label>
-                <div class="flex flex-col gap-3 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                    <div class="flex items-center justify-between gap-4 py-1.5 border-b border-zinc-200/60 last:border-b-0">
-                        <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer select-none">
-                            <input type="checkbox" name="loaiHinhKinhDoanh" value="Bóng đá" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Bóng đá') ? 'checked' : ''} 
-                                   onchange="toggleSportCount(this, 'soLuongSan_BongDa')" 
-                                   class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600"> 
-                            <span class="font-medium">Bóng đá</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-500">Số sân:</span>
-                            <input type="number" id="soLuongSan_BongDa" name="soLuongSan_BongDa" 
-                                   value="${countBongDa > 0 ? countBongDa : (chiNhanh.loaiHinhKinhDoanh.contains('Bóng đá') ? 1 : 0)}" 
-                                   min="1" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Bóng đá') ? '' : 'disabled'} 
-                                   oninput="updateTotalCourts()" 
-                                   class="sport-count w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm focus:border-zinc-400 focus:outline-none transition-all font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400">
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center justify-between gap-4 py-1.5 border-b border-zinc-200/60 last:border-b-0">
-                        <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer select-none">
-                            <input type="checkbox" name="loaiHinhKinhDoanh" value="Cầu lông" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Cầu lông') ? 'checked' : ''} 
-                                   onchange="toggleSportCount(this, 'soLuongSan_CauLong')" 
-                                   class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600"> 
-                            <span class="font-medium">Cầu lông</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-500">Số sân:</span>
-                            <input type="number" id="soLuongSan_CauLong" name="soLuongSan_CauLong" 
-                                   value="${countCauLong > 0 ? countCauLong : (chiNhanh.loaiHinhKinhDoanh.contains('Cầu lông') ? 1 : 0)}" 
-                                   min="1" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Cầu lông') ? '' : 'disabled'} 
-                                   oninput="updateTotalCourts()" 
-                                   class="sport-count w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm focus:border-zinc-400 focus:outline-none transition-all font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400">
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-4 py-1.5 border-b border-zinc-200/60 last:border-b-0">
-                        <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer select-none">
-                            <input type="checkbox" name="loaiHinhKinhDoanh" value="Tennis" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Tennis') ? 'checked' : ''} 
-                                   onchange="toggleSportCount(this, 'soLuongSan_Tennis')" 
-                                   class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600"> 
-                            <span class="font-medium">Tennis</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-500">Số sân:</span>
-                            <input type="number" id="soLuongSan_Tennis" name="soLuongSan_Tennis" 
-                                   value="${countTennis > 0 ? countTennis : (chiNhanh.loaiHinhKinhDoanh.contains('Tennis') ? 1 : 0)}" 
-                                   min="1" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Tennis') ? '' : 'disabled'} 
-                                   oninput="updateTotalCourts()" 
-                                   class="sport-count w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm focus:border-zinc-400 focus:outline-none transition-all font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400">
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-4 py-1.5 border-b border-zinc-200/60 last:border-b-0">
-                        <label class="flex items-center gap-2.5 text-sm text-zinc-600 cursor-pointer select-none">
-                            <input type="checkbox" name="loaiHinhKinhDoanh" value="Pickleball" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Pickleball') ? 'checked' : ''} 
-                                   onchange="toggleSportCount(this, 'soLuongSan_Pickleball')" 
-                                   class="sport-checkbox w-4 h-4 rounded border-zinc-300 text-blue-600"> 
-                            <span class="font-medium">Pickleball</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-500">Số sân:</span>
-                            <input type="number" id="soLuongSan_Pickleball" name="soLuongSan_Pickleball" 
-                                   value="${countPickleball > 0 ? countPickleball : (chiNhanh.loaiHinhKinhDoanh.contains('Pickleball') ? 1 : 0)}" 
-                                   min="1" 
-                                   ${chiNhanh.loaiHinhKinhDoanh.contains('Pickleball') ? '' : 'disabled'} 
-                                   oninput="updateTotalCourts()" 
-                                   class="sport-count w-16 h-8 px-2 rounded-lg border border-zinc-200 text-sm focus:border-zinc-400 focus:outline-none transition-all font-semibold bg-white text-center disabled:bg-zinc-100 disabled:text-zinc-400">
-                        </div>
-                    </div>
-                </div>
+            <div class="flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-50/60 border border-blue-100 text-xs text-blue-700 col-span-1 md:col-span-2">
+                <i class="ti ti-info-circle text-sm shrink-0"></i>
+                <span>Môn thể thao và số sân do Quản lý cơ sở cấu hình tại trang "Quản lý Sân" của chi nhánh — Admin không chỉnh tại đây.</span>
             </div>
 
             <!-- Địa chỉ + Button định vị -->
@@ -175,17 +99,23 @@ body { font-family: 'Inter', sans-serif; }
                   </button>
                 </label>
                 <input type="text" id="diaChiInput" name="diaChi" value="${chiNhanh.diaChi}" required class="h-10 px-4 rounded-xl border border-zinc-200 text-sm focus:border-zinc-900 focus:outline-none transition-all font-medium">
+                <input type="hidden" id="viDoInput" name="viDo" value="${chiNhanh.viDo}">
+                <input type="hidden" id="kinhDoInput" name="kinhDo" value="${chiNhanh.kinhDo}">
+                <p id="geoStatus" class="text-[11px] font-semibold mt-0.5 ${empty chiNhanh.viDo ? 'text-amber-600' : 'text-emerald-600'}">
+                  <c:choose>
+                    <c:when test="${not empty chiNhanh.viDo and not empty chiNhanh.kinhDo}">
+                      <i class="ti ti-map-pin-check text-sm align-[-2px]"></i> Đã xác định vị trí (${chiNhanh.viDo}, ${chiNhanh.kinhDo})
+                    </c:when>
+                    <c:otherwise>
+                      <i class="ti ti-map-pin-off text-sm align-[-2px]"></i> Chưa xác định tọa độ — nhấn "Định vị địa chỉ / Tọa độ GG Map"
+                    </c:otherwise>
+                  </c:choose>
+                </p>
             </div>
 
             <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Số điện thoại</label>
                 <input type="text" name="soDienThoai" value="${chiNhanh.soDienThoai}" required class="h-10 px-4 rounded-xl border border-zinc-200 text-sm focus:border-zinc-900 focus:outline-none transition-all font-medium">
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tổng số lượng sân dự kiến</label>
-                <input type="number" id="soLuongSanDuKienDisplay" readonly value="${chiNhanh.soLuongSanDuKien}" class="h-10 px-4 rounded-xl border border-zinc-200 text-sm focus:outline-none bg-zinc-100 font-black text-zinc-500 select-none">
-                <input type="hidden" name="soLuongSanDuKien" id="soLuongSanDuKien" value="${chiNhanh.soLuongSanDuKien}">
             </div>
 
             <div class="flex flex-col gap-1.5">
@@ -250,49 +180,15 @@ body { font-family: 'Inter', sans-serif; }
         document.getElementById('sidebar').classList.toggle('-translate-x-full');
     });
 
-    function toggleSportCount(checkbox, inputId) {
-        const input = document.getElementById(inputId);
-        if (checkbox.checked) {
-            input.removeAttribute('disabled');
-            if (parseInt(input.value) <= 0 || !input.value) {
-                input.value = 1;
-            }
-        } else {
-            input.setAttribute('disabled', 'true');
-            input.value = 0;
-        }
-        updateTotalCourts();
-    }
-
-    function updateTotalCourts() {
-        let total = 0;
-        const countInputs = document.querySelectorAll('.sport-count');
-        countInputs.forEach(input => {
-            if (!input.hasAttribute('disabled')) {
-                const val = parseInt(input.value) || 0;
-                total += val;
-            }
-        });
-        const display = document.getElementById('soLuongSanDuKienDisplay');
-        const hidden = document.getElementById('soLuongSanDuKien');
-        if (display) display.value = total;
-        if (hidden) hidden.value = total;
-    }
-
     function validateForm() {
-        updateTotalCourts();
-        const total = parseInt(document.getElementById('soLuongSanDuKien').value) || 0;
-        if (total <= 0) {
-            alert('Vui lòng chọn ít nhất một môn thể thao và nhập số lượng sân lớn hơn 0.');
+        const viDo = document.getElementById('viDoInput').value;
+        const kinhDo = document.getElementById('kinhDoInput').value;
+        if (!viDo || !kinhDo) {
+            alert('Vị trí cơ sở chưa hợp lệ. Vui lòng chọn lại vị trí trên bản đồ hoặc nhập đầy đủ tọa độ.');
             return false;
         }
         return true;
     }
-
-    // Initialize counts on page load
-    window.addEventListener('DOMContentLoaded', () => {
-        updateTotalCourts();
-    });
 
     // ==========================================
     // GEOLOCATION LOOKUP SCRIPTS
@@ -307,21 +203,54 @@ body { font-family: 'Inter', sans-serif; }
         document.getElementById('geoModal').classList.add('hidden');
     }
 
+    // Parse tọa độ từ nhiều định dạng: decimal "lat, lon", DMS "10°23'07.3\"N 107°07'20.4\"E",
+    // hoặc Google Maps URL chứa "@lat,lon" hay "q=lat,lon". Trả về {lat, lon} hoặc null.
+    function parseCoordInput(raw) {
+        const input = raw.trim();
+
+        // 1) Google Maps URL: @lat,lon,zoom hoặc ?q=lat,lon hoặc !3dlat!4dlon
+        let m = input.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+            || input.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
+            || input.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+        if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };
+
+        // 2) DMS: 10°23'07.3"N 107°07'20.4"E (dấu ' và " có thể là ký tự cong)
+        const dms = /(\d+)[°\s](\d+)['’′]\s*([\d.]+)[\"”″]?\s*([NSns])[,\s]+(\d+)[°\s](\d+)['’′]\s*([\d.]+)[\"”″]?\s*([EWew])/;
+        m = input.match(dms);
+        if (m) {
+            const toDec = (deg, min, sec, dir) => {
+                let v = parseInt(deg, 10) + parseInt(min, 10) / 60 + parseFloat(sec) / 3600;
+                if (/[SsWw]/.test(dir)) v = -v;
+                return v;
+            };
+            const lat = toDec(m[1], m[2], m[3], m[4]);
+            const lon = toDec(m[5], m[6], m[7], m[8]);
+            return { lat: lat, lon: lon };
+        }
+
+        // 3) Decimal pair đơn giản: "10.7626, 106.6601"
+        m = input.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if (m) return { lat: parseFloat(m[1]), lon: parseFloat(m[2]) };
+
+        return null;
+    }
+
+    function isValidLatLon(lat, lon) {
+        return Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+    }
+
     function submitGeoInput() {
         const input = document.getElementById('geoInput').value.trim();
         if (!input) {
             alert("Vui lòng dán tọa độ hoặc link Google Map.");
             return;
         }
-        // Match standard coordinate pattern "latitude, longitude"
-        const match = input.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
-        if (match) {
-            const lat = match[1];
-            const lon = match[2];
+        const coord = parseCoordInput(input);
+        if (coord && isValidLatLon(coord.lat, coord.lon)) {
             closeGeoModal();
-            fetchAddressFromCoords(lat, lon);
+            fetchAddressFromCoords(coord.lat, coord.lon);
         } else {
-            alert("Không tìm thấy tọa độ hợp lệ. Ví dụ định dạng: 10.7626, 106.6601");
+            alert("Không tìm thấy tọa độ hợp lệ. Ví dụ: 10.7626, 106.6601 hoặc link Google Maps.");
         }
     }
 
@@ -334,7 +263,7 @@ body { font-family: 'Inter', sans-serif; }
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-zinc-700 border-t-transparent rounded-full mr-2"></span> Đang định vị GPS...';
-        
+
         navigator.geolocation.getCurrentPosition(
             function(pos) {
                 btn.disabled = false;
@@ -359,29 +288,72 @@ body { font-family: 'Inter', sans-serif; }
         );
     }
 
+    // Debounce guard: tránh spam Nominatim nếu người dùng bấm định vị liên tục.
+    let geoFetchInFlight = false;
+
+    function setGeoStatus(state, lat, lon) {
+        const status = document.getElementById('geoStatus');
+        if (!status) return;
+        if (state === 'ok') {
+            status.className = 'text-[11px] font-semibold mt-0.5 text-emerald-600';
+            status.innerHTML = '<i class="ti ti-map-pin-check text-sm align-[-2px]"></i> Đã xác định vị trí (' + lat.toFixed(7) + ', ' + lon.toFixed(7) + ')';
+        } else if (state === 'partial') {
+            status.className = 'text-[11px] font-semibold mt-0.5 text-amber-600';
+            status.innerHTML = '<i class="ti ti-map-pin-check text-sm align-[-2px]"></i> Đã lưu tọa độ (' + lat.toFixed(7) + ', ' + lon.toFixed(7) + ') — chưa lấy được địa chỉ chữ, vui lòng nhập tay.';
+        } else {
+            status.className = 'text-[11px] font-semibold mt-0.5 text-amber-600';
+            status.innerHTML = '<i class="ti ti-map-pin-off text-sm align-[-2px]"></i> Chưa xác định tọa độ — nhấn "Định vị địa chỉ / Tọa độ GG Map"';
+        }
+    }
+
     function fetchAddressFromCoords(lat, lon) {
+        if (!isValidLatLon(lat, lon)) {
+            alert("Tọa độ không hợp lệ (vĩ độ -90..90, kinh độ -180..180).");
+            return;
+        }
+        if (geoFetchInFlight) return;
+        geoFetchInFlight = true;
+
+        // Lưu tọa độ ngay — dù reverse geocode thất bại vẫn không mất vị trí đã xác định.
+        document.getElementById('viDoInput').value = lat;
+        document.getElementById('kinhDoInput').value = lon;
+        setGeoStatus('partial', lat, lon);
+
         const addrInput = document.getElementById('diaChiInput');
         const originalPlaceholder = addrInput.placeholder || "";
         addrInput.disabled = true;
         addrInput.value = "";
         addrInput.placeholder = "Đang lấy địa chỉ từ tọa độ [" + parseFloat(lat).toFixed(4) + ", " + parseFloat(lon).toFixed(4) + "]...";
-        
-        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&accept-language=vi')
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&accept-language=vi',
+              { signal: controller.signal })
             .then(r => r.json())
             .then(data => {
+                clearTimeout(timeoutId);
                 addrInput.disabled = false;
                 addrInput.placeholder = originalPlaceholder;
                 if (data && data.display_name) {
                     addrInput.value = data.display_name;
+                    setGeoStatus('ok', lat, lon);
                 } else {
-                    alert("Không thể chuyển đổi tọa độ này thành địa chỉ.");
+                    setGeoStatus('partial', lat, lon);
+                    alert("Không thể chuyển đổi tọa độ này thành địa chỉ. Tọa độ vẫn được lưu — vui lòng nhập địa chỉ thủ công.");
                 }
             })
             .catch(err => {
+                clearTimeout(timeoutId);
                 addrInput.disabled = false;
                 addrInput.placeholder = originalPlaceholder;
-                alert("Lỗi kết nối dịch vụ địa chỉ. Vui lòng nhập thủ công.");
-            });
+                setGeoStatus('partial', lat, lon);
+                const msg = (err && err.name === 'AbortError')
+                    ? "Hết thời gian chờ dịch vụ địa chỉ. Tọa độ vẫn được lưu — vui lòng nhập địa chỉ thủ công."
+                    : "Lỗi kết nối dịch vụ địa chỉ. Tọa độ vẫn được lưu — vui lòng nhập địa chỉ thủ công.";
+                alert(msg);
+            })
+            .finally(() => { geoFetchInFlight = false; });
     }
 </script>
 

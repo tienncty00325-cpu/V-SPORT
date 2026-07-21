@@ -39,7 +39,7 @@
         .receipt-row { display: flex; justify-content: space-between; gap: 10px; }
         .receipt-row + .receipt-row { margin-top: 4px; }
         .receipt-money { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        .receipt hr { border: none; border-top: 1px solid #e5e7eb; margin: 12px 0; }
+        .receipt hr { border: none; border-top: 1px dashed #cbd5e1; margin: 13px 0; }
         .receipt .center { text-align: center; }
         .receipt .bold { font-weight: 700; }
         .receipt .muted { color: #6b7280; }
@@ -47,6 +47,13 @@
         .receipt .mono { font-variant-numeric: tabular-nums; }
 
         .receipt .total-row { font-size: 16px; font-weight: 800; }
+
+        .receipt .section-label {
+            font-size: 10.5px; font-weight: 800; color: #9ca3af;
+            letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px;
+        }
+        .receipt .printed-at { text-align: right; font-size: 10px; color: #9ca3af; margin-top: 2px; }
+        .receipt .subtotal-row { color: #4b5563; }
 
         .receipt table.dv-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         .receipt table.dv-table th {
@@ -127,20 +134,21 @@
     <div class="receipt-shell max-w-[440px] mx-auto">
         <div class="receipt" id="invoice-receipt">
             <!-- PHẦN ĐẦU -->
-            <div class="center bold" style="font-size:15px;">V-SPORT</div>
-            <div class="center bold">${invoice.facilityName}</div>
+            <div class="center small" style="letter-spacing:.1em; color:#9ca3af; font-weight:700;">V-SPORT</div>
+            <div class="center bold" style="font-size:16px; margin-top:2px;">${invoice.facilityName}</div>
             <c:if test="${not empty invoice.facilityAddress}">
                 <div class="center small">${invoice.facilityAddress}</div>
             </c:if>
             <c:if test="${not empty invoice.facilityPhone}">
                 <div class="center small">ĐT: ${invoice.facilityPhone}</div>
             </c:if>
-            <div class="center bold ${themeTextMedium}" style="margin-top:8px; font-size:13.5px;">
+            <div class="center bold ${themeTextMedium}" style="margin-top:10px; font-size:13.5px; letter-spacing:.02em;">
                 ${invoice.split ? 'HÓA ĐƠN DỊCH VỤ (TÁCH)' : 'HÓA ĐƠN THANH TOÁN'}
             </div>
+            <div class="printed-at">In lúc: <span id="printedAtNow">-</span></div>
             <hr/>
 
-            <!-- THÔNG TIN HÓA ĐƠN -->
+            <div class="section-label">Thông tin hóa đơn</div>
             <div class="receipt-row"><span class="muted">Mã hóa đơn:</span><span class="receipt-money bold mono">${invoice.invoiceCode}</span></div>
             <c:if test="${invoice.split && not empty invoice.parentHoaDonId}">
                 <div class="receipt-row"><span class="muted">Tách từ HĐ:</span><span class="receipt-money mono">#${invoice.parentHoaDonId}</span></div>
@@ -163,10 +171,13 @@
             </div>
             <hr/>
 
-            <!-- THÔNG TIN CA CHƠI -->
+            <div class="section-label">Thông tin sân &amp; lịch chơi</div>
             <div class="receipt-row"><span class="muted">Sân:</span><span class="receipt-money">${invoice.courtName}</span></div>
             <div class="receipt-row"><span class="muted">Loại sân:</span><span class="receipt-money">${invoice.courtTypeName}</span></div>
             <div class="receipt-row"><span class="muted">Khách:</span><span class="receipt-money">${invoice.customerName}</span></div>
+            <c:if test="${not empty invoice.customerPhone}">
+                <div class="receipt-row"><span class="muted">SĐT khách:</span><span class="receipt-money mono">${invoice.customerPhone}</span></div>
+            </c:if>
             <div class="receipt-row"><span class="muted">Chế độ:</span><span class="receipt-money">${invoice.playModeLabel}</span></div>
             <div class="receipt-row"><span class="muted">Bắt đầu:</span><span class="receipt-money">${invoice.actualStartLabel}</span></div>
             <div class="receipt-row"><span class="muted">Kết thúc:</span><span class="receipt-money">${invoice.actualEndLabel}<c:if test="${invoice.crossesMidnight}"> (hôm sau)</c:if></span></div>
@@ -200,8 +211,7 @@
             </c:if>
             <hr/>
 
-            <!-- DỊCH VỤ -->
-            <div class="bold small" style="margin-bottom:4px; color:#1f2937;">DỊCH VỤ ĐI KÈM</div>
+            <div class="section-label">Dịch vụ đi kèm</div>
             <c:choose>
                 <c:when test="${not empty invoice.services}">
                     <table class="dv-table">
@@ -231,16 +241,18 @@
             </c:choose>
             <hr/>
 
-            <!-- TỔNG KẾT -->
+            <div class="section-label">Thanh toán</div>
             <c:if test="${!invoice.split}">
                 <div class="receipt-row"><span class="muted">Tiền sân:</span><span class="receipt-money"><fmt:formatNumber value="${invoice.courtAmount}" type="number" maxFractionDigits="0"/> đ</span></div>
             </c:if>
             <div class="receipt-row"><span class="muted">Tiền dịch vụ:</span><span class="receipt-money"><fmt:formatNumber value="${invoice.serviceAmount}" type="number" maxFractionDigits="0"/> đ</span></div>
-            <c:if test="${invoice.discountAmount > 0}">
-                <div class="receipt-row"><span class="muted">Giảm giá:</span><span class="receipt-money">-<fmt:formatNumber value="${invoice.discountAmount}" type="number" maxFractionDigits="0"/> đ</span></div>
-            </c:if>
             <c:if test="${invoice.parkingFee > 0}">
                 <div class="receipt-row"><span class="muted">Phí gửi xe:</span><span class="receipt-money"><fmt:formatNumber value="${invoice.parkingFee}" type="number" maxFractionDigits="0"/> đ</span></div>
+            </c:if>
+            <c:if test="${invoice.discountAmount > 0}">
+                <c:set var="subtotalAmount" value="${(invoice.split ? 0 : invoice.courtAmount) + invoice.serviceAmount + invoice.parkingFee}" />
+                <div class="receipt-row subtotal-row" style="margin-top:2px; padding-top:6px; border-top:1px dashed #e5e7eb;"><span>Tạm tính:</span><span class="receipt-money"><fmt:formatNumber value="${subtotalAmount}" type="number" maxFractionDigits="0"/> đ</span></div>
+                <div class="receipt-row"><span class="muted">Giảm giá:</span><span class="receipt-money">-<fmt:formatNumber value="${invoice.discountAmount}" type="number" maxFractionDigits="0"/> đ</span></div>
             </c:if>
             <hr/>
             <div class="receipt-row total-row"><span>TỔNG THANH TOÁN:</span><span class="receipt-money ${themeTextMedium}"><fmt:formatNumber value="${invoice.totalAmount}" type="number" maxFractionDigits="0"/> đ</span></div>
@@ -251,5 +263,17 @@
         </div>
     </div>
 
+    <script>
+        // Chỉ hiển thị thời điểm xem/in trên máy khách — không phải dữ liệu kế toán,
+        // không lưu DB, không ảnh hưởng Ngày lập (invoice.paidAtLabel).
+        (function () {
+            var el = document.getElementById('printedAtNow');
+            if (!el) return;
+            var now = new Date();
+            var pad = function (n) { return String(n).padStart(2, '0'); };
+            el.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' ' +
+                pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear();
+        })();
+    </script>
 </body>
 </html>

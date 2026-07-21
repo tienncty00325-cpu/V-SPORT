@@ -28,6 +28,37 @@ public final class Constants {
     // trong code hiện tại, giữ nguyên không đổi/không xoá (rà soát toàn bộ codebase, 2026-07-09).
     public static final String TRANG_THAI_DAT_SAN_DANG_SU_DUNG = "Đang sử dụng";
 
+    // ========== BOOKING CANCELLATION / REPUTATION (Điểm uy tín khách hàng) ==========
+    // Ngưỡng phân loại hủy sớm/hủy sát giờ. Nếu đổi số này, đồng thời phải cập nhật
+    // sql/migration_customer_reputation_cancel_flow.sql (không có cách nào để SQL đọc hằng số Java).
+    public static final int LATE_CANCEL_HOURS = 6;
+    public static final int LATE_CANCEL_PENALTY = -10;
+    public static final int NO_SHOW_PENALTY = -20;
+    public static final int COMPLETED_BOOKING_REWARD = 2;
+    public static final int MAX_REPUTATION_SCORE = 100;
+    public static final int MIN_REPUTATION_SCORE = 0;
+    // Ngưỡng hiển thị nhãn uy tín cho Manager/Staff — dùng lại ở JSP dưới dạng số literal
+    // (JSTL EL không gọi được hằng số Java), phải giữ đồng bộ nếu đổi ở đây:
+    // - >= REPUTATION_GOOD_THRESHOLD (80): "Uy tín tốt"
+    // - >= REPUTATION_WATCH_THRESHOLD (50) và < 80: "Cần theo dõi"
+    // - < REPUTATION_WATCH_THRESHOLD (50): "Rủi ro cao"
+    public static final int REPUTATION_GOOD_THRESHOLD = 80;
+    public static final int REPUTATION_WATCH_THRESHOLD = 50;
+
+    public static final String CANCEL_TYPE_EARLY = "EARLY_CANCEL";
+    public static final String CANCEL_TYPE_LATE = "LATE_CANCEL";
+
+    // Giá trị ActionType lưu trong CustomerReputationHistory.ActionType
+    public static final String REPUTATION_ACTION_EARLY_CANCEL = "EARLY_CANCEL";
+    public static final String REPUTATION_ACTION_LATE_CANCEL = "LATE_CANCEL";
+    public static final String REPUTATION_ACTION_NO_SHOW = "NO_SHOW";
+    public static final String REPUTATION_ACTION_COMPLETED_BOOKING = "COMPLETED_BOOKING";
+    public static final String REPUTATION_ACTION_MANUAL_ADJUST = "MANUAL_ADJUST";
+
+    public static final String REPUTATION_LABEL_GOOD = "Uy tín tốt";
+    public static final String REPUTATION_LABEL_WATCH = "Cần theo dõi";
+    public static final String REPUTATION_LABEL_RISK = "Rủi ro cao";
+
     // ========== TIMEOUT ==========
     public static final int PENDING_PAYMENT_TIMEOUT_MINUTES = 10;
     public static final int SOFT_HOLD_TIMEOUT_MINUTES = 2;

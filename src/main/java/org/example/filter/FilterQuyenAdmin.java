@@ -44,7 +44,7 @@ public class FilterQuyenAdmin implements Filter {
         } else if (isJsonApiRoute) {
             writeForbiddenJson(httpResponse);
         } else {
-            httpResponse.sendRedirect(httpRequest.getContextPath() + "/dangnhap?admin=true");
+            httpResponse.sendRedirect(httpRequest.getContextPath() + "/he-thong/dang-nhap");
         }
     }
 

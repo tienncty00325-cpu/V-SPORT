@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.model.TaiKhoan;
+import org.example.service.AuditLogService;
 import org.example.util.DBUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -215,13 +216,22 @@ public class HoaDonManagerServlet extends HttpServlet {
                 String paymentMethod = req.getParameter("phuongThucThanhToan");
                 if (paymentMethod == null || paymentMethod.trim().isEmpty()) paymentMethod = "Tiền mặt";
                 payInvoice(hoaDonId, user, paymentMethod);
+                AuditLogService.log(req, user, AuditLogService.ACTION_UPDATE, AuditLogService.ENTITY_HOA_DON,
+                        String.valueOf(hoaDonId), "Hóa đơn #" + hoaDonId,
+                        "Manager thanh toán hóa đơn bằng " + paymentMethod + ".");
                 resp.getWriter().write("{\"ok\":true,\"msg\":\"Đã thanh toán hóa đơn #" + hoaDonId + " thành công.\"}");
             } else if ("createServiceInvoice".equals(action)) {
                 int newHoaDonId = createServiceInvoice(req, user);
+                AuditLogService.log(req, user, AuditLogService.ACTION_CREATE, AuditLogService.ENTITY_HOA_DON,
+                        String.valueOf(newHoaDonId), "Hóa đơn #" + newHoaDonId,
+                        "Manager tạo hóa đơn dịch vụ.");
                 resp.getWriter().write("{\"ok\":true,\"msg\":\"Đã tạo hóa đơn dịch vụ #" + newHoaDonId + ".\",\"hoaDonId\":" + newHoaDonId + "}");
             } else if ("cancelInvoice".equals(action)) {
                 int hoaDonId = Integer.parseInt(req.getParameter("hoaDonId"));
                 cancelInvoice(hoaDonId, user);
+                AuditLogService.log(req, user, AuditLogService.ACTION_CANCEL, AuditLogService.ENTITY_HOA_DON,
+                        String.valueOf(hoaDonId), "Hóa đơn #" + hoaDonId,
+                        "Manager hủy hóa đơn.");
                 resp.getWriter().write("{\"ok\":true,\"msg\":\"Đã hủy hóa đơn #" + hoaDonId + ".\"}");
             } else {
                 resp.getWriter().write("{\"ok\":false,\"msg\":\"Hành động không hợp lệ.\"}");

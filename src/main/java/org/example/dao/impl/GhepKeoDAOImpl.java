@@ -117,7 +117,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
     @Override
     public int create(GhepKeo keo) {
-        String sql = "INSERT INTO GhepKeo(DatSanID, AccountIDNguoiTao, MonTheThaoID, MoTa, TrinhDo, TrangThai) " +
+        String sql = "INSERT INTO GhepKeo(DatSanID, AccountID_NguoiTao, MonTheThaoID, MoTa, TrinhDo, TrangThai) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -138,7 +138,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
     }
 
     private static final String SELECT_VIEW_BASE =
-            "SELECT g.KeoID, g.DatSanID, g.AccountIDNguoiTao, g.MonTheThaoID, g.MoTa, g.TrinhDo, g.TrangThai, " +
+            "SELECT g.KeoID, g.DatSanID, g.AccountID_NguoiTao, g.MonTheThaoID, g.MoTa, g.TrinhDo, g.TrangThai, " +
             "       tk.FullName AS TenNguoiTao, tk.DiemUyTin AS DiemUyTinNguoiTao, " +
             "       mtt.TenMon AS TenMonTheThao, " +
             "       l.NgayDat, l.GioBatDau, l.GioKetThuc, l.TrangThai AS TrangThaiBooking, " +
@@ -147,7 +147,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
             "       ls.TenLoai AS TenLoaiSan, " +
             "       (SELECT COUNT(*) FROM ChiTietGhepKeo p WHERE p.KeoID = g.KeoID AND p.TrangThaiThamGia = N'" + P_STATUS_JOINED + "') AS SoNguoiThamGia " +
             "FROM GhepKeo g " +
-            "LEFT JOIN TaiKhoan tk ON g.AccountIDNguoiTao = tk.AccountID " +
+            "LEFT JOIN Accounts tk ON g.AccountID_NguoiTao = tk.AccountID " +
             "LEFT JOIN LichDatSan l ON g.DatSanID = l.DatSanID " +
             "LEFT JOIN San s ON l.SanID = s.SanID " +
             "LEFT JOIN CoSo cs ON s.CoSoID = cs.CoSoID " +
@@ -158,7 +158,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
         GhepKeoView v = new GhepKeoView();
         v.keoId = rs.getInt("KeoID");
         v.datSanId = rs.getInt("DatSanID");
-        v.accountIdNguoiTao = rs.getInt("AccountIDNguoiTao");
+        v.accountIdNguoiTao = rs.getInt("AccountID_NguoiTao");
         Object monVal = rs.getObject("MonTheThaoID");
         v.monTheThaoId = monVal == null ? null : (int) monVal;
         v.tenMonTheThao = rs.getString("TenMonTheThao");
@@ -240,14 +240,14 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
     @Override
     public List<GhepKeoView> listByCreator(int accountId) {
-        String sql = SELECT_VIEW_BASE + " WHERE g.AccountIDNguoiTao = ? ORDER BY g.KeoID DESC";
+        String sql = SELECT_VIEW_BASE + " WHERE g.AccountID_NguoiTao = ? ORDER BY g.KeoID DESC";
         return runViewQuery(sql, ps -> ps.setInt(1, accountId));
     }
 
     @Override
     public List<GhepKeoView> listByParticipant(int accountId) {
         String sql = SELECT_VIEW_BASE +
-                " WHERE g.KeoID IN (SELECT p.KeoID FROM ChiTietGhepKeo p WHERE p.AccountIDNguoiThamGia = ? AND p.TrangThaiThamGia <> N'" + P_STATUS_LEFT + "') " +
+                " WHERE g.KeoID IN (SELECT p.KeoID FROM ChiTietGhepKeo p WHERE p.AccountID_NguoiThamGia = ? AND p.TrangThaiThamGia <> N'" + P_STATUS_LEFT + "') " +
                 " ORDER BY l.NgayDat DESC";
         return runViewQuery(sql, ps -> ps.setInt(1, accountId));
     }
@@ -269,7 +269,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
     @Override
     public boolean updateStatusIfOwner(int keoId, String newStatus, int ownerAccountId) {
-        String sql = "UPDATE GhepKeo SET TrangThai = ? WHERE KeoID = ? AND AccountIDNguoiTao = ?";
+        String sql = "UPDATE GhepKeo SET TrangThai = ? WHERE KeoID = ? AND AccountID_NguoiTao = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, newStatus);
@@ -293,7 +293,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
                 int accepted;
                 String trangThaiKeo;
                 int accountIdOwner;
-                String sqlLock = "SELECT g.AccountIDNguoiTao, g.MoTa, g.TrangThai, " +
+                String sqlLock = "SELECT g.AccountID_NguoiTao, g.MoTa, g.TrangThai, " +
                         "       (SELECT COUNT(*) FROM ChiTietGhepKeo p WHERE p.KeoID = g.KeoID AND p.TrangThaiThamGia = N'" + P_STATUS_JOINED + "') AS Accepted " +
                         "FROM GhepKeo g WITH (UPDLOCK, ROWLOCK) WHERE g.KeoID = ?";
                 try (PreparedStatement psLock = conn.prepareStatement(sqlLock)) {
@@ -303,7 +303,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
                             conn.rollback();
                             throw new IllegalStateException("Kèo không tồn tại.");
                         }
-                        accountIdOwner = rs.getInt("AccountIDNguoiTao");
+                        accountIdOwner = rs.getInt("AccountID_NguoiTao");
                         trangThaiKeo = rs.getString("TrangThai");
                         accepted = rs.getInt("Accepted");
                         String moTa = rs.getString("MoTa");
@@ -328,7 +328,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
                 // Bước 2: kiểm tra đã tồn tại participant active của account này chưa
                 String sqlCheck = "SELECT ChiTietKeoID, TrangThaiThamGia FROM ChiTietGhepKeo " +
-                        "WHERE KeoID = ? AND AccountIDNguoiThamGia = ? AND TrangThaiThamGia IN (N'" + P_STATUS_JOINED + "', N'" + P_STATUS_PENDING + "')";
+                        "WHERE KeoID = ? AND AccountID_NguoiThamGia = ? AND TrangThaiThamGia IN (N'" + P_STATUS_JOINED + "', N'" + P_STATUS_PENDING + "')";
                 try (PreparedStatement psCheck = conn.prepareStatement(sqlCheck)) {
                     psCheck.setInt(1, keoId); psCheck.setInt(2, accountId);
                     try (ResultSet rs = psCheck.executeQuery()) {
@@ -341,7 +341,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
                 }
 
                 // Bước 3: insert
-                String sqlIns = "INSERT INTO ChiTietGhepKeo(KeoID, AccountIDNguoiThamGia, TrangThaiThamGia, ViTriThamGia) VALUES (?, ?, ?, ?)";
+                String sqlIns = "INSERT INTO ChiTietGhepKeo(KeoID, AccountID_NguoiThamGia, TrangThaiThamGia, ViTriThamGia) VALUES (?, ?, ?, ?)";
                 int newId = -1;
                 try (PreparedStatement psIns = conn.prepareStatement(sqlIns, Statement.RETURN_GENERATED_KEYS)) {
                     psIns.setInt(1, keoId);
@@ -380,10 +380,10 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
         if (actorIsOwner) {
             // Chủ kèo có thể duyệt/từ chối bất kỳ participant của kèo mình
             sql = "UPDATE ChiTietGhepKeo SET TrangThaiThamGia = ? " +
-                  "WHERE ChiTietKeoID = ? AND KeoID IN (SELECT KeoID FROM GhepKeo WHERE AccountIDNguoiTao = ?)";
+                  "WHERE ChiTietKeoID = ? AND KeoID IN (SELECT KeoID FROM GhepKeo WHERE AccountID_NguoiTao = ?)";
         } else {
             // Người chơi chỉ có thể tự đổi trạng thái của chính mình sang "Đã rời"
-            sql = "UPDATE ChiTietGhepKeo SET TrangThaiThamGia = ? WHERE ChiTietKeoID = ? AND AccountIDNguoiThamGia = ?";
+            sql = "UPDATE ChiTietGhepKeo SET TrangThaiThamGia = ? WHERE ChiTietKeoID = ? AND AccountID_NguoiThamGia = ?";
         }
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -414,9 +414,9 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
     @Override
     public List<ChiTietGhepKeoView> listParticipants(int keoId) {
-        String sql = "SELECT p.ChiTietKeoID, p.KeoID, p.AccountIDNguoiThamGia, p.TrangThaiThamGia, p.ViTriThamGia, " +
+        String sql = "SELECT p.ChiTietKeoID, p.KeoID, p.AccountID_NguoiThamGia, p.TrangThaiThamGia, p.ViTriThamGia, " +
                 "       tk.FullName AS TenNguoiChoi, tk.DiemUyTin AS DiemUyTin " +
-                "FROM ChiTietGhepKeo p LEFT JOIN TaiKhoan tk ON p.AccountIDNguoiThamGia = tk.AccountID " +
+                "FROM ChiTietGhepKeo p LEFT JOIN Accounts tk ON p.AccountID_NguoiThamGia = tk.AccountID " +
                 "WHERE p.KeoID = ? ORDER BY p.ChiTietKeoID ASC";
         List<ChiTietGhepKeoView> out = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
@@ -427,7 +427,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
                     ChiTietGhepKeoView v = new ChiTietGhepKeoView();
                     v.chiTietKeoId = rs.getInt("ChiTietKeoID");
                     v.keoId = rs.getInt("KeoID");
-                    v.accountId = rs.getInt("AccountIDNguoiThamGia");
+                    v.accountId = rs.getInt("AccountID_NguoiThamGia");
                     v.trangThaiThamGia = rs.getString("TrangThaiThamGia");
                     v.viTriThamGia = rs.getString("ViTriThamGia");
                     v.tenNguoiChoi = rs.getString("TenNguoiChoi");
@@ -444,10 +444,10 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
     @Override
     public ChiTietGhepKeoView getActiveParticipant(int keoId, int accountId) {
-        String sql = "SELECT p.ChiTietKeoID, p.KeoID, p.AccountIDNguoiThamGia, p.TrangThaiThamGia, p.ViTriThamGia, " +
+        String sql = "SELECT p.ChiTietKeoID, p.KeoID, p.AccountID_NguoiThamGia, p.TrangThaiThamGia, p.ViTriThamGia, " +
                 "       tk.FullName AS TenNguoiChoi, tk.DiemUyTin AS DiemUyTin " +
-                "FROM ChiTietGhepKeo p LEFT JOIN TaiKhoan tk ON p.AccountIDNguoiThamGia = tk.AccountID " +
-                "WHERE p.KeoID = ? AND p.AccountIDNguoiThamGia = ? AND p.TrangThaiThamGia IN (N'" + P_STATUS_PENDING + "', N'" + P_STATUS_JOINED + "') " +
+                "FROM ChiTietGhepKeo p LEFT JOIN Accounts tk ON p.AccountID_NguoiThamGia = tk.AccountID " +
+                "WHERE p.KeoID = ? AND p.AccountID_NguoiThamGia = ? AND p.TrangThaiThamGia IN (N'" + P_STATUS_PENDING + "', N'" + P_STATUS_JOINED + "') " +
                 "ORDER BY p.ChiTietKeoID DESC";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -457,7 +457,7 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
                     ChiTietGhepKeoView v = new ChiTietGhepKeoView();
                     v.chiTietKeoId = rs.getInt("ChiTietKeoID");
                     v.keoId = rs.getInt("KeoID");
-                    v.accountId = rs.getInt("AccountIDNguoiThamGia");
+                    v.accountId = rs.getInt("AccountID_NguoiThamGia");
                     v.trangThaiThamGia = rs.getString("TrangThaiThamGia");
                     v.viTriThamGia = rs.getString("ViTriThamGia");
                     v.tenNguoiChoi = rs.getString("TenNguoiChoi");

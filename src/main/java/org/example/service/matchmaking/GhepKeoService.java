@@ -74,7 +74,7 @@ public class GhepKeoService {
 
         Lichdatsan booking = lichDatSanDAO.getLichById(req.datSanId);
         if (booking == null) return Result.fail("Ca đặt sân không tồn tại.");
-        if (booking.getAccountId() == null || booking.getAccountId() != req.accountId) {
+        if (booking.getAccountId() == null || booking.getAccountId().intValue() != req.accountId) {
             return Result.fail("Bạn chỉ có thể gắn kèo cho ca đặt sân của chính mình.");
         }
         String tt = booking.getTrangThai();

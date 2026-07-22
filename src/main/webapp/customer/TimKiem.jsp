@@ -8,414 +8,287 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <jsp:include page="/common/xtra-head.jsp" />
     <title>Tìm kiếm sân - V-SPORT</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-    <jsp:include page="/customer/common/vsport-theme.jsp" />
-
     <style>
-        :root {
-            --vs-red: #ff2433;
-            --vs-red-hover: #d91b26;
-            --vs-black: #111827;
-            --vs-gray-900: #1f2937;
-            --vs-gray-800: #374151;
-            --vs-gray-500: #6b7280;
-            --vs-gray-200: #e5e7eb;
-            --vs-gray-100: #f3f4f6;
-            --vs-gray-50: #f9fafb;
-            --vs-bg: #f8f9fa;
-        }
-
-        body {
-            background-color: var(--vs-bg);
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: var(--vs-black);
-        }
-
-        * { box-sizing: border-box; }
-
-        /* HEADER */
-        .vs-search-header {
-            /* Removed sticky top 0 to not overlap with the global navbar */
-            background: #fff;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .vsh-left { display: flex; align-items: center; gap: 12px; }
-        .vsh-back {
-            display: flex; align-items: center; justify-content: center;
-            width: 40px; height: 40px; border-radius: 50%; border: none;
-            background: var(--vs-gray-50); color: var(--vs-black); cursor: pointer;
-            transition: background 0.2s; text-decoration: none;
-        }
-        .vsh-back:hover { background: var(--vs-gray-200); }
-        .vsh-title { font-size: 18px; font-weight: 700; color: var(--vs-black); margin: 0; }
+        body { background-color: var(--background); }
         
-        .vsh-right { display: flex; align-items: center; gap: 8px; }
-        .vsh-btn {
-            display: flex; align-items: center; justify-content: center;
-            width: 40px; height: 40px; border-radius: 50%; border: none;
-            background: var(--vs-gray-50); color: var(--vs-black); cursor: pointer;
-            transition: all 0.2s ease; text-decoration: none; position: relative;
+        .main-content {
+            padding: 40px 0 80px;
         }
-        .vsh-btn:hover { background: #fff; color: var(--vs-red); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
-        .vsh-btn i { font-size: 16px; }
-        .vsh-btn-highlight { background: rgba(255, 36, 51, 0.08); color: var(--vs-red); }
-        .vsh-btn-highlight:hover { background: rgba(255, 36, 51, 0.15); }
 
-        /* SEARCH BAR */
-        .vs-search-container {
-            padding: 20px;
-            background: #fff;
-            border-bottom: 1px solid var(--vs-gray-200);
-        }
-        .vs-search-wrapper {
-            position: relative;
-            max-width: 800px;
-            margin: 0 auto;
+        /* Chips */
+        .filter-chips {
             display: flex;
-            align-items: center;
             gap: 12px;
-        }
-        .vs-search-input-box {
-            flex: 1;
-            display: flex; align-items: center; gap: 12px;
-            background: var(--vs-gray-50);
-            border: 1px solid var(--vs-gray-200);
-            border-radius: 16px;
-            padding: 0 16px;
-            height: 52px;
-            transition: all 0.2s ease;
-        }
-        .vs-search-input-box:focus-within {
-            background: #fff;
-            border-color: var(--vs-red);
-            box-shadow: 0 0 0 3px rgba(255,36,51,0.1);
-        }
-        .vs-search-input-box i { color: var(--vs-gray-500); font-size: 18px; }
-        .vs-search-input {
-            flex: 1; border: none; outline: none; background: transparent;
-            font-size: 15px; font-weight: 500; color: var(--vs-black); height: 100%;
-        }
-        .vs-search-input::placeholder { color: #9ca3af; font-weight: 400; }
-        
-        .vs-search-clear {
-            background: transparent; border: none; color: var(--vs-gray-500);
-            cursor: pointer; padding: 4px; display: none;
-        }
-        .vs-search-clear:hover { color: var(--vs-black); }
-        
-        .vs-filter-btn {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            height: 52px; padding: 0 20px; border-radius: 16px; border: none;
-            background: var(--vs-gray-900); color: #fff; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
-        }
-        .vs-filter-btn:hover { background: var(--vs-black); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .vs-filter-btn.has-active { background: var(--vs-red); }
-        .vs-filter-btn.has-active:hover { background: var(--vs-red-hover); box-shadow: 0 4px 12px rgba(255,36,51,0.2); }
-
-        /* FILTER CHIPS (SPORT TYPES) */
-        .vs-chips-container {
-            padding: 16px 20px;
-            background: #fff;
-            border-bottom: 1px solid var(--vs-gray-200);
             overflow-x: auto;
-            scrollbar-width: none;
-        }
-        .vs-chips-container::-webkit-scrollbar { display: none; }
-        .vs-chips-wrapper {
-            display: flex; gap: 10px; max-width: 1200px; margin: 0 auto;
-        }
-        .vs-chip {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 10px 16px; border-radius: 99px;
-            border: 1px solid var(--vs-gray-200); background: #fff;
-            color: var(--vs-gray-800); font-size: 14px; font-weight: 600;
-            cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
-        }
-        .vs-chip:hover { border-color: var(--vs-gray-500); background: var(--vs-gray-50); }
-        .vs-chip.is-active {
-            background: var(--vs-red); border-color: var(--vs-red); color: #fff;
-            box-shadow: 0 4px 10px rgba(255,36,51,0.2);
-        }
-
-        /* ACTIVE FILTER BAR */
-        .vs-active-filters {
-            padding: 12px 20px; max-width: 1200px; margin: 0 auto;
-            display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-        }
-        .vs-active-chip {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(255,36,51,0.1); border: 1px solid rgba(255,36,51,0.2);
-            color: var(--vs-red); font-size: 13px; font-weight: 600;
-            padding: 6px 12px; border-radius: 99px;
-        }
-        .vs-active-chip a { color: inherit; display: flex; align-items: center; margin-left: 4px; }
-        .vs-active-chip a:hover { opacity: 0.7; }
-        .vs-clear-all { font-size: 13px; font-weight: 600; color: var(--vs-gray-500); text-decoration: none; margin-left: 8px; }
-        .vs-clear-all:hover { color: var(--vs-black); text-decoration: underline; }
-
-        /* RESULTS GRID */
-        .vs-results-container {
-            padding: 24px 20px; max-width: 1200px; margin: 0 auto;
-        }
-        .vs-results-count {
-            font-size: 15px; font-weight: 600; color: var(--vs-gray-500);
+            padding-bottom: 20px;
             margin-bottom: 20px;
         }
-        .vs-grid {
-            display: grid; grid-template-columns: repeat(1, 1fr); gap: 24px;
+        .filter-chips::-webkit-scrollbar { display: none; }
+        .chip {
+            padding: 10px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            color: var(--body-text);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
         }
-        @media(min-width: 640px) { .vs-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media(min-width: 900px) { .vs-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media(min-width: 1200px) { .vs-grid { grid-template-columns: repeat(4, 1fr); } }
+        .chip:hover {
+            border-color: var(--navy);
+            color: var(--navy);
+        }
+        .chip.active {
+            background-color: var(--navy);
+            border-color: var(--navy);
+            color: var(--surface);
+        }
 
-        /* FACILITY CARD */
-        .vs-card {
-            background: #fff; border-radius: 20px; overflow: hidden;
-            border: 1px solid var(--vs-gray-200);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
-            display: flex; flex-direction: column; cursor: pointer; text-decoration: none;
+        .active-filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .active-chip {
+            background-color: rgba(18, 45, 64, 0.1);
+            color: var(--navy);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .active-chip a { color: var(--navy); }
+        .active-chip a:hover { opacity: 0.7; }
+        .clear-filters {
+            font-size: 14px;
+            color: var(--muted-text);
+            text-decoration: underline;
+        }
+        .clear-filters:hover { color: var(--danger); }
+
+        /* Facility Card */
+        .facility-card {
+            background-color: var(--surface);
+            border-radius: var(--radius-large);
+            overflow: hidden;
+            box-shadow: var(--shadow-small);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            cursor: pointer;
+        }
+        .facility-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-large);
+        }
+        .facility-card:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .fc-image {
             position: relative;
+            height: 200px;
+            overflow: hidden;
         }
-        .vs-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-            border-color: var(--vs-gray-200);
-        }
-        .vs-card-img-wrap {
-            position: relative; width: 100%; aspect-ratio: 4/3;
-            background: var(--vs-gray-100); overflow: hidden;
-        }
-        .vs-card-img-wrap img {
-            width: 100%; height: 100%; object-fit: cover;
+        .fc-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             transition: transform 0.5s ease;
         }
-        .vs-card:hover .vs-card-img-wrap img { transform: scale(1.05); }
+        .facility-card:hover .fc-image img {
+            transform: scale(1.05);
+        }
+        .fc-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: var(--primary);
+            color: var(--navy);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-small);
+        }
+        .fc-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .fc-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--navy);
+            line-height: 1.4;
+        }
+        .fc-address {
+            font-size: 14px;
+            color: var(--muted-text);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .fc-address i { margin-top: 3px; color: var(--primary); }
+        .fc-footer {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .fc-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--body-text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .fc-time i { color: var(--primary); }
         
-        .vs-card-badge {
-            position: absolute; top: 12px; left: 12px;
-            background: rgba(255,255,255,0.95); color: var(--vs-black);
-            font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--surface);
+            border-radius: var(--radius-large);
+            margin-bottom: 60px;
         }
-        .vs-card-actions {
-            position: absolute; top: 12px; right: 12px;
-            display: flex; gap: 8px;
+        .empty-state i {
+            font-size: 64px;
+            color: var(--border);
+            margin-bottom: 20px;
         }
-        .vs-card-btn {
-            width: 32px; height: 32px; border-radius: 50%; border: none;
-            background: rgba(255,255,255,0.95); color: var(--vs-gray-500);
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s;
+        .empty-state h3 {
+            font-size: 24px;
+            color: var(--navy);
+            margin-bottom: 10px;
         }
-        .vs-card-btn:hover { color: var(--vs-red); transform: scale(1.1); }
-        
-        .vs-card-content { padding: 16px; display: flex; flex-direction: column; flex: 1; }
-        .vs-card-title {
-            font-size: 16px; font-weight: 700; color: var(--vs-black);
-            margin: 0 0 6px; line-height: 1.4;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        .empty-state p {
+            color: var(--muted-text);
+            margin-bottom: 20px;
         }
-        .vs-card-address {
-            font-size: 13px; color: var(--vs-gray-500); margin: 0 0 12px;
-            display: flex; align-items: flex-start; gap: 6px; line-height: 1.5;
-        }
-        .vs-card-address i { margin-top: 3px; color: var(--vs-gray-500); }
-        
-        .vs-card-footer {
-            margin-top: auto; padding-top: 12px; border-top: 1px solid var(--vs-gray-100);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .vs-card-time { font-size: 12px; font-weight: 600; color: var(--vs-gray-800); display: flex; align-items: center; gap: 6px; }
-        .vs-card-time i { color: #10b981; }
-        
-        .vs-btn-book {
-            background: var(--vs-red); color: #fff; border: none; border-radius: 10px;
-            padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
-            transition: background 0.2s; text-decoration: none;
-        }
-        .vs-btn-book:hover { background: var(--vs-red-hover); }
 
-        /* EMPTY STATE */
-        .vs-empty-state {
-            text-align: center; padding: 60px 20px;
-            background: #fff; border-radius: 24px; border: 1px dashed var(--vs-gray-200);
-            max-width: 500px; margin: 40px auto;
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(18, 45, 64, 0.8);
+            backdrop-filter: blur(4px); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: var(--transition);
         }
-        .vs-empty-state i { font-size: 48px; color: var(--vs-gray-200); margin-bottom: 16px; }
-        .vs-empty-state h3 { font-size: 18px; font-weight: 700; color: var(--vs-black); margin: 0 0 8px; }
-        .vs-empty-state p { font-size: 14px; color: var(--vs-gray-500); margin: 0 0 20px; }
-        .vs-empty-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            background: var(--vs-gray-900); color: #fff; padding: 10px 20px; border-radius: 12px;
-            font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.2s;
+        .modal-overlay.is-open { opacity: 1; visibility: visible; }
+        .modal-panel {
+            background: var(--surface); width: 100%; max-width: 450px;
+            border-radius: var(--radius-large); padding: 30px;
+            transform: translateY(20px); transition: var(--transition);
         }
-        .vs-empty-btn:hover { background: var(--vs-black); }
-
-        /* MODAL OVERLAY */
-        .vs-modal-overlay {
-            position: fixed; inset: 0; background: rgba(17,24,39,0.7); backdrop-filter: blur(4px);
-            z-index: 100; display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: all 0.2s ease;
+        .modal-overlay.is-open .modal-panel { transform: translateY(0); }
+        .modal-close {
+            position: absolute; top: 20px; right: 20px;
+            background: none; border: none; font-size: 20px;
+            color: var(--muted-text); cursor: pointer;
         }
-        .vs-modal-overlay.is-open { opacity: 1; visibility: visible; }
-        .vs-modal-panel {
-            background: #fff; width: 100%; max-width: 440px; border-radius: 24px;
-            padding: 24px; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1);
-            position: relative; margin: 20px;
-        }
-        .vs-modal-overlay.is-open .vs-modal-panel { transform: translateY(0); }
-        .vs-modal-close {
-            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
-            border-radius: 50%; border: none; background: var(--vs-gray-100); cursor: pointer;
-            display: flex; align-items: center; justify-content: center; color: var(--vs-gray-500);
-        }
-        .vs-modal-close:hover { background: var(--vs-gray-200); color: var(--vs-black); }
-        .vs-modal-title { font-size: 18px; font-weight: 800; color: var(--vs-black); margin: 0 0 20px; }
+        .modal-close:hover { color: var(--danger); }
         
-        .vs-form-group { margin-bottom: 20px; }
-        .vs-form-label { display: block; font-size: 13px; font-weight: 700; color: var(--vs-gray-800); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-title { font-size: 24px; color: var(--navy); margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 15px; }
         
-        .vs-radio-list { display: flex; flex-direction: column; gap: 10px; }
-        .vs-radio-label {
+        .radio-list { display: flex; flex-direction: column; gap: 10px; }
+        .radio-label {
             display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-            border: 1px solid var(--vs-gray-200); border-radius: 12px; cursor: pointer;
-            font-size: 14px; font-weight: 600; color: var(--vs-black); transition: all 0.2s;
+            border: 1px solid var(--border); border-radius: var(--radius-medium);
+            cursor: pointer; font-size: 15px; font-weight: 500; transition: var(--transition);
         }
-        .vs-radio-label:hover { background: var(--vs-gray-50); }
-        .vs-radio-label:has(input:checked) { border-color: var(--vs-red); background: rgba(255,36,51,0.04); }
-        .vs-radio-label input { width: 18px; height: 18px; accent-color: var(--vs-red); }
-
-        .vs-switch-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--vs-gray-100); }
-        .vs-switch-label { font-size: 14px; font-weight: 600; color: var(--vs-black); }
-        .vs-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .vs-switch input { opacity: 0; width: 0; height: 0; }
-        .vs-slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-        .vs-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .vs-slider { background-color: var(--vs-red); }
-        input:checked + .vs-slider:before { transform: translateX(20px); }
-
-        .vs-modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-        .vs-btn-reset { flex: 1; padding: 12px; background: var(--vs-gray-100); color: var(--vs-black); border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
-        .vs-btn-reset:hover { background: var(--vs-gray-200); }
-        .vs-btn-apply { flex: 2; padding: 12px; background: var(--vs-black); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
-        .vs-btn-apply:hover { background: var(--vs-gray-900); }
-
+        .radio-label:hover { border-color: var(--primary); }
+        .radio-label:has(input:checked) { border-color: var(--primary); background-color: rgba(1,226,129,0.05); }
+        
+        .switch-wrapper { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid var(--border); }
+        .modal-actions { display: flex; gap: 15px; margin-top: 30px; }
+        
     </style>
 </head>
 <body>
-    <jsp:include page="/customer/common/vsport-header.jsp" />
+    <jsp:include page="/common/header-xtra.jsp" />
 
-    <!-- PAGE TITLE BAR -->
-    <header class="vs-search-header">
-        <div class="vsh-left">
-            <button class="vsh-back" onclick="goBackOrHome()" aria-label="Quay lại">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <h1 class="vsh-title">Khám Phá Sân</h1>
+    <main class="main-content container">
+        <div class="products-header">
+            <h2 class="section-title">Khám Phá Sân</h2>
         </div>
-        <div class="vsh-right">
-            <!-- HISTORY BUTTON -->
-            <a href="${ctx}/customer/lich-su-dat-san" class="vsh-btn" title="Lịch sử đặt sân">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-            </a>
-            <!-- MAP BUTTON -->
-            <a href="${ctx}/customer/BanDo.jsp" class="vsh-btn vsh-btn-highlight" title="Xem trên bản đồ">
-                <i class="fa-solid fa-map-location-dot"></i>
-            </a>
-        </div>
-    </header>
-
-    <!-- SEARCH & FILTER -->
-    <form id="tkSearchForm" action="${ctx}/customer/tim-kiem" method="GET">
-        <div class="vs-search-container">
-            <div class="vs-search-wrapper">
-                <div class="vs-search-input-box">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" class="vs-search-input" id="tkSearchInput" name="q" value="<c:out value='${query}'/>" placeholder="Tìm tên sân, cơ sở, địa chỉ..." autocomplete="off">
-                    <button type="button" class="vs-search-clear" id="tkClearBtn" <c:if test="${empty query}">style="display:none;"</c:if>>
-                        <i class="fa-solid fa-circle-xmark"></i>
-                    </button>
-                </div>
-                <button type="button" class="vs-filter-btn <c:if test='${not empty sportId or openNow}'>has-active</c:if>" onclick="openFilterModal()">
-                    <i class="fa-solid fa-sliders"></i> Bộ lọc
+        
+        <form id="tkSearchForm" action="${ctx}/customer/tim-kiem" method="GET">
+            <input type="hidden" name="q" value="<c:out value='${query}'/>">
+            
+            <div class="filter-chips">
+                <button type="button" class="chip <c:if test='${empty sportId}'>active</c:if>" onclick="selectSport('')">
+                    Tất cả
                 </button>
-            </div>
-        </div>
-        <input type="hidden" name="sportId" id="tkSportIdInput" value="<c:out value='${sportId}'/>"/>
-        <input type="hidden" name="openNow" id="tkOpenNowInput" value="<c:if test='${openNow}'>true</c:if>"/>
-    </form>
-
-    <!-- CHIPS -->
-    <div class="vs-chips-container">
-        <div class="vs-chips-wrapper">
-            <button type="button" class="vs-chip <c:if test='${empty sportId}'>is-active</c:if>" onclick="selectSport('')">
-                <i class="fa-solid fa-border-all"></i> Tất cả
-            </button>
-            <c:forEach var="m" items="${dsMon}">
-                <button type="button" class="vs-chip <c:if test='${sportId == m.monTheThaoID}'>is-active</c:if>" onclick="selectSport('${m.monTheThaoID}')">
-                    <c:out value="${m.tenMon}"/>
-                </button>
-            </c:forEach>
-        </div>
-    </div>
-
-    <!-- ACTIVE FILTERS -->
-    <c:if test="${not empty sportId or openNow}">
-        <div class="vs-active-filters">
-            <c:if test="${not empty sportId}">
                 <c:forEach var="m" items="${dsMon}">
-                    <c:if test="${m.monTheThaoID == sportId}">
-                        <div class="vs-active-chip">
-                            Môn: <c:out value="${m.tenMon}"/>
-                            <a href="javascript:void(0)" onclick="removeSportFilter()"><i class="fa-solid fa-xmark"></i></a>
+                    <button type="button" class="chip <c:if test='${sportId == m.monTheThaoID}'>active</c:if>" onclick="selectSport('${m.monTheThaoID}')">
+                        <c:out value="${m.tenMon}"/>
+                    </button>
+                </c:forEach>
+            </div>
+
+            <c:if test="${not empty sportId or openNow}">
+                <div class="active-filters">
+                    <c:if test="${not empty sportId}">
+                        <c:forEach var="m" items="${dsMon}">
+                            <c:if test="${m.monTheThaoID == sportId}">
+                                <div class="active-chip">
+                                    Môn: <c:out value="${m.tenMon}"/>
+                                    <a href="javascript:void(0)" onclick="removeSportFilter()"><i class="fa-solid fa-xmark"></i></a>
+                                </div>
+                            </c:if>
+                        </c:forEach>
+                    </c:if>
+                    <c:if test="${openNow}">
+                        <div class="active-chip">
+                            Đang mở cửa
+                            <a href="javascript:void(0)" onclick="removeOpenNowFilter()"><i class="fa-solid fa-xmark"></i></a>
                         </div>
                     </c:if>
-                </c:forEach>
-            </c:if>
-            <c:if test="${openNow}">
-                <div class="vs-active-chip">
-                    Đang mở cửa
-                    <a href="javascript:void(0)" onclick="removeOpenNowFilter()"><i class="fa-solid fa-xmark"></i></a>
+                    <a href="javascript:void(0)" class="clear-filters" onclick="clearAllFilters()">Xóa bộ lọc</a>
                 </div>
             </c:if>
-            <a href="javascript:void(0)" class="vs-clear-all" onclick="clearAllFilters()">Xóa bộ lọc</a>
-        </div>
-    </c:if>
 
-    <!-- MAIN RESULTS -->
-    <main class="vs-results-container">
+            <input type="hidden" name="sportId" id="tkSportIdInput" value="<c:out value='${sportId}'/>"/>
+            <input type="hidden" name="openNow" id="tkOpenNowInput" value="<c:if test='${openNow}'>true</c:if>"/>
+        </form>
+
         <c:choose>
             <c:when test="${searchError}">
-                <div class="vs-empty-state">
-                    <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
-                    <h3>Không thể tải dữ liệu</h3>
-                    <p>Có lỗi xảy ra trong quá trình tìm kiếm. Vui lòng thử lại sau.</p>
-                    <a href="${ctx}/customer/tim-kiem" class="vs-empty-btn">Tải lại trang</a>
+                <div class="empty-state">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i>
+                    <h3>Đã có lỗi xảy ra</h3>
+                    <p>Không thể tải dữ liệu tìm kiếm. Vui lòng thử lại sau.</p>
+                    <a href="${ctx}/customer/tim-kiem" class="btn btn-primary">Tải lại trang</a>
                 </div>
             </c:when>
             <c:when test="${empty results}">
-                <div class="vs-empty-state">
+                <div class="empty-state">
                     <i class="fa-solid fa-magnifying-glass-minus"></i>
                     <h3>Không tìm thấy kết quả</h3>
-                    <p>Không có sân hoặc cơ sở nào phù hợp với bộ lọc của bạn.</p>
-                    <a href="${ctx}/customer/tim-kiem" class="vs-empty-btn">Xóa bộ lọc</a>
+                    <p>Thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm của bạn.</p>
+                    <a href="${ctx}/customer/tim-kiem" class="btn btn-primary">Xóa bộ lọc</a>
                 </div>
             </c:when>
             <c:otherwise>
-                <div class="vs-results-count">Hiển thị <c:out value="${fn:length(results)}"/> cơ sở phù hợp</div>
-                
-                <div class="vs-grid">
+                <div class="product-grid" id="facilityGrid">
                     <%
                         @SuppressWarnings("unchecked")
                         List<CoSo> tkResults = (List<CoSo>) request.getAttribute("results");
@@ -443,47 +316,126 @@
                                 String firstSport = businessType.contains(",") ? businessType.substring(0, businessType.indexOf(',')).trim() : businessType.trim();
                                 String firstSportSafe = firstSport.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
                     %>
-                    <a href="${ctx}/customer/dat-lich-truc-quan?coSoId=<%= cs.getCoSoID() %>" class="vs-card">
-                        <div class="vs-card-img-wrap">
+                    <div class="facility-card" tabindex="0" role="button"
+                         aria-label="Xem chi tiết <%= csNameSafe %>"
+                         data-coso-id="<%= cs.getCoSoID() %>"
+                         data-facility-name="<%= csNameSafe %>"
+                         data-card-image="<%= cardImgUrl %>">
+                        <div class="fc-image">
                             <img src="<%= cardImgUrl %>" onerror="this.onerror=null;this.src='<%= fbImgUrl %>';" alt="<%= csNameSafe %>">
                             <% if (!firstSport.isEmpty()) { %>
-                                <div class="vs-card-badge"><i class="fa-solid fa-medal text-red-500 mr-1"></i> <%= firstSportSafe %></div>
+                                <div class="fc-badge"><i class="fa-solid fa-medal"></i> <%= firstSportSafe %></div>
                             <% } %>
-                            <div class="vs-card-actions">
-                                <button type="button" class="vs-card-btn" title="Yêu thích" onclick="event.preventDefault();"><i class="fa-solid fa-heart"></i></button>
+                        </div>
+                        <div class="fc-content">
+                            <h3 class="fc-title"><%= csNameSafe %></h3>
+                            <p class="fc-address"><i class="fa-solid fa-location-dot"></i> <span><%= csAddrSafe %></span></p>
+
+                            <div class="fc-footer">
+                                <div class="fc-time"><i class="fa-solid fa-clock"></i> <%= csOpen %> - <%= csClose %></div>
+                                <button type="button" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;"
+                                        data-book-trigger
+                                        data-coso-id="<%= cs.getCoSoID() %>"
+                                        data-facility-name="<%= csNameSafe %>">Đặt lịch</button>
                             </div>
                         </div>
-                        <div class="vs-card-content">
-                            <h3 class="vs-card-title"><%= csNameSafe %></h3>
-                            <p class="vs-card-address"><i class="fa-solid fa-location-dot"></i> <span><%= csAddrSafe %></span></p>
-                            
-                            <div class="vs-card-footer">
-                                <div class="vs-card-time"><i class="fa-solid fa-clock"></i> <%= csOpen %> - <%= csClose %></div>
-                                <button type="button" class="vs-btn-book">Đặt lịch</button>
-                            </div>
-                        </div>
-                    </a>
+                    </div>
                     <% } } %>
                 </div>
             </c:otherwise>
         </c:choose>
     </main>
 
-    <!-- FILTER MODAL -->
-    <div class="vs-modal-overlay" id="filterModal">
-        <div class="vs-modal-panel">
-            <button class="vs-modal-close" onclick="closeFilterModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h2 class="vs-modal-title">Bộ lọc chuyên sâu</h2>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!-- Col 1 -->
+                <div class="footer-col">
+                    <a href="${ctx}/" class="logo" style="margin-bottom: 25px;">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        V-<span>SPORT</span>
+                    </a>
+                    <p>Nền tảng đặt sân thể thao trực tuyến, kết nối bạn với hàng trăm cơ sở uy tín trên toàn quốc.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <!-- Col 2 -->
+                <div class="footer-col">
+                    <h4>Liên kết hữu ích</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Về chúng tôi</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                        <li><a href="#">Trung tâm hỗ trợ</a></li>
+                        <li><a href="#">Điều khoản dịch vụ</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                        <li><a href="#">Chính sách hoàn tiền</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3 -->
+                <div class="footer-col">
+                    <h4>Liên hệ</h4>
+                    <ul class="contact-info">
+                        <li>
+                            <i class="fas fa-phone-alt"></i>
+                            <div>
+                                <span style="font-size: 13px; display: block;">Gọi cho chúng tôi 24/7</span>
+                                <a href="tel:8185556788">818-555 67 88</a>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <span style="font-size: 13px; display: block;">Email cho chúng tôi</span>
+                                <a href="mailto:info@vsport.com" style="font-size: 15px; font-weight: 400; font-family: 'Inter', sans-serif;">info@vsport.com</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Col 4 -->
+                <div class="footer-col">
+                    <h4>Hợp tác kinh doanh</h4>
+                    <p>Bạn có sân thể thao? Hãy trở thành đối tác của V-SPORT.</p>
+                    <a href="#" class="btn btn-primary">Trở thành đối tác</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="copyright">
+                    &copy; 2026 V-SPORT. All Rights Reserved.
+                </div>
+                <div class="payments">
+                    <div class="payment-card"><i class="fab fa-cc-visa" style="color: #1434CB; font-size: 24px;"></i></div>
+                    <div class="payment-card"><i class="fab fa-cc-mastercard" style="color: #EB001B; font-size: 24px;"></i></div>
+                    <div class="payment-card"><i class="fab fa-cc-paypal" style="color: #00457C; font-size: 24px;"></i></div>
+                    <div class="payment-card"><i class="fab fa-cc-discover" style="color: #F9A021; font-size: 24px;"></i></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="filterModal">
+        <div class="modal-panel">
+            <button class="modal-close" onclick="closeFilterModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Bộ lọc chuyên sâu</h2>
             
-            <div class="vs-form-group">
-                <label class="vs-form-label">Môn thể thao</label>
-                <div class="vs-radio-list">
-                    <label class="vs-radio-label">
+            <div class="form-group">
+                <label class="form-label">Môn thể thao</label>
+                <div class="radio-list">
+                    <label class="radio-label">
                         <input type="radio" name="modalSportId" value="" <c:if test="${empty sportId}">checked</c:if>>
                         Tất cả môn
                     </label>
                     <c:forEach var="m" items="${dsMon}">
-                        <label class="vs-radio-label">
+                        <label class="radio-label">
                             <input type="radio" name="modalSportId" value="<c:out value='${m.monTheThaoID}'/>" <c:if test="${sportId == m.monTheThaoID}">checked</c:if>>
                             <c:out value="${m.tenMon}"/>
                         </label>
@@ -491,69 +443,35 @@
                 </div>
             </div>
 
-            <div class="vs-switch-wrapper">
-                <span class="vs-switch-label">Chỉ hiển thị sân đang mở cửa</span>
-                <label class="vs-switch">
-                    <input type="checkbox" id="modalOpenNow" <c:if test="${openNow}">checked</c:if>>
-                    <span class="vs-slider"></span>
-                </label>
+            <div class="switch-wrapper">
+                <label class="form-label" style="margin-bottom:0;">Chỉ hiển thị sân đang mở cửa</label>
+                <input type="checkbox" id="modalOpenNow" style="width: 20px; height: 20px; accent-color: var(--primary);" <c:if test="${openNow}">checked</c:if>>
             </div>
 
-            <div class="vs-modal-actions">
-                <button type="button" class="vs-btn-reset" onclick="resetFilterModal()">Thiết lập lại</button>
-                <button type="button" class="vs-btn-apply" onclick="applyFilterModal()">Áp dụng kết quả</button>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" style="border-color: var(--border); color: var(--navy); width: 100%;" onclick="resetFilterModal()">Thiết lập lại</button>
+                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="applyFilterModal()">Áp dụng</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
     <script>
-        const CTX = "${ctx}";
         const searchForm = document.getElementById('tkSearchForm');
-        const searchInput = document.getElementById('tkSearchInput');
-        const clearBtn = document.getElementById('tkClearBtn');
         const sportIdInput = document.getElementById('tkSportIdInput');
         const openNowInput = document.getElementById('tkOpenNowInput');
         const filterModal = document.getElementById('filterModal');
 
-        // Back button logic
-        function goBackOrHome() {
-            try {
-                if (document.referrer && new URL(document.referrer).origin === window.location.origin) {
-                    history.back(); return;
-                }
-            } catch(e) {}
-            window.location.href = CTX + '/index.jsp';
-        }
-
-        // Search Input Logic
-        searchInput.addEventListener('input', () => {
-            clearBtn.style.display = searchInput.value ? 'block' : 'none';
-        });
-        clearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            searchInput.focus();
-        });
-
-        // Quick chip selection
         function selectSport(id) {
             sportIdInput.value = id;
             searchForm.submit();
         }
-
-        // Remove active filters
         function removeSportFilter() { sportIdInput.value = ''; searchForm.submit(); }
         function removeOpenNowFilter() { openNowInput.value = ''; searchForm.submit(); }
         function clearAllFilters() { sportIdInput.value = ''; openNowInput.value = ''; searchForm.submit(); }
 
-        // Modal Logic
         function openFilterModal() { filterModal.classList.add('is-open'); document.body.style.overflow = 'hidden'; }
         function closeFilterModal() { filterModal.classList.remove('is-open'); document.body.style.overflow = ''; }
-        
-        filterModal.addEventListener('click', (e) => {
-            if (e.target === filterModal) closeFilterModal();
-        });
+        filterModal.addEventListener('click', (e) => { if (e.target === filterModal) closeFilterModal(); });
 
         function resetFilterModal() {
             document.querySelector('input[name="modalSportId"][value=""]').checked = true;
@@ -566,14 +484,24 @@
             openNowInput.value = document.getElementById('modalOpenNow').checked ? 'true' : '';
             searchForm.submit();
         }
-
-        // Auto submit on typing (debounced)
-        let debounceTimer;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => { searchForm.submit(); }, 600);
-        });
     </script>
-    <jsp:include page="/customer/common/vsport-footer.jsp" />
+
+    <jsp:include page="/customer/common/facility-interactions.jsp" />
+
+    <script>
+        // Deep link: /customer/tim-kiem?coSoId=7 reopens the facility detail sheet
+        // on load, reusing the exact same open path as a card click (so history
+        // push/pop stays consistent). Silently no-ops if the id isn't on this page.
+        (function () {
+            var coSoId = new URLSearchParams(window.location.search).get('coSoId');
+            if (!coSoId) return;
+            var grid = document.getElementById('facilityGrid');
+            if (!grid) return;
+            var card = grid.querySelector('.facility-card[data-coso-id="' + CSS.escape(coSoId) + '"]');
+            if (card && typeof window.openFacilitySheet === 'function') {
+                window.openFacilitySheet(card);
+            }
+        })();
+    </script>
 </body>
 </html>

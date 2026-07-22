@@ -751,6 +751,65 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
             <textarea id="regDescription" rows="3" placeholder="Dịch vụ đi kèm, tiện ích, lưu ý đặc biệt..." class="w-full px-5 py-3.5 border border-white/20 rounded-xl bg-black/20 text-white focus:outline-none focus:ring-2 focus:ring-[#C9612F]/40 focus:border-[#C9612F] transition-all resize-vertical placeholder:text-white/30"></textarea>
           </div>
 
+          <!-- Business capabilities (ngoài cho thuê sân, cần Admin duyệt riêng từng mục) -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold tracking-wider uppercase text-white/70 mb-2">Hoạt động và dịch vụ tại cơ sở</label>
+            <p class="text-xs text-white/50 mb-3">Ngoài cho thuê sân, chọn thêm nếu cơ sở của bạn có các hoạt động sau. Mỗi lựa chọn cần quản trị viên phê duyệt riêng trước khi được kích hoạt.</p>
+            <div class="flex flex-col gap-2" id="capabilityList">
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="SAN_PHAM" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Bán sản phẩm thể thao</b> — giày, áo quần, vợt, bóng, phụ kiện</span>
+              </label>
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="THUE_DUNG_CU" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Cho thuê dụng cụ thể thao</b> — vợt, bóng, giày, áo bib...</span>
+              </label>
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="DO_AN_NUOC_UONG" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Đồ ăn và nước uống</b> — quầy giải khát, đồ ăn nhẹ tại chỗ</span>
+              </label>
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="HUAN_LUYEN_VIEN" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Cung cấp huấn luyện viên</b> — HLV riêng hoặc theo nhóm</span>
+              </label>
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="LOP_HOC" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Tổ chức lớp học</b> — lớp học theo lịch, theo khóa</span>
+              </label>
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="DICH_VU_THE_THAO" id="capDichVuTheThao" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Cung cấp dịch vụ thể thao</b> — căng lưới vợt, thay quấn cán, sửa chữa/bảo dưỡng dụng cụ...</span>
+              </label>
+              <label class="capability-chip flex items-center gap-3 px-4 py-3 rounded-xl border border-white/20 bg-black/20 cursor-pointer">
+                <input type="checkbox" value="KHAC" class="w-5 h-5 accent-[#C9612F] flex-shrink-0"/>
+                <span class="text-sm text-white/90"><b class="text-white">Dịch vụ khác</b> — sẽ trao đổi thêm với V-SPORT sau khi duyệt</span>
+              </label>
+            </div>
+            <!-- Sub-options bên ngoài #capabilityList: chỉ mô tả nhu cầu, KHÔNG được thu thập vào mảng
+                 capabilities[] gửi lên server (JS collector chỉ query trong #capabilityList) -->
+            <div id="dichVuTheThaoOptions" class="hidden mt-2 ml-8 flex flex-col gap-1.5 pl-3 border-l border-white/15">
+              <p class="text-xs text-white/60 mb-1">Loại dịch vụ dự kiến cung cấp (không bắt buộc):</p>
+              <label class="flex items-center gap-2 text-xs text-white/70"><input type="checkbox" value="CANG_LUOI_VOT" class="w-4 h-4 accent-[#C9612F]"/> Căng lưới vợt (cầu lông/tennis)</label>
+              <label class="flex items-center gap-2 text-xs text-white/70"><input type="checkbox" value="THAY_QUAN_CAN" class="w-4 h-4 accent-[#C9612F]"/> Thay quấn cán</label>
+              <label class="flex items-center gap-2 text-xs text-white/70"><input type="checkbox" value="SUA_CHUA_VOT" class="w-4 h-4 accent-[#C9612F]"/> Sửa chữa vợt</label>
+              <label class="flex items-center gap-2 text-xs text-white/70"><input type="checkbox" value="BAO_DUONG_DUNG_CU" class="w-4 h-4 accent-[#C9612F]"/> Bảo dưỡng dụng cụ</label>
+              <label class="flex items-center gap-2 text-xs text-white/70"><input type="checkbox" value="HUAN_LUYEN_VIEN_DV" class="w-4 h-4 accent-[#C9612F]"/> Huấn luyện viên</label>
+              <label class="flex items-center gap-2 text-xs text-white/70"><input type="checkbox" value="DICH_VU_KHAC" class="w-4 h-4 accent-[#C9612F]"/> Dịch vụ khác</label>
+              <p class="text-[11px] text-white/40 mt-1">Đây chỉ là mô tả nhu cầu đăng ký, chưa tạo dịch vụ công khai. Sau khi được duyệt, bạn sẽ cấu hình chi tiết trong khu vực Quản lý dịch vụ.</p>
+            </div>
+          </div>
+          <script>
+            document.addEventListener('DOMContentLoaded', function () {
+              var toggle = document.getElementById('capDichVuTheThao');
+              var opts = document.getElementById('dichVuTheThaoOptions');
+              if (toggle && opts) {
+                toggle.addEventListener('change', function () {
+                  opts.classList.toggle('hidden', !toggle.checked);
+                });
+              }
+            });
+          </script>
+
           <div class="flex gap-3">
             <button type="button" onclick="goToStep2Back()" class="flex-shrink-0 px-6 py-4 rounded-full border border-white/20 text-white/80 hover:bg-white/10 transition-all flex items-center gap-1 bg-transparent cursor-pointer">
               <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại
@@ -1578,6 +1637,10 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
             sportsData.push({ sport: input.dataset.sport, quantity: parseInt(input.value) || 1 });
         });
 
+        // Collect selected business capabilities (optional — court rental itself is not a checkbox here)
+        const capabilities = [];
+        document.querySelectorAll('#capabilityList input[type="checkbox"]:checked').forEach(cb => capabilities.push(cb.value));
+
         // Build form data
         const formData = new URLSearchParams();
         formData.append('ownerName', document.getElementById('ownerName').value.trim());
@@ -1589,6 +1652,7 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
         formData.append('closeTime', closeTime);
         formData.append('operatingDays', days.join(','));
         formData.append('sportsData', JSON.stringify(sportsData));
+        formData.append('capabilities', capabilities.join(','));
         const viDoVal = document.getElementById('viDo').value;
         const kinhDoVal = document.getElementById('kinhDo').value;
         if (viDoVal) formData.append('viDo', viDoVal);
@@ -1705,6 +1769,11 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
             operatingDays.push(cb.value);
         });
 
+        const capabilities = [];
+        document.querySelectorAll('#capabilityList input[type="checkbox"]:checked').forEach(function(cb) {
+            capabilities.push(cb.value);
+        });
+
         return {
             version: OWNER_DRAFT_VERSION,
             savedAt: Date.now(),
@@ -1725,7 +1794,8 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
                 closeTimeH: ownerDraftGetVal('closeTimeH'),
                 closeTimeM: ownerDraftGetVal('closeTimeM'),
                 operatingDays: operatingDays,
-                description: ownerDraftGetVal('regDescription')
+                description: ownerDraftGetVal('regDescription'),
+                capabilities: capabilities
             }
         };
     }
@@ -1827,6 +1897,12 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
         if (s3.closeTimeM) { document.getElementById('closeTimeM').value = s3.closeTimeM; syncOwnerTime('close'); }
 
         if (s3.description) document.getElementById('regDescription').value = s3.description;
+
+        if (Array.isArray(s3.capabilities) && s3.capabilities.length) {
+            document.querySelectorAll('#capabilityList input[type="checkbox"]').forEach(function(cb) {
+                cb.checked = s3.capabilities.indexOf(cb.value) !== -1;
+            });
+        }
     }
 
     // Gọi server để biết trạng thái OTP/xác thực THẬT (không bao giờ tin sessionStorage cho việc này)
@@ -1894,7 +1970,8 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
 
     // Tự động lưu draft khi người dùng nhập/chọn (không gắn cho OTP box / file input)
     const OWNER_DRAFT_WATCHED_SELECTOR = '#ownerName, #regEmail, #regPhone, #regAddress, #regDescription, ' +
-        '#openTimeH, #openTimeM, #closeTimeH, #closeTimeM, #operatingDays input[type="checkbox"], .court-qty';
+        '#openTimeH, #openTimeM, #closeTimeH, #closeTimeM, #operatingDays input[type="checkbox"], .court-qty, ' +
+        '#capabilityList input[type="checkbox"]';
 
     ['input', 'change', 'focusout'].forEach(function(evt) {
         document.addEventListener(evt, function(e) {
@@ -1927,6 +2004,7 @@ document.addEventListener('DOMContentLoaded',function(){var M=window.__MIMG;docu
         selectedSports = [];
         renderCourtQuantities();
         document.querySelectorAll('#operatingDays input[type="checkbox"]').forEach(function(cb) { cb.checked = true; });
+        document.querySelectorAll('#capabilityList input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
 
         emailVerified = false;
         otpAttempts = 0;

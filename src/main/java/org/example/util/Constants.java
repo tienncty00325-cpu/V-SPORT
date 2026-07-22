@@ -102,6 +102,75 @@ public final class Constants {
     public static final String TRANG_THAI_SP_TAM_HET_HANG = "Tạm hết hàng";
     public static final String TRANG_THAI_SP_NGUNG_KINH_DOANH = "Ngừng kinh doanh";
 
+    // ========== FACILITY CAPABILITY (CoSoCapability.CapabilityType) ==========
+    // SAN = cho thuê sân, luôn được set APPROVED tự động khi CoSo được Admin duyệt
+    // (không phải một checkbox trong form Owner - đó là chức năng nền tảng của mọi cơ sở).
+    public static final String CAPABILITY_SAN               = "SAN";
+    public static final String CAPABILITY_SAN_PHAM          = "SAN_PHAM";
+    public static final String CAPABILITY_THUE_DUNG_CU      = "THUE_DUNG_CU";
+    public static final String CAPABILITY_DO_AN_NUOC_UONG   = "DO_AN_NUOC_UONG";
+    public static final String CAPABILITY_HUAN_LUYEN_VIEN   = "HUAN_LUYEN_VIEN";
+    public static final String CAPABILITY_LOP_HOC           = "LOP_HOC";
+    public static final String CAPABILITY_KHAC              = "KHAC";
+    // Giai đoạn 1: cung cấp dịch vụ thể thao tại cơ sở (căng lưới, thay quấn cán, sửa vợt...).
+    // Đây là capability độc lập với CAPABILITY_SAN_PHAM (bán sản phẩm bán lẻ) - không dùng chung
+    // module "Quản lý cửa hàng" (SHOP_MODULE_CAPABILITIES) để tránh lẫn nghiệp vụ dịch vụ với bán lẻ.
+    public static final String CAPABILITY_DICH_VU_THE_THAO  = "DICH_VU_THE_THAO";
+
+    // Các capability Owner có thể tự chọn đăng ký trong form (loại trừ SAN - xem trên).
+    public static final java.util.List<String> OWNER_SELECTABLE_CAPABILITIES = java.util.List.of(
+            CAPABILITY_SAN_PHAM, CAPABILITY_THUE_DUNG_CU, CAPABILITY_DO_AN_NUOC_UONG,
+            CAPABILITY_HUAN_LUYEN_VIEN, CAPABILITY_LOP_HOC, CAPABILITY_DICH_VU_THE_THAO, CAPABILITY_KHAC
+    );
+
+    // Module "Quản lý dịch vụ" (Giai đoạn 1 - căng lưới, thay quấn cán, sửa vợt...) chỉ mở khi
+    // capability này được Admin duyệt - xem FilterQuyenManager.CAPABILITY_GATED_PATHS.
+    public static final java.util.List<String> SERVICE_MODULE_CAPABILITIES = java.util.List.of(
+            CAPABILITY_DICH_VU_THE_THAO
+    );
+
+    // Module "Quản lý cửa hàng" (KhoDichVuManagerServlet / SanPham_DichVu) phục vụ chung
+    // cả 3 loại hình này (sản phẩm bán lẻ, dụng cụ cho thuê, đồ ăn/nước uống) qua cùng
+    // một danh mục - Manager chỉ cần MỘT trong ba capability này được duyệt là đủ để
+    // truy cập module (xem FilterQuyenManager).
+    public static final java.util.List<String> SHOP_MODULE_CAPABILITIES = java.util.List.of(
+            CAPABILITY_SAN_PHAM, CAPABILITY_THUE_DUNG_CU, CAPABILITY_DO_AN_NUOC_UONG
+    );
+
+    // ========== FACILITY CAPABILITY (CoSoCapability.TrangThai) ==========
+    public static final String CAPABILITY_STATUS_PENDING   = "PENDING";
+    public static final String CAPABILITY_STATUS_APPROVED  = "APPROVED";
+    public static final String CAPABILITY_STATUS_REJECTED  = "REJECTED";
+    public static final String CAPABILITY_STATUS_SUSPENDED = "SUSPENDED";
+    public static final String CAPABILITY_STATUS_DISABLED  = "DISABLED";
+
+    public static String capabilityLabel(String type) {
+        if (type == null) return "";
+        switch (type) {
+            case CAPABILITY_SAN: return "Cho thuê sân thể thao";
+            case CAPABILITY_SAN_PHAM: return "Bán sản phẩm thể thao";
+            case CAPABILITY_THUE_DUNG_CU: return "Cho thuê dụng cụ thể thao";
+            case CAPABILITY_DO_AN_NUOC_UONG: return "Đồ ăn và nước uống";
+            case CAPABILITY_HUAN_LUYEN_VIEN: return "Huấn luyện viên";
+            case CAPABILITY_LOP_HOC: return "Lớp học";
+            case CAPABILITY_DICH_VU_THE_THAO: return "Cung cấp dịch vụ thể thao";
+            case CAPABILITY_KHAC: return "Dịch vụ khác";
+            default: return type;
+        }
+    }
+
+    public static String capabilityStatusLabel(String status) {
+        if (status == null) return "";
+        switch (status) {
+            case CAPABILITY_STATUS_PENDING: return "Chờ duyệt";
+            case CAPABILITY_STATUS_APPROVED: return "Đã duyệt";
+            case CAPABILITY_STATUS_REJECTED: return "Bị từ chối";
+            case CAPABILITY_STATUS_SUSPENDED: return "Tạm ngưng";
+            case CAPABILITY_STATUS_DISABLED: return "Đã tắt";
+            default: return status;
+        }
+    }
+
     // ========== PROMOTION (KhuyenMai) STATUS ==========
     public static final String TRANG_THAI_KM_HOAT_DONG = "Hoạt động";
     public static final String TRANG_THAI_KM_TAM_DUNG = "Tạm dừng";

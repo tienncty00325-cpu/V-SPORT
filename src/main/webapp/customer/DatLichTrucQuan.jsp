@@ -17,9 +17,9 @@
 <html lang="vi">
 <head>
     <title>Đặt lịch ngay trực quan - V-SPORT</title>
-    <jsp:include page="/common/head.jsp" />
-    <jsp:include page="/customer/common/vsport-theme.jsp" />
+    <jsp:include page="/common/xtra-head.jsp" />
     <style>
+        [hidden] { display: none !important; }
         :root {
             --ttv-slot-w: 52px;
             --ttv-row-h: 40px;
@@ -29,7 +29,7 @@
         @media (max-width: 767px) {
             :root { --ttv-court-col: 122px; --ttv-slot-w: 46px; --ttv-row-h: 38px; }
         }
-        html, body { background: #fff; color: var(--vs-text, #102A43); font-family: 'Inter', 'Barlow', system-ui, sans-serif; }
+        html, body { background: var(--surface); color: var(--navy); font-family: 'Inter', 'Barlow', system-ui, sans-serif; }
         /* Workspace grid: header / lưu ý / TIMELINE (1fr) / footer. Không khoảng trắng thừa. */
         body {
             margin: 0;
@@ -41,7 +41,7 @@
         }
 
         /* ============ Header navy (compact, 2 tầng, cao ~110px) ============ */
-        .ttv-header { background: var(--vs-primary-900, #111111); color: #fff; }
+        .ttv-header { background: var(--navy); color: var(--surface); }
         .ttv-header-top {
             display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
             gap: 10px; padding: 14px 12px 8px; min-height: 64px;
@@ -51,7 +51,7 @@
             justify-self: start;
             width: 34px; height: 34px; flex-shrink: 0;
             display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 8px; background: transparent; color: #fff; border: none; cursor: pointer;
+            border-radius: 8px; background: transparent; color: var(--surface); border: none; cursor: pointer;
             transition: background-color 100ms ease;
         }
         .ttv-back:hover { background: rgba(255,255,255,.12); }
@@ -68,17 +68,17 @@
         .ttv-icon-btn {
             display: inline-flex; align-items: center; justify-content: center;
             width: 30px; height: 30px; background: rgba(255,255,255,.1); border: none; border-radius: 7px;
-            color: #fff; cursor: pointer; transition: background-color 100ms ease;
+            color: var(--surface); cursor: pointer; transition: background-color 100ms ease;
         }
         .ttv-icon-btn:hover { background: rgba(255,255,255,.2); }
         .ttv-icon-btn:active { transform: translateY(1px) scale(0.99); }
         .ttv-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
         .ttv-date-input {
-            padding: 4px 8px; height: 30px; background: #fff; border: none; border-radius: 7px;
-            font-size: 14px; font-weight: 600; color: var(--vs-primary-900, #111111);
+            padding: 4px 8px; height: 30px; background: var(--surface); border: none; border-radius: 7px;
+            font-size: 14px; font-weight: 600; color: var(--navy);
             font-family: 'Inter', 'Barlow', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        .ttv-date-input:focus { outline: none; box-shadow: 0 0 0 3px var(--vs-focus-ring, rgba(227,0,15,.35)); }
+        .ttv-date-input:focus { outline: none; box-shadow: 0 0 0 3px var(--vs-focus-ring, rgba(1,226,129,.35)); }
 
         /* Tầng dưới header: legend một hàng ngang. */
         .ttv-header-legend {
@@ -94,23 +94,23 @@
             font-size: 13px; white-space: nowrap; flex-shrink: 0;
         }
         .ttv-legend-swatch { width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(255,255,255,.4); flex-shrink: 0; }
-        .ttv-legend-swatch.is-avail  { background: #FFFFFF; }
-        .ttv-legend-swatch.is-select { background: #e3000f; border-color: #e3000f; }
-        .ttv-legend-swatch.is-booked { background: #FF6268; border-color: #FF6268; }
-        .ttv-legend-swatch.is-hold   { background: #FFD76A; border-color: #FFD76A; }
-        .ttv-legend-swatch.is-locked { background: #B7BDC5; border-color: #B7BDC5; }
+        .ttv-legend-swatch.is-avail  { background: var(--surface); }
+        .ttv-legend-swatch.is-select { background: var(--primary); border-color: var(--primary); }
+        .ttv-legend-swatch.is-booked { background: #94a3b8; border-color: #94a3b8; }
+        .ttv-legend-swatch.is-hold   { background: #fcd34d; border-color: #fcd34d; }
+        .ttv-legend-swatch.is-locked { background: #e2e8f0; border-color: #e2e8f0; }
 
         /* ============ Dòng lưu ý ============ */
         .ttv-note {
-            padding: 6px 14px; background: var(--vs-primary-50, #ffe5e6);
+            padding: 6px 14px; background: var(--background);
             border-bottom: 1px solid var(--vs-border, #e0e3e5);
             font-size: 11.5px; text-align: center; color: var(--vs-text-secondary, #486581); font-weight: 600;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .ttv-note b { color: var(--vs-danger, #E5484D); font-weight: 800; }
+        .ttv-note b { color: var(--danger); font-weight: 800; }
 
         /* ============ Timetable — full-bleed, cuộn bên trong ============ */
-        .ttv-tt-wrapper { display: flex; flex-direction: column; min-height: 0; min-width: 0; max-width: 100vw; background: #fff; }
+        .ttv-tt-wrapper { display: flex; flex-direction: column; min-height: 0; min-width: 0; max-width: 100vw; background: var(--surface); }
         .ttv-tt-scroll {
             overflow: auto; flex: 1 1 auto; min-height: 160px;
             -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
@@ -122,49 +122,49 @@
         .ttv-tt-scroll::-webkit-scrollbar-track { background: #f2f4f6; }
         .ttv-tt { display: grid; font-size: 12px; user-select: none; }
         .ttv-tt-head-cell {
-            position: sticky; top: 0; z-index: 5; background: #faf9fd;
+            position: sticky; top: 0; z-index: 5; background: var(--background);
             border-bottom: 1px solid var(--vs-border, #e0e3e5); border-right: 1px solid #eceef0;
             display: flex; align-items: center; justify-content: center;
             font-weight: 800; font-size: 11px; color: var(--vs-text-secondary, #486581); height: var(--ttv-head-h);
             position: sticky;
         }
         .ttv-court-label {
-            position: sticky; left: 0; z-index: 4; background: #fff;
+            position: sticky; left: 0; z-index: 4; background: var(--surface);
             padding: 3px 8px; display: flex; flex-direction: column; justify-content: center;
             border-right: 2px solid var(--vs-border, #e0e3e5); border-bottom: 1px solid #eceef0;
             overflow: hidden; height: var(--ttv-row-h);
             box-shadow: 2px 0 6px -4px rgba(15,23,42,.24);
         }
-        .ttv-court-label-head { background: #faf9fd; z-index: 6; height: var(--ttv-head-h); justify-content: center; font-weight: 800; font-size: 11px; color: var(--vs-text-secondary, #486581); border-bottom: 1px solid var(--vs-border, #e0e3e5); }
+        .ttv-court-label-head { background: var(--background); z-index: 6; height: var(--ttv-head-h); justify-content: center; font-weight: 800; font-size: 11px; color: var(--vs-text-secondary, #486581); border-bottom: 1px solid var(--vs-border, #e0e3e5); }
         .ttv-court-name {
-            font-size: 12px; font-weight: 800; color: var(--vs-text, #102A43); line-height: 1.2;
+            font-size: 12px; font-weight: 800; color: var(--navy); line-height: 1.2;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .ttv-court-price { font-size: 10px; color: var(--vs-primary-600, #e3000f); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ttv-court-price { font-size: 10px; color: var(--primary); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ttv-head-minor { font-size: 9.5px; font-weight: 600; color: #94a3b8; }
         .ttv-slot {
-            background: #fff; border-right: 1px solid #eceef0; border-bottom: 1px solid #eceef0;
+            background: var(--surface); border-right: 1px solid #eceef0; border-bottom: 1px solid #eceef0;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
             height: var(--ttv-row-h); position: relative;
             transition: background-color 90ms ease;
         }
         /* Hover: chỉ đổi nền nhẹ, không chuyển động. */
-        .ttv-slot:hover:not(.is-blocked):not(.is-selected) { background: var(--vs-primary-50, #ffe5e6); }
+        .ttv-slot:hover:not(.is-blocked):not(.is-selected) { background: var(--background); }
         /* Press: lún nhẹ. */
         .ttv-slot:active:not(.is-blocked) { transform: translateY(1px) scale(0.99); }
-        .ttv-slot.is-selected { background: #e3000f; border-color: #c2000d; color: #fff; }
+        .ttv-slot.is-selected { background: var(--primary); border-color: var(--primary-hover); color: var(--surface); }
         .ttv-slot.is-selected.is-selected-start { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
         .ttv-slot.is-selected.is-selected-end   { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
-        .ttv-slot.is-hover { background: rgba(227,0,15,.14); }
+        .ttv-slot.is-hover { background: rgba(1,226,129,.14); }
         .ttv-slot.is-blocked { cursor: not-allowed; }
         .ttv-slot.is-past   { background: #EDF0F3; color: #9aa4b0; }
-        .ttv-slot.is-booked { background: #FF6268; color: #fff; }
-        .ttv-slot.is-hold   { background: #FFD76A; color: #6b4d00; }
+        .ttv-slot.is-booked { background: #94a3b8; color: var(--surface); }
+        .ttv-slot.is-hold   { background: #fcd34d; color: #6b4d00; }
         /* Đơn CHỜ THANH TOÁN của CHÍNH khách đang xem — cam nhạt, bấm được để tiếp tục thanh toán. */
-        .ttv-slot.is-hold_self { background: var(--vs-orange-100, #FFF1E5); color: #8a4b12; cursor: pointer; box-shadow: inset 0 0 0 1.5px var(--vs-orange-500, #FF8A24); }
+        .ttv-slot.is-hold_self { background: rgba(1,226,129,0.1); color: #8a4b12; cursor: pointer; box-shadow: inset 0 0 0 1.5px var(--primary); }
         .ttv-slot.is-hold_self:hover { background: #ffe6cf; }
-        .ttv-slot.is-locked { background: #B7BDC5; color: #3f4750; }
-        .ttv-slot:focus-visible { outline: 3px solid var(--vs-focus-ring, rgba(227,0,15,.35)); outline-offset: -3px; z-index: 2; }
+        .ttv-slot.is-locked { background: #e2e8f0; color: #3f4750; }
+        .ttv-slot:focus-visible { outline: 3px solid var(--vs-focus-ring, rgba(1,226,129,.35)); outline-offset: -3px; z-index: 2; }
         .ttv-slot.is-merged { padding: 0 6px; }
         .ttv-slot-run-label {
             font-size: 10.5px; font-weight: 800; white-space: nowrap;
@@ -172,26 +172,26 @@
         }
         /* Kẻ đậm hơn ở mốc mỗi giờ tròn. */
         .ttv-slot.is-hour-start, .ttv-tt-head-cell.is-hour-start { border-left: 1px solid #d6dee8; }
-        .ttv-now-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--vs-primary-500, #e3000f); pointer-events: none; z-index: 3; }
+        .ttv-now-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--primary); pointer-events: none; z-index: 3; }
         .ttv-now-chip {
             position: absolute; top: 1px; left: 50%; transform: translateX(-50%);
-            background: var(--vs-primary-500, #e3000f); color: #072435;
+            background: var(--primary); color: var(--surface);
             font-size: 9px; font-weight: 800; padding: 0 6px; border-radius: 999px;
             pointer-events: none; z-index: 7; white-space: nowrap;
         }
         .ttv-tt-empty { padding: 48px 24px; text-align: center; color: var(--vs-text-secondary, #486581); font-size: 13px; }
         .ttv-btn-ghost {
             display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            padding: 7px 14px; min-height: 36px; background: #fff; border: 1px solid var(--vs-border, #e0e3e5); border-radius: 8px;
-            color: var(--vs-text, #102A43); font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none;
+            padding: 7px 14px; min-height: 36px; background: var(--surface); border: 1px solid var(--vs-border, #e0e3e5); border-radius: 8px;
+            color: var(--navy); font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none;
             transition: border-color 100ms ease, color 100ms ease;
         }
-        .ttv-btn-ghost:hover { border-color: var(--vs-primary-600, #e3000f); color: var(--vs-primary-600, #e3000f); }
+        .ttv-btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
         .ttv-btn-ghost:active { transform: translateY(1px) scale(0.99); }
 
         /* ============ Footer cố định: Tổng giờ / Tổng tiền + CTA lớn ============ */
         .ttv-summary {
-            background: var(--vs-primary-900, #111111); color: #fff;
+            background: var(--navy); color: var(--surface);
             box-shadow: 0 -8px 24px rgba(7,26,47,.24);
             padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
         }
@@ -201,25 +201,25 @@
         }
         .ttv-summary-stat { display: inline-flex; align-items: baseline; gap: 7px; min-width: 0; }
         .ttv-summary-stat span { font-size: 10.5px; color: #c5c9b0; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
-        .ttv-summary-stat strong { font-size: 15px; font-weight: 800; color: #fff; white-space: nowrap; }
-        .ttv-summary-stat.is-total strong { font-size: 18px; font-weight: 900; color: var(--vs-primary-500, #e3000f); }
+        .ttv-summary-stat strong { font-size: 15px; font-weight: 800; color: var(--surface); white-space: nowrap; }
+        .ttv-summary-stat.is-total strong { font-size: 18px; font-weight: 900; color: var(--primary); }
         .ttv-summary-sel { flex: 1 1 auto; min-width: 0; text-align: center; font-size: 11.5px; color: #b6c2d4; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         @media (max-width: 639px) { .ttv-summary-sel { display: none; } }
         .ttv-summary-cta {
             display: flex; align-items: center; justify-content: center; gap: 10px;
             width: 100%; min-height: 50px;
             border-radius: 9px; border: none; cursor: pointer;
-            background: var(--vs-orange-500, #FF8A24); color: #fff; font-weight: 900; font-size: 15.5px;
+            background: var(--primary); color: var(--surface); font-weight: 900; font-size: 15.5px;
             letter-spacing: .04em; text-transform: uppercase; font-family: inherit;
             transition: background-color 100ms ease, transform 90ms ease;
         }
-        .ttv-summary-cta:hover:not(:disabled) { background: var(--vs-orange-600, #F97316); }
+        .ttv-summary-cta:hover:not(:disabled) { background: var(--primary-hover); }
         .ttv-summary-cta:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
         .ttv-summary-cta:disabled { background: #5c6f88; color: #cdd8e4; cursor: not-allowed; opacity: 1; }
-        .ttv-summary-cta:focus-visible { outline: 3px solid var(--vs-focus-ring, rgba(227,0,15,.35)); outline-offset: 2px; }
+        .ttv-summary-cta:focus-visible { outline: 3px solid var(--vs-focus-ring, rgba(1,226,129,.35)); outline-offset: 2px; }
         .ttv-summary-cta .ttv-btn-spinner {
             width: 18px; height: 18px; border-radius: 50%;
-            border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff;
+            border: 2.5px solid rgba(255,255,255,.35); border-top-color: var(--surface);
             animation: ttvSpin .8s linear infinite;
         }
         @keyframes ttvSpin { to { transform: rotate(360deg); } }
@@ -227,13 +227,13 @@
         /* ============ Toast ============ */
         .ttv-inline-alert {
             position: fixed; left: 50%; bottom: 118px; transform: translateX(-50%);
-            background: var(--vs-primary-900, #111111); color: #fff; padding: 10px 16px; border-radius: 999px;
+            background: var(--navy); color: var(--surface); padding: 10px 16px; border-radius: 999px;
             font-size: 13px; font-weight: 700; box-shadow: 0 12px 30px rgba(0,0,0,.32);
             opacity: 0; visibility: hidden; transition: opacity .18s ease;
             z-index: 60; max-width: 92vw; text-align: center;
         }
         .ttv-inline-alert.is-open { opacity: 1; visibility: visible; }
-        .ttv-inline-alert.is-danger { background: var(--vs-danger, #E5484D); }
+        .ttv-inline-alert.is-danger { background: var(--danger); }
         .ttv-inline-alert.is-warn   { background: var(--vs-warning, #F4B740); color: #1f2937; }
 
         /* ============ Loading / skeleton / error / empty ============ */
@@ -251,13 +251,13 @@
         .ttv-step-loading {
             position: fixed; inset: 0; z-index: 2000;
             background: var(--vs-primary-950, #000000);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #fff;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: var(--surface);
         }
         .ttv-step-loading-brand { font-size: 26px; font-weight: 900; letter-spacing: .14em; font-family: 'Barlow Condensed', sans-serif; }
-        .ttv-step-loading-brand span { color: var(--vs-primary-500, #e3000f); }
+        .ttv-step-loading-brand span { color: var(--primary); }
         .ttv-step-loading-ring {
             width: 44px; height: 44px; border-radius: 50%;
-            border: 4px solid rgba(255,255,255,.16); border-top-color: var(--vs-primary-500, #e3000f);
+            border: 4px solid rgba(255,255,255,.16); border-top-color: var(--primary);
             animation: ttvSpin .9s linear infinite;
         }
         .ttv-step-loading p { font-size: 14px; font-weight: 600; color: #cbd5e1; margin: 0; }

@@ -1,0 +1,64 @@
+<%--
+    Một dòng capability trong card Owner (dùng chung cho tab Chờ duyệt và Đang hoạt
+    động). Biến "cap" (CoSoCapability) phải được set trước khi include file này.
+    Không dùng cho capability SAN (cho thuê sân) - loại đó tự động APPROVED khi CoSo
+    được duyệt, không hiển thị dòng riêng để tránh gây rối UI Admin.
+--%>
+<c:if test="${cap.capabilityType != 'SAN'}">
+<div class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-zinc-50 border border-zinc-100">
+  <div class="min-w-0">
+    <p class="text-xs font-bold text-zinc-700 truncate">
+      <c:choose>
+        <c:when test="${cap.capabilityType == 'SAN_PHAM'}">Bán sản phẩm thể thao</c:when>
+        <c:when test="${cap.capabilityType == 'THUE_DUNG_CU'}">Cho thuê dụng cụ thể thao</c:when>
+        <c:when test="${cap.capabilityType == 'DO_AN_NUOC_UONG'}">Đồ ăn và nước uống</c:when>
+        <c:when test="${cap.capabilityType == 'HUAN_LUYEN_VIEN'}">Huấn luyện viên</c:when>
+        <c:when test="${cap.capabilityType == 'LOP_HOC'}">Lớp học</c:when>
+        <c:when test="${cap.capabilityType == 'DICH_VU_THE_THAO'}">Cung cấp dịch vụ thể thao</c:when>
+        <c:otherwise>Dịch vụ khác</c:otherwise>
+      </c:choose>
+    </p>
+    <c:if test="${cap.trangThai == 'REJECTED' and not empty cap.rejectReason}">
+      <p class="text-[11px] text-red-500 mt-0.5 truncate">Lý do từ chối: <c:out value="${cap.rejectReason}"/></p>
+    </c:if>
+    <c:if test="${cap.trangThai == 'SUSPENDED' and not empty cap.rejectReason}">
+      <p class="text-[11px] text-amber-600 mt-0.5 truncate">Lý do tạm ngưng: <c:out value="${cap.rejectReason}"/></p>
+    </c:if>
+  </div>
+  <div class="flex items-center gap-1.5 shrink-0">
+    <c:choose>
+      <c:when test="${cap.trangThai == 'PENDING'}">
+        <span class="badge badge-amber">Chờ duyệt</span>
+        <a href="#" onclick="return capabilityAction('duyet-capability', ${cap.capabilityId}, 'Duyệt loại hình kinh doanh này', false)"
+           class="w-7 h-7 flex items-center justify-center rounded-md text-emerald-600 bg-emerald-50 hover:bg-emerald-100" title="Duyệt">
+          <i class="ti ti-check text-sm"></i>
+        </a>
+        <a href="#" onclick="return capabilityAction('tu-choi-capability', ${cap.capabilityId}, 'Từ chối loại hình kinh doanh này', true)"
+           class="w-7 h-7 flex items-center justify-center rounded-md text-red-500 bg-red-50 hover:bg-red-100" title="Từ chối">
+          <i class="ti ti-x text-sm"></i>
+        </a>
+      </c:when>
+      <c:when test="${cap.trangThai == 'APPROVED'}">
+        <span class="badge badge-green">Đã duyệt</span>
+        <a href="#" onclick="return capabilityAction('tam-ngung-capability', ${cap.capabilityId}, 'Tạm ngưng loại hình kinh doanh này', true)"
+           class="w-7 h-7 flex items-center justify-center rounded-md text-amber-600 bg-amber-50 hover:bg-amber-100" title="Tạm ngưng">
+          <i class="ti ti-player-pause text-sm"></i>
+        </a>
+      </c:when>
+      <c:when test="${cap.trangThai == 'SUSPENDED'}">
+        <span class="badge" style="background:#fef3c7;color:#b45309;">Tạm ngưng</span>
+        <a href="#" onclick="return capabilityAction('kich-hoat-capability', ${cap.capabilityId}, 'Kích hoạt lại loại hình kinh doanh này', false)"
+           class="w-7 h-7 flex items-center justify-center rounded-md text-emerald-600 bg-emerald-50 hover:bg-emerald-100" title="Kích hoạt lại">
+          <i class="ti ti-player-play text-sm"></i>
+        </a>
+      </c:when>
+      <c:when test="${cap.trangThai == 'REJECTED'}">
+        <span class="badge badge-red">Từ chối</span>
+      </c:when>
+      <c:otherwise>
+        <span class="badge" style="background:#e2e8f0;color:#475569;">Đã tắt</span>
+      </c:otherwise>
+    </c:choose>
+  </div>
+</div>
+</c:if>

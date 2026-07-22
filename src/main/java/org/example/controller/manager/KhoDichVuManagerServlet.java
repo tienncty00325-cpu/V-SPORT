@@ -1,11 +1,13 @@
 package org.example.controller.manager;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import org.example.dao.DanhMucSanPhamDAO;
 import org.example.dao.SanPhamDichVuDAO;
 import org.example.dao.impl.DanhMucSanPhamDAOImpl;
@@ -21,16 +23,27 @@ import org.example.util.JPAUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.service.AuditLogService;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @WebServlet("/manager/kho-dich-vu")
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 7 * 1024 * 1024
+)
 public class KhoDichVuManagerServlet extends HttpServlet {
 
     private static final Logger logger = LogManager.getLogger(KhoDichVuManagerServlet.class);
     private static final Object categoryLock = new Object();
     private static volatile boolean categoryCleaned = false;
+    private static final Set<String> ALLOWED_PRODUCT_IMAGE_TYPES =
+            Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
     private final SanPhamDichVuDAO sanPhamDAO = new SanPhamDichVuDAOImpl();
     private final DanhMucSanPhamDAO categoryDAO = new DanhMucSanPhamDAOImpl();
 
@@ -252,6 +265,14 @@ public class KhoDichVuManagerServlet extends HttpServlet {
                 sp.setTrangThai(status != null ? status : Constants.TRANG_THAI_SP_DANG_KINH_DOANH);
                 sp.setMoTa(desc);
 
+                try {
+                    sp.setHinhAnh(resolveProductImage(req, null));
+                } catch (IllegalArgumentException imgErr) {
+                    session.setAttribute("errorMsg", imgErr.getMessage());
+                    resp.sendRedirect(req.getContextPath() + "/manager/kho-dich-vu");
+                    return;
+                }
+
                 boolean success = sanPhamDAO.insert(sp);
                 if (success) {
                     session.setAttribute("successMsg", "Thêm sản phẩm mới thành công.");
@@ -325,6 +346,14 @@ public class KhoDichVuManagerServlet extends HttpServlet {
                 sp.setSoLuongTon(stock);
                 sp.setTrangThai(status);
                 sp.setMoTa(desc);
+
+                try {
+                    sp.setHinhAnh(resolveProductImage(req, sp.getHinhAnh()));
+                } catch (IllegalArgumentException imgErr) {
+                    session.setAttribute("errorMsg", imgErr.getMessage());
+                    resp.sendRedirect(req.getContextPath() + "/manager/kho-dich-vu");
+                    return;
+                }
 
                 boolean success = sanPhamDAO.update(sp);
                 if (success) {
@@ -682,5 +711,60 @@ public class KhoDichVuManagerServlet extends HttpServlet {
     private void writeKhoAuditLog(int actorId, int spId, String sku, int qty, String type, int newStock) {
         logger.info("[AUDIT KHO] TYPE: {} | Actor ID: {} | Product ID: {} | SKU: {} | Qty Changed: {} | New Stock: {}",
                 type, actorId, spId, sku, qty, newStock);
+    }
+
+    /**
+     * Trả về đường dẫn ảnh sản phẩm: nếu Manager upload ảnh mới hợp lệ thì lưu và
+     * trả path mới, ngược lại giữ nguyên ảnh cũ (existingImage). Chống hotlink URL
+     * ngoài - chỉ nhận file upload thật, validate MIME theo whitelist, tên file
+     * random (không dùng tên gốc), không cho path traversal.
+     */
+    private String resolveProductImage(HttpServletRequest req, String existingImage)
+            throws IOException, ServletException {
+        Part imagePart = req.getPart("hinhAnhFile");
+        if (imagePart != null && imagePart.getSize() > 0) {
+            String contentType = imagePart.getContentType();
+            if (contentType == null || contentType.isBlank()
+                    || !ALLOWED_PRODUCT_IMAGE_TYPES.contains(contentType)) {
+                throw new IllegalArgumentException("Chỉ hỗ trợ ảnh sản phẩm định dạng JPG, PNG, WEBP hoặc GIF.");
+            }
+            return saveProductImageFile(imagePart);
+        }
+        return existingImage != null ? existingImage.trim() : null;
+    }
+
+    private String saveProductImageFile(Part imagePart) throws IOException {
+        String submittedFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+        String extension = getSafeImageExtension(submittedFileName, imagePart.getContentType());
+        String fileName = "product-" + UUID.randomUUID() + extension;
+
+        String uploadPath = getServletContext().getRealPath("/uploads/products");
+        if (uploadPath == null) {
+            uploadPath = new File(System.getProperty("user.home"), "v-sport/uploads/products").getAbsolutePath();
+        }
+
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists() && !uploadDir.mkdirs()) {
+            throw new IOException("Không thể tạo thư mục lưu ảnh sản phẩm.");
+        }
+
+        File productImageFile = new File(uploadDir, fileName);
+        imagePart.write(productImageFile.getAbsolutePath());
+        return "/uploads/products/" + fileName;
+    }
+
+    private String getSafeImageExtension(String fileName, String contentType) {
+        String lowerName = fileName == null ? "" : fileName.toLowerCase();
+        if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) return ".jpg";
+        if (lowerName.endsWith(".png")) return ".png";
+        if (lowerName.endsWith(".webp")) return ".webp";
+        if (lowerName.endsWith(".gif")) return ".gif";
+
+        if ("image/jpeg".equals(contentType)) return ".jpg";
+        if ("image/png".equals(contentType)) return ".png";
+        if ("image/webp".equals(contentType)) return ".webp";
+        if ("image/gif".equals(contentType)) return ".gif";
+
+        throw new IllegalArgumentException("Định dạng ảnh sản phẩm không hợp lệ.");
     }
 }

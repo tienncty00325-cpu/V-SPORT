@@ -16,6 +16,12 @@ public class JPAUtil {
             properties.put("jakarta.persistence.jdbc.url", DBUtil.getURL());
             properties.put("jakarta.persistence.jdbc.user", DBUtil.getUSER());
             properties.put("jakarta.persistence.jdbc.password", DBUtil.getPASSWORD());
+            // persistence.xml cấu hình hibernate.connection.provider_class = HikariCPConnectionProvider,
+            // nghĩa là Hibernate tự dựng MỘT HikariCP pool RIÊNG (không dùng chung dataSource của
+            // DBUtil). encrypt/trustServerCertificate phải được khai báo lại ở đây - xem DBUtil.java
+            // để biết vì sao không thể chỉ dựa vào property nhúng trong DB_URL.
+            properties.put("hibernate.hikari.dataSource.encrypt", DBUtil.getEncrypt());
+            properties.put("hibernate.hikari.dataSource.trustServerCertificate", DBUtil.getTrustServerCertificate());
 
             factory = Persistence.createEntityManagerFactory("SportPU", properties);
             logger.info("JPAUtil: EntityManagerFactory created successfully for SportPU");

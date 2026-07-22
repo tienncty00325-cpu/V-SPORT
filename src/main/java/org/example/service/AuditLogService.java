@@ -45,6 +45,8 @@ public class AuditLogService {
     public static final String ACTION_CANCEL             = "CANCEL";
     public static final String ACTION_NO_SHOW             = "NO_SHOW";
     public static final String ACTION_REPUTATION_ADJUST   = "REPUTATION_ADJUST";
+    public static final String ACTION_SUSPEND             = "SUSPEND";
+    public static final String ACTION_DISABLE             = "DISABLE";
 
     // Các hằng số loại thực thể
     public static final String ENTITY_ACCOUNT    = "TaiKhoan";
@@ -58,6 +60,7 @@ public class AuditLogService {
     public static final String ENTITY_DAT_SAN    = "LichDatSan";
     public static final String ENTITY_REPUTATION = "CustomerReputation";
     public static final String ENTITY_HOA_DON    = "HoaDon";
+    public static final String ENTITY_CAPABILITY = "CoSoCapability";
 
     /**
      * Ghi một bản ghi audit log. Không ném exception ra ngoài — lỗi log không được phá request chính.

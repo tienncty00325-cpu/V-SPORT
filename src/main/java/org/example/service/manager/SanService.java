@@ -255,6 +255,35 @@ public class SanService {
     }
 
     /**
+     * Lấy danh sách môn thể thao mà cơ sở này đã đăng ký lúc tạo/đăng ký
+     * (CoSo.LoaiHinhKinhDoanh — chuỗi tên môn phân tách bởi ", "), thay vì
+     * toàn bộ danh mục MonTheThao của hệ thống. Dùng cho dropdown "Thêm loại
+     * sân" ở Quản lý Sân — chỉ cho chọn đúng những môn Owner đã đăng ký,
+     * tránh liệt kê thừa và không phù hợp với những gì cơ sở thực sự kinh doanh.
+     * Nếu cơ sở không có LoaiHinhKinhDoanh hợp lệ (dữ liệu cũ/thiếu), fallback
+     * về toàn bộ danh mục để không chặn thao tác của Manager.
+     */
+    public List<MonTheThao> getRegisteredMonTheThao(int coSoId) {
+        List<MonTheThao> all = loaiSanDAO.getAllMonTheThao();
+        org.example.model.CoSo coSo = new org.example.dao.impl.CoSoDAOImpl().getCoSoById(coSoId);
+        if (coSo == null || coSo.getLoaiHinhKinhDoanh() == null || coSo.getLoaiHinhKinhDoanh().isBlank()) {
+            return all;
+        }
+        java.util.Set<String> registered = new java.util.HashSet<>();
+        for (String s : coSo.getLoaiHinhKinhDoanh().split(",")) {
+            String trimmed = s.trim();
+            if (!trimmed.isEmpty()) registered.add(trimmed);
+        }
+        if (registered.isEmpty()) {
+            return all;
+        }
+        List<MonTheThao> filtered = all.stream()
+                .filter(m -> registered.contains(m.getTenMon()))
+                .collect(java.util.stream.Collectors.toList());
+        return filtered.isEmpty() ? all : filtered;
+    }
+
+    /**
      * Lấy loại sân theo ID với validation branch access
      */
     public LoaiSan getLoaiSanById(int loaiSanId, int managerCoSoId) {

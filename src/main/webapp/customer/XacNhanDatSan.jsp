@@ -13,15 +13,15 @@
 <html lang="vi">
 <head>
     <title>Xác nhận đặt sân - V-SPORT</title>
-    <jsp:include page="/common/head.jsp" />
-    <jsp:include page="/customer/common/vsport-theme.jsp" />
+    <jsp:include page="/common/xtra-head.jsp" />
     <style>
-        html, body { background: var(--vs-background, #F4F7FB); color: var(--vs-text, #102A43); font-family: var(--vs-font-sans); }
+        [hidden] { display: none !important; }
+        html, body { background: var(--background); color: var(--navy); font-family: 'Outfit', sans-serif; }
         body { padding-bottom: 110px !important; }
 
         .xn-header {
             position: sticky; top: 0; z-index: 40;
-            background: var(--vs-primary-900, #0B2545); color: #fff;
+            background: var(--navy); color: #fff;
         }
         .xn-header-inner {
             display: flex; align-items: center; gap: 10px;
@@ -38,69 +38,69 @@
         .xn-title { font-size: 16px; font-weight: 800; margin: 0; flex: 1; }
         .xn-progress { display: none; font-size: 11.5px; color: #b6c2d4; font-weight: 600; }
         @media (min-width: 640px) { .xn-progress { display: inline; } }
-        .xn-progress b { color: var(--vs-cyan-500, #18C8E8); font-weight: 800; }
+        .xn-progress b { color: var(--primary); font-weight: 800; }
 
         .xn-shell { max-width: 860px; margin: 0 auto; padding: 14px 14px 0; }
         .xn-card {
-            background: var(--vs-surface, #FFFFFF); border: 1px solid var(--vs-border, #DCE5EF);
+            background: var(--surface); border: 1px solid var(--border);
             border-radius: 14px; padding: 16px; margin-bottom: 12px;
         }
         .xn-card h2 {
-            font-size: 12px; font-weight: 800; color: var(--vs-text-secondary, #486581);
+            font-size: 12px; font-weight: 800; color: var(--muted-text);
             text-transform: uppercase; letter-spacing: .07em; margin: 0 0 10px;
             display: flex; align-items: center; gap: 7px;
         }
-        .xn-card h2 svg { color: var(--vs-primary-600, #1677D2); }
-        .xn-facility-name { font-size: 16px; font-weight: 800; color: var(--vs-primary-900, #0B2545); }
-        .xn-facility-addr { font-size: 12.5px; color: var(--vs-text-secondary, #486581); margin-top: 3px; }
+        .xn-card h2 svg { color: var(--primary); }
+        .xn-facility-name { font-size: 16px; font-weight: 800; color: var(--navy); }
+        .xn-facility-addr { font-size: 12.5px; color: var(--muted-text); margin-top: 3px; }
         .xn-chip {
             display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px;
-            background: var(--vs-cyan-100, #DDF8FC); color: var(--vs-primary-700, #185A9D);
+            background: rgba(1,226,129,0.1); color: var(--primary);
             font-size: 11px; font-weight: 800; margin-top: 8px; margin-right: 6px;
         }
         .xn-row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13.5px; }
-        .xn-row .k { color: var(--vs-text-secondary, #486581); font-weight: 600; }
+        .xn-row .k { color: var(--muted-text); font-weight: 600; }
         .xn-row .v { font-weight: 700; text-align: right; }
-        .xn-row.total { border-top: 1px dashed var(--vs-border, #DCE5EF); margin-top: 6px; padding-top: 10px; }
-        .xn-row.total .k { font-weight: 800; color: var(--vs-text, #102A43); font-size: 14px; }
-        .xn-row.total .v { font-weight: 800; font-size: 17px; color: var(--vs-primary-900, #0B2545); }
-        .xn-promo-empty { font-size: 12.5px; color: var(--vs-muted, #829AB1); font-weight: 600; }
+        .xn-row.total { border-top: 1px dashed var(--border); margin-top: 6px; padding-top: 10px; }
+        .xn-row.total .k { font-weight: 800; color: var(--navy); font-size: 14px; }
+        .xn-row.total .v { font-weight: 800; font-size: 17px; color: var(--navy); }
+        .xn-promo-empty { font-size: 12.5px; color: var(--muted-text); font-weight: 600; }
 
         .xn-input, .xn-textarea {
             width: 100%; padding: 10px 12px; min-height: 42px;
-            background: #fff; border: 1px solid var(--vs-border, #DCE5EF); border-radius: 10px;
-            font-size: 13.5px; color: var(--vs-text, #102A43); font-family: inherit;
+            background: #fff; border: 1px solid var(--border); border-radius: 10px;
+            font-size: 13.5px; color: var(--navy); font-family: inherit;
         }
-        .xn-input[readonly] { background: #f6f9fc; color: var(--vs-text-secondary, #486581); }
+        .xn-input[readonly] { background: #f6f9fc; color: var(--muted-text); }
         .xn-textarea { min-height: 74px; resize: vertical; }
-        .xn-textarea:focus { outline: none; border-color: var(--vs-primary-600, #1677D2); box-shadow: 0 0 0 3px var(--vs-focus-ring, rgba(24,200,232,.35)); }
-        .xn-label { display: block; font-size: 11.5px; font-weight: 800; color: var(--vs-text-secondary, #486581); margin: 10px 0 5px; text-transform: uppercase; letter-spacing: .05em; }
+        .xn-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(1,226,129,.35); }
+        .xn-label { display: block; font-size: 11.5px; font-weight: 800; color: var(--muted-text); margin: 10px 0 5px; text-transform: uppercase; letter-spacing: .05em; }
 
         /* Payment method cards — không animation hover, chỉ đổi viền; press lún nhẹ */
         .xn-pay-options { display: grid; grid-template-columns: 1fr; gap: 8px; }
         @media (min-width: 560px) { .xn-pay-options { grid-template-columns: 1fr 1fr; } }
         .xn-pay-card {
             display: flex; align-items: flex-start; gap: 10px; padding: 13px 14px;
-            background: #fff; border: 1.5px solid var(--vs-border, #DCE5EF); border-radius: 12px;
+            background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
             cursor: pointer;
             transform: none;
             transition: background-color 120ms ease, border-color 120ms ease, box-shadow 80ms ease, transform 80ms ease;
         }
-        .xn-pay-card:hover { border-color: var(--vs-primary-600, #1677D2); transform: none; }
+        .xn-pay-card:hover { border-color: var(--primary); transform: none; }
         .xn-pay-card:active { transform: translateY(2px) scale(0.985); box-shadow: inset 0 3px 9px rgba(7,26,47,.14); }
-        .xn-pay-card.is-selected { border-color: var(--vs-primary-600, #1677D2); background: var(--vs-cyan-50, #F0FCFE); }
-        .xn-pay-card input { margin-top: 3px; accent-color: var(--vs-primary-600, #1677D2); }
+        .xn-pay-card.is-selected { border-color: var(--primary); background: rgba(1,226,129,0.05); }
+        .xn-pay-card input { margin-top: 3px; accent-color: var(--primary); }
         .xn-pay-name { font-size: 13.5px; font-weight: 800; }
-        .xn-pay-desc { font-size: 12px; color: var(--vs-text-secondary, #486581); margin-top: 2px; line-height: 1.45; }
-        .xn-pay-card:focus-within { outline: 3px solid var(--vs-focus-ring, rgba(24,200,232,.35)); outline-offset: 2px; }
+        .xn-pay-desc { font-size: 12px; color: var(--muted-text); margin-top: 2px; line-height: 1.45; }
+        .xn-pay-card:focus-within { outline: 3px solid rgba(1,226,129,.35); outline-offset: 2px; }
 
-        .xn-notes { font-size: 12px; color: var(--vs-text-secondary, #486581); line-height: 1.6; }
+        .xn-notes { font-size: 12px; color: var(--muted-text); line-height: 1.6; }
         .xn-notes li { margin: 2px 0; }
 
         /* Sticky CTA bar */
         .xn-ctabar {
             position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-            background: var(--vs-primary-900, #0B2545);
+            background: var(--navy);
             box-shadow: 0 -10px 30px rgba(7,26,47,.28);
             padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
         }
@@ -111,11 +111,11 @@
         .xn-cta {
             flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             height: 56px; border-radius: 12px; border: none; cursor: pointer;
-            background: var(--vs-orange-500, #FF8A24); color: #fff; font-weight: 800; font-size: 14.5px;
+            background: var(--primary); color: #fff; font-weight: 800; font-size: 14.5px;
             letter-spacing: .04em; text-transform: uppercase;
             transition: background-color 120ms ease, box-shadow 80ms ease, transform 80ms ease;
         }
-        .xn-cta:hover:not(:disabled) { background: var(--vs-orange-600, #F97316); }
+        .xn-cta:hover:not(:disabled) { background: var(--primary-hover); }
         .xn-cta:active:not(:disabled) { transform: translateY(2px) scale(0.985); box-shadow: inset 0 3px 9px rgba(7,26,47,.3); }
         .xn-cta:disabled { background: #3a4d63; color: #8a9bb0; cursor: not-allowed; }
         .xn-cta .spinner {
@@ -128,14 +128,14 @@
         /* Full-screen step loading */
         .xn-step-loading {
             position: fixed; inset: 0; z-index: 2000;
-            background: var(--vs-primary-950, #071A2F);
+            background: var(--navy);
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #fff;
         }
-        .xn-step-loading-brand { font-size: 26px; font-weight: 800; letter-spacing: .12em; font-family: var(--vs-font-heading); }
-        .xn-step-loading-brand span { color: var(--vs-cyan-500, #18C8E8); }
+        .xn-step-loading-brand { font-size: 26px; font-weight: 800; letter-spacing: .12em; font-family: 'Outfit', sans-serif; }
+        .xn-step-loading-brand span { color: var(--primary); }
         .xn-step-loading-ring {
             width: 44px; height: 44px; border-radius: 50%;
-            border: 4px solid rgba(255,255,255,.16); border-top-color: var(--vs-cyan-500, #18C8E8);
+            border: 4px solid rgba(255,255,255,.16); border-top-color: var(--primary);
             animation: xnSpin .9s linear infinite;
         }
         .xn-step-loading p { font-size: 14px; font-weight: 600; color: #cbd5e1; margin: 0; }

@@ -2,10 +2,13 @@ package org.example.service.matchmaking;
 
 import org.example.dao.GhepKeoDAO;
 import org.example.dao.LichDatSanDAO;
+import org.example.dao.TaiKhoanDAO;
 import org.example.dao.impl.GhepKeoDAOImpl;
 import org.example.dao.impl.LichDatSanDAOImpl;
+import org.example.dao.impl.TaiKhoanDAOImpl;
 import org.example.model.GhepKeo;
 import org.example.model.Lichdatsan;
+import org.example.model.TaiKhoan;
 
 import java.time.LocalDate;
 
@@ -18,14 +21,20 @@ public class GhepKeoService {
 
     private final GhepKeoDAO ghepKeoDAO;
     private final LichDatSanDAO lichDatSanDAO;
+    private final TaiKhoanDAO taiKhoanDAO;
 
     public GhepKeoService() {
-        this(new GhepKeoDAOImpl(), new LichDatSanDAOImpl());
+        this(new GhepKeoDAOImpl(), new LichDatSanDAOImpl(), new TaiKhoanDAOImpl());
     }
 
     public GhepKeoService(GhepKeoDAO ghepKeoDAO, LichDatSanDAO lichDatSanDAO) {
+        this(ghepKeoDAO, lichDatSanDAO, new TaiKhoanDAOImpl());
+    }
+
+    public GhepKeoService(GhepKeoDAO ghepKeoDAO, LichDatSanDAO lichDatSanDAO, TaiKhoanDAO taiKhoanDAO) {
         this.ghepKeoDAO = ghepKeoDAO;
         this.lichDatSanDAO = lichDatSanDAO;
+        this.taiKhoanDAO = taiKhoanDAO;
     }
 
     public static class CreateRequest {
@@ -36,6 +45,8 @@ public class GhepKeoService {
         public String trinhDo;
         public String hinhThucDuyet; // "auto" | "manual"
         public String note;
+        /** Điểm uy tín tối thiểu bắt buộc để tham gia kèo (0 = không yêu cầu). Phải trong [0, 100]. */
+        public int minReputation;
     }
 
     public static class Result {
@@ -80,10 +91,12 @@ public class GhepKeoService {
         keo.setMonTheThaoId(req.monTheThaoId);
         keo.setTrinhDo(req.trinhDo == null ? "Không yêu cầu" : req.trinhDo);
         keo.setTrangThai(GhepKeoDAOImpl.STATUS_OPEN);
+        int minRep = Math.max(0, Math.min(100, req.minReputation));
         keo.setMoTa(GhepKeoDAOImpl.encodeMoTa(
                 req.soNguoiCanTim,
                 (req.hinhThucDuyet == null || req.hinhThucDuyet.isBlank()) ? "auto" : req.hinhThucDuyet,
-                req.note == null ? "" : req.note.trim()));
+                req.note == null ? "" : req.note.trim(),
+                minRep));
 
         int keoId = ghepKeoDAO.create(keo);
         if (keoId <= 0) return Result.fail("Không thể tạo kèo. Vui lòng thử lại.");
@@ -100,6 +113,15 @@ public class GhepKeoService {
         if (view == null) return Result.fail("Kèo không tồn tại.");
         if (view.accountIdNguoiTao == accountId) return Result.fail("Bạn là chủ kèo, không cần xin tham gia.");
         if (!GhepKeoDAOImpl.STATUS_OPEN.equals(view.trangThai)) return Result.fail("Kèo hiện không nhận thêm người.");
+
+        // Kiểm tra điểm uy tín tối thiểu
+        if (view.minReputation > 0) {
+            TaiKhoan player = taiKhoanDAO.getAccountById(accountId);
+            int playerRep = (player != null) ? player.getDiemUyTin() : 0;
+            if (playerRep < view.minReputation) {
+                return Result.fail("Bạn cần có ít nhất " + view.minReputation + " điểm uy tín để tham gia kèo này (hiện tại bạn có " + playerRep + " điểm).");
+            }
+        }
 
         String desiredStatus = "manual".equalsIgnoreCase(view.hinhThucDuyet)
                 ? GhepKeoDAOImpl.P_STATUS_PENDING

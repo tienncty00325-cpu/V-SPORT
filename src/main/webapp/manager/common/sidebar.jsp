@@ -1,5 +1,22 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ page import="org.example.model.TaiKhoan" %>
+<%@ page import="org.example.dao.impl.CoSoCapabilityDAOImpl" %>
+<%@ page import="org.example.util.Constants" %>
+<%
+    // Menu "Kho & Dịch Vụ" chỉ hiện khi cơ sở đã được duyệt ít nhất 1 capability liên
+    // quan (SAN_PHAM/THUE_DUNG_CU/DO_AN_NUOC_UONG). Backend (FilterQuyenManager) đã
+    // chặn truy cập servlet - đây chỉ là ẩn menu cho gọn giao diện, không phải chốt an ninh.
+    TaiKhoan sidebarUser = (TaiKhoan) session.getAttribute("user");
+    boolean shopModuleApproved = sidebarUser != null
+            && new CoSoCapabilityDAOImpl().isApprovedAny(sidebarUser.getCoSoId(), Constants.SHOP_MODULE_CAPABILITIES);
+    request.setAttribute("shopModuleApproved", shopModuleApproved);
+    // Menu "Quản lý dịch vụ" (Giai đoạn 1 - căng lưới...) chỉ hiện khi capability
+    // DICH_VU_THE_THAO đã APPROVED. Backend (FilterQuyenManager) là chốt an ninh thật sự.
+    boolean serviceModuleApproved = sidebarUser != null
+            && new CoSoCapabilityDAOImpl().isApprovedAny(sidebarUser.getCoSoId(), Constants.SERVICE_MODULE_CAPABILITIES);
+    request.setAttribute("serviceModuleApproved", serviceModuleApproved);
+%>
 <%-- Tabler Icons --%>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
 
@@ -160,10 +177,22 @@
 
     <!-- Kinh doanh & Dịch vụ -->
     <p class="text-[10px] font-bold uppercase tracking-widest text-purple-400 px-3 mt-4 mb-1.5">Kinh doanh &amp; Dịch vụ</p>
+    <c:if test="${shopModuleApproved}">
     <a href="${pageContext.request.contextPath}/manager/kho-dich-vu"
       class="nav-link ${uri.contains('/manager/kho-dich-vu') || uri.contains('/KhoDichVu.jsp') ? 'active' : ''}">
       <i class="ti ti-package text-[19px]"></i>Kho &amp; Dịch Vụ
     </a>
+    </c:if>
+    <c:if test="${serviceModuleApproved}">
+    <a href="${pageContext.request.contextPath}/manager/dich-vu"
+      class="nav-link ${uri.contains('/manager/dich-vu') ? 'active' : ''}">
+      <i class="ti ti-tools text-[19px]"></i>Quản lý dịch vụ
+    </a>
+    <a href="${pageContext.request.contextPath}/manager/yeu-cau-dich-vu"
+      class="nav-link ${uri.contains('/yeu-cau-dich-vu') ? 'active' : ''}">
+      <i class="ti ti-clipboard-list text-[19px]"></i>Yêu cầu dịch vụ
+    </a>
+    </c:if>
     <a href="${pageContext.request.contextPath}/manager/hoa-don"
       class="nav-link ${uri.contains('/manager/hoa-don') || uri.contains('/QuanLyHoaDon.jsp') ? 'active' : ''}">
       <i class="ti ti-receipt text-[19px]"></i>Quản lý hóa đơn

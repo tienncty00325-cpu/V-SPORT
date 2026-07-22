@@ -75,7 +75,7 @@ public class QuanLySanManagerServlet extends HttpServlet {
         try {
             List<San> dsSan = sanService.getSansByCoSo(coSoId);
             List<LoaiSan> dsLoaiSan = sanService.getLoaiSansByCoSo(coSoId);
-            List<MonTheThao> dsMonTheThao = sanService.getAllMonTheThao();
+            List<MonTheThao> dsMonTheThao = sanService.getRegisteredMonTheThao(coSoId);
 
             request.setAttribute("dsSan", dsSan);
             request.setAttribute("dsLoaiSan", dsLoaiSan);

@@ -47,9 +47,18 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
 
     /** Bọc metadata (soNguoiCanTim, hinhThucDuyet) + note thành chuỗi MoTa lưu DB. */
     public static String encodeMoTa(int soNguoiCanTim, String hinhThucDuyet, String note) {
+        return encodeMoTa(soNguoiCanTim, hinhThucDuyet, note, 0);
+    }
+
+    /**
+     * Bọc metadata (soNguoiCanTim, hinhThucDuyet, minReputation) + note thành chuỗi MoTa lưu DB.
+     * minReputation = 0 nghĩa là không yêu cầu uy tín tối thiểu.
+     */
+    public static String encodeMoTa(int soNguoiCanTim, String hinhThucDuyet, String note, int minReputation) {
         String approve = (hinhThucDuyet == null || hinhThucDuyet.isBlank()) ? "auto" : hinhThucDuyet;
         String safeNote = note == null ? "" : note;
-        String meta = "{\"cap\":" + soNguoiCanTim + ",\"approve\":\"" + jsonEscape(approve) + "\"}";
+        int minRep = Math.max(0, Math.min(100, minReputation));
+        String meta = "{\"cap\":" + soNguoiCanTim + ",\"approve\":\"" + jsonEscape(approve) + "\",\"minRep\":" + minRep + "}";
         return META_PREFIX + meta + META_SUFFIX + safeNote;
     }
 
@@ -57,10 +66,11 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
         return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    /** Bóc metadata từ MoTa; đổ vào view. Nếu không có prefix → default cap=2, approve=auto. */
+    /** Bóc metadata từ MoTa; đổ vào view. Nếu không có prefix → default cap=2, approve=auto, minRep=0. */
     public static void decodeMoTaInto(String moTa, GhepKeoView view) {
         view.soNguoiCanTim = 2;
         view.hinhThucDuyet = "auto";
+        view.minReputation = 0;
         view.actualNote = moTa == null ? "" : moTa;
         if (moTa == null) return;
         int p1 = moTa.indexOf(META_PREFIX);
@@ -68,11 +78,12 @@ public class GhepKeoDAOImpl implements GhepKeoDAO {
         if (p1 == 0 && p2 > p1) {
             String json = moTa.substring(META_PREFIX.length(), p2);
             view.actualNote = moTa.substring(p2 + META_SUFFIX.length());
-            // Parse tối giản — chỉ đọc cap và approve. Không dùng full JSON parser để giảm phụ thuộc.
+            // Parse tối giản — đọc cap, approve và minRep. Không dùng full JSON parser để giảm phụ thuộc.
             view.soNguoiCanTim = readIntField(json, "cap", 2);
             String approve = readStringField(json, "approve", "auto");
             if (!"auto".equalsIgnoreCase(approve) && !"manual".equalsIgnoreCase(approve)) approve = "auto";
             view.hinhThucDuyet = approve.toLowerCase();
+            view.minReputation = Math.max(0, Math.min(100, readIntField(json, "minRep", 0)));
         }
     }
 

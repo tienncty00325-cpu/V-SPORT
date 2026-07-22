@@ -9,12 +9,18 @@ import jakarta.servlet.http.HttpSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.dao.AdminTrashDAO;
+import org.example.dao.CoSoCapabilityDAO;
 import org.example.dao.impl.AdminTrashDAOImpl;
+import org.example.dao.impl.CoSoCapabilityDAOImpl;
 import org.example.dao.impl.CoSoDAOImpl;
 import org.example.dao.impl.TaiKhoanDAOImpl;
 import org.example.model.CoSo;
+import org.example.model.CoSoCapability;
 import org.example.model.TaiKhoan;
+import org.example.service.AuditLogService;
+import org.example.service.admin.CapabilityApprovalService;
 import org.example.service.admin.OwnerApprovalService;
+import org.example.util.Constants;
 import org.example.util.DBUtil;
 import org.example.util.EmailUtil;
 
@@ -32,6 +38,8 @@ public class AdminOwnerServlet extends HttpServlet {
     private final TaiKhoanDAOImpl taiKhoanDAO = new TaiKhoanDAOImpl();
     private final AdminTrashDAO adminTrashDAO = new AdminTrashDAOImpl();
     private final OwnerApprovalService ownerApprovalService = new OwnerApprovalService();
+    private final CapabilityApprovalService capabilityApprovalService = new CapabilityApprovalService();
+    private final CoSoCapabilityDAO capabilityDAO = new CoSoCapabilityDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -43,26 +51,101 @@ public class AdminOwnerServlet extends HttpServlet {
         }
 
         String action = req.getParameter("action");
+        // Redirect capability actions to new unified endpoint
+        if (CAPABILITY_ACTIONS.contains(action)) {
+            handleCapabilityAction(req, resp, action, admin);
+            return;
+        }
         if (action != null) {
             handleAction(req, resp, action, admin);
             return;
         }
 
-        loadPageData(req, resp);
+        // Route cũ đã được tích hợp vào /admin/chi-nhanh — chuyển hướng tự động
+        resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
+    }
+
+    private static final Set<String> CAPABILITY_ACTIONS = Set.of(
+            "duyet-capability", "tu-choi-capability", "tam-ngung-capability", "kich-hoat-capability");
+
+    /**
+     * Duyệt/từ chối/tạm ngưng/kích hoạt lại MỘT capability cụ thể - tách biệt hoàn
+     * toàn khỏi việc duyệt/từ chối cơ sở (handleAction/"duyet"/"tu-choi" ở trên).
+     * Không được để lẫn hai luồng: từ chối một capability KHÔNG được đụng tới
+     * CoSo.TrangThai, và ngược lại.
+     */
+    private void handleCapabilityAction(HttpServletRequest req, HttpServletResponse resp, String action, TaiKhoan admin) throws IOException {
+        int capabilityId;
+        try {
+            capabilityId = Integer.parseInt(req.getParameter("capabilityId"));
+        } catch (Exception e) {
+            req.getSession().setAttribute("error", "ID capability không hợp lệ.");
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
+            return;
+        }
+        String reason = req.getParameter("reason");
+        String note = req.getParameter("note");
+
+        CoSoCapability before = capabilityDAO.findById(capabilityId);
+        if (before == null) {
+            req.getSession().setAttribute("error", "Không tìm thấy yêu cầu capability.");
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
+            return;
+        }
+        String beforeStatus = before.getTrangThai();
+        String typeLabel = Constants.capabilityLabel(before.getCapabilityType());
+
+        CapabilityApprovalService.Result result;
+        String auditAction;
+        switch (action) {
+            case "duyet-capability":
+                result = capabilityApprovalService.approve(capabilityId, admin.getAccountId(), note);
+                auditAction = AuditLogService.ACTION_APPROVE;
+                break;
+            case "tu-choi-capability":
+                result = capabilityApprovalService.reject(capabilityId, admin.getAccountId(), reason);
+                auditAction = AuditLogService.ACTION_REJECT;
+                break;
+            case "tam-ngung-capability":
+                result = capabilityApprovalService.suspend(capabilityId, admin.getAccountId(), reason);
+                auditAction = AuditLogService.ACTION_SUSPEND;
+                break;
+            case "kich-hoat-capability":
+                result = capabilityApprovalService.approve(capabilityId, admin.getAccountId(), note);
+                auditAction = AuditLogService.ACTION_APPROVE;
+                break;
+            default:
+                req.getSession().setAttribute("error", "Hành động không hợp lệ.");
+                resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
+                return;
+        }
+
+        if (result.success) {
+            AuditLogService.log(req, admin, before.getCoSoId(), auditAction, AuditLogService.ENTITY_CAPABILITY,
+                    String.valueOf(capabilityId), typeLabel,
+                    "Trạng thái: " + Constants.capabilityStatusLabel(beforeStatus) + " -> " +
+                            Constants.capabilityStatusLabel(result.capability.getTrangThai()) +
+                            (reason != null && !reason.isBlank() ? " | Lý do: " + reason : "") +
+                            (note != null && !note.isBlank() ? " | Ghi chú: " + note : ""));
+            req.getSession().setAttribute("message", "Đã cập nhật capability \"" + typeLabel + "\".");
+        } else {
+            req.getSession().setAttribute("error", result.errorMessage);
+        }
+        resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
     }
 
     private void handleAction(HttpServletRequest req, HttpServletResponse resp, String action, TaiKhoan admin) throws IOException {
         int coSoId = 0;
         try { coSoId = Integer.parseInt(req.getParameter("id")); } catch (Exception e) {
             req.getSession().setAttribute("error", "ID không hợp lệ.");
-            resp.sendRedirect(req.getContextPath() + "/admin/quan-ly-owner");
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
             return;
         }
 
         CoSo coSo = coSoDAO.getCoSoById(coSoId);
         if (coSo == null) {
             req.getSession().setAttribute("error", "Không tìm thấy cơ sở.");
-            resp.sendRedirect(req.getContextPath() + "/admin/quan-ly-owner");
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
             return;
         }
 
@@ -71,9 +154,16 @@ public class AdminOwnerServlet extends HttpServlet {
                 OwnerApprovalService.ApprovalResult result = ownerApprovalService.approve(coSoId, admin.getAccountId());
                 if (result.success) {
                     syncCourts(coSoId, result.coSo.getLoaiHinhKinhDoanh(), result.coSo.getSoLuongSanDuKien());
+                    // Cho thuê sân là chức năng nền tảng của mọi cơ sở đã duyệt - kích hoạt
+                    // capability SAN ngay, KHÔNG chờ Owner đăng ký riêng (khác với các
+                    // capability tùy chọn như bán sản phẩm, vốn vẫn giữ nguyên PENDING).
+                    capabilityApprovalService.activateCourtCapability(coSoId, admin.getAccountId());
                     if (result.account != null) {
                         sendApprovalEmail(result.account);
                     }
+                    AuditLogService.log(req, admin, coSoId, AuditLogService.ACTION_APPROVE,
+                            AuditLogService.ENTITY_CO_SO, String.valueOf(coSoId), result.coSo.getTenCoSo(),
+                            "Duyệt yêu cầu đăng ký cơ sở, kích hoạt tài khoản quản lý.");
                     req.getSession().setAttribute("message",
                             "Đã duyệt cơ sở \"" + result.coSo.getTenCoSo() + "\" và kích hoạt tài khoản quản lý.");
                 } else {
@@ -91,6 +181,9 @@ public class AdminOwnerServlet extends HttpServlet {
                     if (result.account != null) {
                         sendRejectionEmail(result.account, coSoName);
                     }
+                    AuditLogService.log(req, admin, coSoId, AuditLogService.ACTION_REJECT,
+                            AuditLogService.ENTITY_CO_SO, String.valueOf(coSoId), coSoName,
+                            "Từ chối yêu cầu đăng ký cơ sở.");
                     req.getSession().setAttribute("message", "Đã từ chối yêu cầu đăng ký cơ sở \"" + coSoName + "\".");
                     req.getSession().setAttribute("trashMessage", "Đã chuyển vào thùng rác.");
                     req.getSession().setAttribute("trashUrl", req.getContextPath() + "/admin/thung-rac");
@@ -127,7 +220,7 @@ public class AdminOwnerServlet extends HttpServlet {
                 req.getSession().setAttribute("error", "Hành động không hợp lệ.");
         }
 
-        resp.sendRedirect(req.getContextPath() + "/admin/quan-ly-owner");
+        resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
     }
 
     private void loadPageData(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -138,8 +231,10 @@ public class AdminOwnerServlet extends HttpServlet {
 
         // Map accountId -> TaiKhoan for quick lookup
         Map<Integer, TaiKhoan> accountMap = new HashMap<>();
-        for (TaiKhoan tk : allAccounts) {
-            accountMap.put(tk.getAccountId(), tk);
+        if (allAccounts != null) {
+            for (TaiKhoan tk : allAccounts) {
+                accountMap.put(tk.getAccountId(), tk);
+            }
         }
 
         List<Map<String, Object>> pending  = new ArrayList<>();
@@ -154,6 +249,7 @@ public class AdminOwnerServlet extends HttpServlet {
             Map<String, Object> row = new HashMap<>();
             row.put("coSo", cs);
             row.put("manager", mgr);
+            row.put("capabilities", capabilityDAO.findByCoSoId(cs.getCoSoID()));
 
             switch (cs.getTrangThai()) {
                 case "Chờ duyệt": pending.add(row); break;

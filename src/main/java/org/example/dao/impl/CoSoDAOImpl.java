@@ -82,8 +82,11 @@ public class CoSoDAOImpl implements CoSoDAO {
     public List<CoSo> getAllCoSoIncludingPending() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            return em.createQuery("SELECT c FROM CoSo c WHERE c.isDeleted = false OR c.isDeleted IS NULL", CoSo.class)
+            return em.createQuery("SELECT c FROM CoSo c WHERE c.isDeleted = false OR c.isDeleted IS NULL ORDER BY c.CoSoID DESC", CoSo.class)
                 .getResultList();
+        } catch (Exception e) {
+            logger.error("Lỗi getAllCoSoIncludingPending: {}", e.getMessage(), e);
+            return java.util.Collections.emptyList();
         } finally {
             em.close();
         }

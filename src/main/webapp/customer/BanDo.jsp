@@ -7,8 +7,9 @@
     <title>Bản đồ Sân Thể Thao - V-SPORT</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <jsp:include page="/common/xtra-head.jsp" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" crossorigin="anonymous">
-    <jsp:include page="/customer/common/vsport-theme.jsp" />
 
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -38,24 +39,23 @@
             overflow: hidden;
             overscroll-behavior: none;
             background: var(--vsm-bg);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
             color: var(--vsm-text);
+            display: flex;
+            flex-direction: column;
         }
         * { box-sizing: border-box; }
         button { font-family: inherit; }
 
-        /* Bring back visible focus rings globally undone by head.jsp's outline:none reset. */
-        a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
-            outline: 2.5px solid var(--vsm-cyan) !important;
-            outline-offset: 2px;
-        }
+        /* Ensure global header does not shrink */
+        .header { flex-shrink: 0; }
 
         .vsm-app {
-            position: fixed;
-            inset: 0;
+            position: relative;
             display: flex;
             flex-direction: column;
-            height: 100dvh;
+            flex: 1;
+            min-height: 0;
             background: var(--vsm-bg);
         }
 
@@ -160,20 +160,15 @@
         .vsm-corner-stack {
             position: absolute; right: 14px; z-index: 500;
             display: flex; flex-direction: column; gap: 10px;
-            /* Clear the fixed bottom nav — it sits on top of the map layer, so
-               "bottom" here must add its height or these FABs render underneath it. */
-            bottom: calc(var(--vs-bottomnav-h, 70px) + env(safe-area-inset-bottom, 0px) + 14px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
         }
         @media (min-width: 1024px) {
-            .vsm-corner-stack { right: 20px; bottom: calc(var(--vs-bottomnav-h-desktop, 80px) + 20px); }
+            .vsm-corner-stack { right: 20px; bottom: 30px; }
         }
 
-        /* Leaflet's own bottom-left (zoom) / bottom-right (attribution) controls
-           have the same problem — they anchor to the map container's bottom edge,
-           which is the viewport bottom, underneath the bottom nav. */
-        .leaflet-bottom { bottom: calc(var(--vs-bottomnav-h, 70px) + env(safe-area-inset-bottom, 0px) + 10px) !important; }
+        .leaflet-bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 20px) !important; }
         @media (min-width: 1024px) {
-            .leaflet-bottom { bottom: calc(var(--vs-bottomnav-h-desktop, 80px) + 10px) !important; }
+            .leaflet-bottom { bottom: 30px !important; }
         }
 
         .vsm-spinner-ring {
@@ -298,9 +293,7 @@
         .vsm-sheet {
             position: fixed; z-index: 850;
             left: 0; right: 0;
-            /* Stop above the bottom nav (not bottom:0) so the nav stays visible
-               and the sheet's CTAs are never covered by it. */
-            bottom: calc(var(--vs-bottomnav-h, 70px) + env(safe-area-inset-bottom, 0px));
+            bottom: 0;
             background: var(--vsm-surface);
             border-radius: 22px 22px 0 0;
             box-shadow: 0 -12px 40px rgba(11, 46, 89, 0.24);
@@ -313,10 +306,10 @@
         @media (min-width: 1024px) {
             .vsm-sheet {
                 left: 20px; right: auto;
-                bottom: calc(var(--vs-bottomnav-h-desktop, 80px) + 20px);
+                bottom: 20px;
                 width: min(480px, calc(100vw - 40px));
                 border-radius: 20px;
-                max-height: calc(100dvh - var(--vs-bottomnav-h-desktop, 80px) - 40px);
+                max-height: calc(100dvh - 120px);
             }
         }
         .vsm-sheet-handle-wrap { padding: 10px 0 4px; display: flex; justify-content: center; flex-shrink: 0; cursor: grab; touch-action: none; }
@@ -373,7 +366,7 @@
         /* ===================== List sheet ===================== */
         .vsm-list-sheet {
             position: fixed; z-index: 850; left: 0; right: 0;
-            bottom: calc(var(--vs-bottomnav-h, 70px) + env(safe-area-inset-bottom, 0px));
+            bottom: 0;
             background: var(--vsm-surface); border-radius: 22px 22px 0 0;
             box-shadow: 0 -12px 40px rgba(11, 46, 89, 0.24);
             transform: translateY(100%); transition: transform .26s cubic-bezier(.22,1,.36,1);
@@ -383,7 +376,7 @@
         @media (min-width: 1024px) {
             .vsm-list-sheet {
                 left: auto; right: 20px;
-                bottom: calc(var(--vs-bottomnav-h-desktop, 80px) + 20px); top: 20px;
+                bottom: 20px; top: 180px;
                 width: min(400px, calc(100vw - 40px));
                 border-radius: 20px; max-height: none;
             }
@@ -424,7 +417,7 @@
         }
 
         .vsm-toast {
-            position: fixed; left: 50%; bottom: calc(var(--vs-bottomnav-h, 70px) + 18px);
+            position: fixed; left: 50%; bottom: 30px;
             transform: translateX(-50%) translateY(12px); z-index: 1300;
             background: var(--vsm-navy-dark); color: #fff; padding: 10px 18px; border-radius: 9999px;
             font-size: 13px; font-weight: 600; opacity: 0; visibility: hidden;
@@ -448,6 +441,7 @@
     </style>
 </head>
 <body>
+<jsp:include page="/common/header-xtra.jsp" />
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
@@ -619,7 +613,7 @@
 
 <div id="vsmToast" class="vsm-toast" role="status" aria-live="polite"></div>
 
-<jsp:include page="/customer/common/bottom-nav.jsp" />
+
 
 <script>
 (function () {

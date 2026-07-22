@@ -254,6 +254,29 @@
     .vsfs-service b { font-weight: 800; color: var(--vs-primary-700, #185A9D); white-space: nowrap; }
     .vsfs-imggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
     .vsfs-imggrid img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; background: #eef4f1; }
+
+    /* ---- Cửa hàng (Phase 4) ---- */
+    .vsfs-shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .vsfs-product { border: 1px solid var(--vsx-border); border-radius: 12px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+    .vsfs-product-img { aspect-ratio: 1 / 1; background: var(--vs-mint-50); display: flex; align-items: center; justify-content: center; color: var(--vsx-muted); overflow: hidden; }
+    .vsfs-product-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vsfs-product-img .lci { width: 34px; height: 34px; }
+    .vsfs-product-body { padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .vsfs-product-cat { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--vsx-muted); }
+    .vsfs-product-name { font-size: 13.5px; font-weight: 800; color: var(--vsx-text); line-height: 1.3; }
+    .vsfs-product-price { font-size: 13.5px; font-weight: 800; color: var(--vs-primary-700, #185A9D); margin-top: auto; }
+    .vsfs-product-stock { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; align-self: flex-start; }
+    .vsfs-product-stock.is-in { background: var(--vs-success-bg, #E5F7EF); color: var(--vs-success, #16A36A); }
+    .vsfs-product-stock.is-low { background: #fff7e6; color: #b45309; }
+    .vsfs-product-stock.is-out { background: #f1f5f9; color: #64748b; }
+    .vsfs-product-contact {
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-top: 6px; padding: 7px 10px; border-radius: 8px;
+        font-size: 12px; font-weight: 700; text-align: center; text-decoration: none;
+        color: var(--vs-primary-700, #185A9D); background: var(--vs-mint-50);
+        border: 1px solid var(--vs-cyan-100, #DDF8FC);
+    }
+    a.vsfs-product-contact:hover { background: var(--vs-cyan-100, #DDF8FC); }
     .vsfs-policy-item { display: flex; gap: 9px; align-items: flex-start; }
     .vsfs-policy-item + .vsfs-policy-item { margin-top: 9px; }
     .vsfs-policy-item .lci { width: 17px; height: 17px; color: var(--vs-primary-600, #1677D2); margin-top: 2px; }
@@ -269,9 +292,9 @@
         border: 1px solid transparent; transition: background-color .15s ease;
     }
     .vsfs-btn:focus-visible { outline: 3px solid var(--vs-focus-ring, rgba(24, 200, 232, 0.35)); outline-offset: 2px; }
-    .vsfs-btn-primary { background: var(--vs-orange-500, #FF8A24); color: #fff; }
-    .vsfs-btn-primary:hover { background: var(--vs-orange-600, #F97316); }
-    .vsfs-btn-ghost { background: #fff; color: var(--vsx-text); border-color: var(--vsx-border); }
+    .vsfs-btn-primary { background: var(--vs-green-500, #01E281); color: var(--vs-navy, #122D40); }
+    .vsfs-btn-primary:hover { background: var(--vs-green-600, #01C771); }
+    .vsfs-btn-ghost { background: #fff; color: var(--vs-navy, #122D40); border-color: var(--vs-navy, #122D40); }
     .vsfs-btn-ghost:hover { background: var(--vs-mint-50); }
     @media (max-width: 767px) {
         .vsfs-sheet { max-height: 92dvh; border-radius: 22px 22px 0 0; }
@@ -391,12 +414,25 @@
                     <button type="button" class="vsfs-tab" role="tab" id="fsTab-overview" aria-controls="fsPanel-overview" aria-selected="true" data-fstab="overview">Tổng quan</button>
                     <button type="button" class="vsfs-tab" role="tab" id="fsTab-courts" aria-controls="fsPanel-courts" aria-selected="false" data-fstab="courts">Sân &amp; bảng giá</button>
                     <button type="button" class="vsfs-tab" role="tab" id="fsTab-services" aria-controls="fsPanel-services" aria-selected="false" data-fstab="services">Dịch vụ</button>
+                    <button type="button" class="vsfs-tab" role="tab" id="fsTab-shop" aria-controls="fsPanel-shop" aria-selected="false" data-fstab="shop" hidden>Cửa hàng</button>
                     <button type="button" class="vsfs-tab" role="tab" id="fsTab-images" aria-controls="fsPanel-images" aria-selected="false" data-fstab="images">Hình ảnh</button>
                     <button type="button" class="vsfs-tab" role="tab" id="fsTab-policy" aria-controls="fsPanel-policy" aria-selected="false" data-fstab="policy">Chính sách</button>
                 </div>
                 <div class="vsfs-panel" role="tabpanel" id="fsPanel-overview" aria-labelledby="fsTab-overview" tabindex="0"></div>
                 <div class="vsfs-panel" role="tabpanel" id="fsPanel-courts" aria-labelledby="fsTab-courts" tabindex="0" hidden></div>
                 <div class="vsfs-panel" role="tabpanel" id="fsPanel-services" aria-labelledby="fsTab-services" tabindex="0" hidden></div>
+                <div class="vsfs-panel" role="tabpanel" id="fsPanel-shop" aria-labelledby="fsTab-shop" tabindex="0" hidden>
+                    <div id="fsShopLoading" class="vsfs-shop-grid">
+                        <div class="vsx-skel" style="height:160px;border-radius:12px;"></div>
+                        <div class="vsx-skel" style="height:160px;border-radius:12px;"></div>
+                    </div>
+                    <div id="fsShopEmpty" hidden><p>Cơ sở đang cập nhật sản phẩm. Vui lòng quay lại sau.</p></div>
+                    <div id="fsShopError" hidden>
+                        <p>Không thể tải danh sách sản phẩm.</p>
+                        <button type="button" id="fsShopRetryBtn" class="vsfs-btn vsfs-btn-ghost">Thử lại</button>
+                    </div>
+                    <div id="fsShopGrid" class="vsfs-shop-grid" hidden></div>
+                </div>
                 <div class="vsfs-panel" role="tabpanel" id="fsPanel-images" aria-labelledby="fsTab-images" tabindex="0" hidden></div>
                 <div class="vsfs-panel" role="tabpanel" id="fsPanel-policy" aria-labelledby="fsTab-policy" tabindex="0" hidden>
                     <p style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--vsx-muted);margin-bottom:10px;">Chính sách chung của V-SPORT</p>
@@ -615,12 +651,15 @@
         const fsErrorBox = document.getElementById('fsError');
         const fsContent = document.getElementById('fsContent');
         const detailCache = new Map();
+        const shopCache = new Map();
         let fsOpen = false;
         let fsReturnFocus = null;
         let fsAbort = null;
+        let fsShopAbort = null;
         let fsCurrentId = null;
         let fsCurrentName = '';
         let fsCardImage = null;
+        let fsCurrentPhone = null;
         let fsPushedState = false;
 
         function openFacilitySheet(card) {
@@ -652,6 +691,7 @@
             if (!fsOpen) return;
             fsOpen = false;
             if (fsAbort) { fsAbort.abort(); fsAbort = null; }
+            if (fsShopAbort) { fsShopAbort.abort(); fsShopAbort = null; }
             fsOverlay.classList.remove('is-open');
             fsSheet.classList.remove('is-open');
             fsSheet.style.transform = '';
@@ -874,9 +914,119 @@
             const callBtn = document.getElementById('fsCallBtn');
             callBtn.hidden = !data.phone;
             if (data.phone) callBtn.href = 'tel:' + String(data.phone).replace(/[^+\d]/g, '');
+            fsCurrentPhone = data.phone || null;
+
+            // Tab Cửa hàng chỉ hiện khi backend xác nhận capability đã duyệt. Sản phẩm
+            // thật được lazy-load riêng (loadShopProducts) khi Customer bấm vào tab -
+            // không tải kèm ở đây để tránh phí request cho cơ sở không bán hàng.
+            document.getElementById('fsTab-shop').hidden = !data.shopAvailable;
 
             selectSheetTab('overview');
             showSheetState('content');
+        }
+
+        // ---- Cửa hàng (Phase 4, lazy-loaded) --------------------------------
+        function showShopState(state) {
+            document.getElementById('fsShopLoading').hidden = state !== 'loading';
+            document.getElementById('fsShopEmpty').hidden = state !== 'empty';
+            document.getElementById('fsShopError').hidden = state !== 'error';
+            document.getElementById('fsShopGrid').hidden = state !== 'content';
+        }
+
+        function loadShopProducts(cosoId) {
+            if (shopCache.has(cosoId)) {
+                renderShopProducts(shopCache.get(cosoId));
+                return;
+            }
+            showShopState('loading');
+            if (fsShopAbort) fsShopAbort.abort();
+            fsShopAbort = new AbortController();
+            fetch(CTX + '/api/customer/facilities/shop?coSoId=' + encodeURIComponent(cosoId), { signal: fsShopAbort.signal })
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(data => {
+                    shopCache.set(cosoId, data);
+                    if (fsOpen && fsCurrentId === cosoId) renderShopProducts(data);
+                })
+                .catch(err => {
+                    if (err && err.name === 'AbortError') return;
+                    if (fsOpen && fsCurrentId === cosoId) showShopState('error');
+                });
+        }
+        document.getElementById('fsShopRetryBtn').addEventListener('click', () => {
+            if (fsCurrentId) { shopCache.delete(fsCurrentId); loadShopProducts(fsCurrentId); }
+        });
+
+        const STOCK_LABEL = { CON_HANG: 'Còn hàng', SAP_HET: 'Sắp hết hàng', HET_HANG: 'Hết hàng' };
+        const STOCK_CLASS = { CON_HANG: 'is-in', SAP_HET: 'is-low', HET_HANG: 'is-out' };
+        const IC_BAG = 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z|M3 6h18|M16 10a4 4 0 0 1-8 0';
+
+        function renderShopProducts(data) {
+            const products = (data && Array.isArray(data.products)) ? data.products : [];
+            const grid = document.getElementById('fsShopGrid');
+            grid.textContent = '';
+            if (!data || !data.available) { showShopState('empty'); return; }
+            if (!products.length) { showShopState('empty'); return; }
+
+            products.forEach(p => {
+                const card = el('div', 'vsfs-product');
+
+                const imgWrap = el('div', 'vsfs-product-img');
+                const imgSrc = resolveImg(p.image);
+                if (imgSrc) {
+                    const img = document.createElement('img');
+                    img.loading = 'lazy';
+                    img.alt = p.name || '';
+                    img.onerror = function () { this.remove(); imgWrap.appendChild(bagIcon()); };
+                    img.src = imgSrc;
+                    imgWrap.appendChild(img);
+                } else {
+                    imgWrap.appendChild(bagIcon());
+                }
+                card.appendChild(imgWrap);
+
+                const body = el('div', 'vsfs-product-body');
+                if (p.category) body.appendChild(el('span', 'vsfs-product-cat', p.category));
+                body.appendChild(el('span', 'vsfs-product-name', p.name || ''));
+                const stockKey = STOCK_LABEL[p.stockStatus] ? p.stockStatus : 'HET_HANG';
+                body.appendChild(el('span', 'vsfs-product-stock ' + STOCK_CLASS[stockKey], STOCK_LABEL[stockKey]));
+                const price = fmtVnd(p.price);
+                if (price) body.appendChild(el('span', 'vsfs-product-price', price + (p.unit ? '/' + p.unit : '')));
+
+                // Giai đoạn 1 (liên hệ mua tại cơ sở) - chưa có giỏ hàng/thanh toán online
+                // thật, nên KHÔNG hiện nút "Mua ngay" giả. Chỉ đưa số điện thoại cơ sở.
+                if (p.stockStatus !== 'HET_HANG') {
+                    const contactBtn = document.createElement(fsCurrentPhone ? 'a' : 'span');
+                    contactBtn.className = 'vsfs-product-contact';
+                    contactBtn.textContent = fsCurrentPhone ? 'Liên hệ đặt mua' : 'Đến trực tiếp cơ sở để mua';
+                    if (fsCurrentPhone) {
+                        contactBtn.href = 'tel:' + String(fsCurrentPhone).replace(/[^+\d]/g, '');
+                        contactBtn.setAttribute('aria-label', 'Gọi cơ sở để đặt mua ' + (p.name || 'sản phẩm này'));
+                    }
+                    body.appendChild(contactBtn);
+                }
+                card.appendChild(body);
+
+                grid.appendChild(card);
+            });
+            showShopState('content');
+        }
+
+        function bagIcon() {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'lci');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('stroke-width', '2');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            svg.setAttribute('aria-hidden', 'true');
+            IC_BAG.split('|').forEach(d => {
+                const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                p.setAttribute('d', d);
+                svg.appendChild(p);
+            });
+            return svg;
         }
 
         // ---- Tabs -----------------------------------------------------------
@@ -887,6 +1037,7 @@
                 btn.setAttribute('aria-selected', selected ? 'true' : 'false');
                 document.getElementById('fsPanel-' + btn.getAttribute('data-fstab')).hidden = !selected;
             });
+            if (key === 'shop' && fsCurrentId) loadShopProducts(fsCurrentId);
         }
         tabButtons.forEach((btn, idx) => {
             btn.addEventListener('click', () => selectSheetTab(btn.getAttribute('data-fstab')));

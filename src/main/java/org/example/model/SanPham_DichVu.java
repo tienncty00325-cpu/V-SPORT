@@ -41,6 +41,9 @@ public class SanPham_DichVu {
     @Column(name = "MoTa", length = 255)
     private String MoTa;
 
+    @Column(name = "HinhAnh", length = 500)
+    private String HinhAnh;
+
     @Column(name = "IsDeleted")
     private boolean isDeleted;
 
@@ -152,6 +155,14 @@ public class SanPham_DichVu {
 
     public void setMoTa(String moTa) {
         MoTa = moTa;
+    }
+
+    public String getHinhAnh() {
+        return HinhAnh;
+    }
+
+    public void setHinhAnh(String hinhAnh) {
+        HinhAnh = hinhAnh;
     }
 
     public boolean isDeleted() { return isDeleted; }

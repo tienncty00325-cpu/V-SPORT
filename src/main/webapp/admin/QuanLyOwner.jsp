@@ -219,6 +219,16 @@
               </c:if>
             </div>
 
+            <c:if test="${not empty row.capabilities}">
+              <div class="border-t border-zinc-100"></div>
+              <div class="flex flex-col gap-2">
+                <p class="text-[10px] font-bold tracking-wider uppercase text-zinc-400">Loại hình kinh doanh đăng ký thêm</p>
+                <c:forEach var="cap" items="${row.capabilities}">
+                  <%@ include file="_capability-row.jspf" %>
+                </c:forEach>
+              </div>
+            </c:if>
+
             <!-- Action buttons -->
             <div class="flex items-center justify-end gap-2 pt-1 border-t border-zinc-100 mt-auto">
               <a href="?action=duyet&id=${cs.coSoID}"
@@ -308,6 +318,16 @@
               </c:if>
             </div>
 
+            <c:if test="${not empty row.capabilities}">
+              <div class="border-t border-zinc-100"></div>
+              <div class="flex flex-col gap-2">
+                <p class="text-[10px] font-bold tracking-wider uppercase text-zinc-400">Loại hình kinh doanh</p>
+                <c:forEach var="cap" items="${row.capabilities}">
+                  <%@ include file="_capability-row.jspf" %>
+                </c:forEach>
+              </div>
+            </c:if>
+
             <!-- Action buttons -->
             <div class="flex items-center justify-end gap-2 pt-1 border-t border-zinc-100 mt-auto">
               <c:choose>
@@ -346,6 +366,25 @@
       e.stopPropagation();
       sidebar.classList.toggle('-translate-x-full');
     });
+  }
+
+  // Duyệt/từ chối/tạm ngưng/kích hoạt lại một capability cụ thể - tách biệt hoàn
+  // toàn với duyệt/từ chối cơ sở ở trên (action + id khác nhau).
+  function capabilityAction(action, capabilityId, label, needReason) {
+    var reason = '';
+    if (needReason) {
+      reason = window.prompt('Nhập lý do: ' + label);
+      if (reason === null) return false;
+      if (!reason.trim()) { window.alert('Vui lòng nhập lý do.'); return false; }
+    } else if (!window.confirm(label + '?')) {
+      return false;
+    }
+    var params = new URLSearchParams();
+    params.set('action', action);
+    params.set('capabilityId', capabilityId);
+    if (needReason) params.set('reason', reason.trim());
+    window.location.href = '?' + params.toString();
+    return false;
   }
 
   // Switch tabs

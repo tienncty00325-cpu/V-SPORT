@@ -7,6 +7,7 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
         <class>org.example.model.AuditLog</class>
+        <class>org.example.model.CoSoCapability</class>
 
         <properties>
             <!-- Database Connection (Overridden dynamically at runtime by JPAUtil using DBUtil environment config) -->

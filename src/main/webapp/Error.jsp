@@ -9,7 +9,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V-SPORT - Da co loi xay ra</title>
+<title>V-SPORT - Đã có lỗi xảy ra</title>
 <style>
     body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
     .wrap { max-width: 480px; margin: 12vh auto 0; padding: 32px 24px; text-align: center; }
@@ -22,9 +22,9 @@
 <body>
 <div class="wrap">
     <div class="icon">&#9888;</div>
-    <h1>Da co loi xay ra</h1>
-    <p>Chuc nang nay dang duoc cau hinh. Vui long thu lai sau.</p>
-    <a class="btn" href="<%= ctx %>/customer/tai-khoan">Quay lai Tai khoan</a>
+    <h1>Đã có lỗi xảy ra</h1>
+    <p>Hệ thống đang xử lý chức năng này. Vui lòng quay lại sau.</p>
+    <a class="btn" href="<%= ctx %>/customer/tai-khoan">Quay lại Tài khoản</a>
 </div>
 </body>
 </html>

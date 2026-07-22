@@ -170,18 +170,15 @@
        class="nav-link ${uri.contains('/admin/chi-nhanh') || uri.contains('/QuanLyChiNhanh') ? 'active' : ''}">
       <i class="ti ti-building-stadium"></i>
       Cơ Sở
+      <c:if test="${sessionScope.adminPendingCount != null && sessionScope.adminPendingCount > 0}">
+        <span style="margin-left:auto;background:#f59e0b;color:#fff;border-radius:99px;font-size:10px;font-weight:700;padding:1px 7px;line-height:1.6;">${sessionScope.adminPendingCount}</span>
+      </c:if>
     </a>
 
     <a href="${pageContext.request.contextPath}/admin/nhan-su"
        class="nav-link ${uri.contains('/admin/nhan-su') || uri.contains('/NhanSu') ? 'active' : ''}">
       <i class="ti ti-users-group"></i>
       Nhân sự
-    </a>
-
-    <a href="${pageContext.request.contextPath}/admin/quan-ly-owner"
-       class="nav-link ${uri.contains('/admin/quan-ly-owner') || uri.contains('/QuanLyOwner') ? 'active' : ''}">
-      <i class="ti ti-user-cog"></i>
-      Quản lý Owner
     </a>
 
     <a href="${pageContext.request.contextPath}/admin/audit-log"

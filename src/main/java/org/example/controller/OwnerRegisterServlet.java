@@ -35,6 +35,8 @@ import java.util.Random;
 public class OwnerRegisterServlet extends HttpServlet {
     private static final Logger logger = LogManager.getLogger(OwnerRegisterServlet.class);
     private final TaiKhoanDAO taiKhoanDAO = new TaiKhoanDAOImpl();
+    private final org.example.service.admin.CapabilityApprovalService capabilityApprovalService =
+            new org.example.service.admin.CapabilityApprovalService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -224,6 +226,7 @@ public class OwnerRegisterServlet extends HttpServlet {
         String sportsData  = req.getParameter("sportsData"); // JSON array
         String viDoRaw     = req.getParameter("viDo");
         String kinhDoRaw   = req.getParameter("kinhDo");
+        String capabilitiesRaw = req.getParameter("capabilities"); // comma-separated, whitelist-checked below
 
         if (ownerName != null) ownerName = ownerName.trim();
         if (email != null) email = email.trim();
@@ -333,6 +336,17 @@ public class OwnerRegisterServlet extends HttpServlet {
 
             em.persist(coSo);
             em.flush(); // To retrieve generated CoSoID
+
+            // Ghi nhận các "loại hình kinh doanh" Owner đăng ký thêm (ngoài cho thuê sân).
+            // Chỉ tạo bản ghi PENDING - KHÔNG kích hoạt ngay. Trong cùng transaction với
+            // việc tạo CoSo để không có tình trạng CoSo tồn tại nhưng thiếu capability.
+            if (capabilitiesRaw != null && !capabilitiesRaw.isBlank()) {
+                java.util.List<String> requestedCapabilities = java.util.Arrays.stream(capabilitiesRaw.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(java.util.stream.Collectors.toList());
+                capabilityApprovalService.registerPending(em, coSo.getCoSoID(), requestedCapabilities);
+            }
 
             // Create or reuse locked manager Account
             TaiKhoan managerAcc;

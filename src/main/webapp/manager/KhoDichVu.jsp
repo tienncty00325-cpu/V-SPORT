@@ -523,18 +523,14 @@
                   <td class="px-5 py-4">
                     <div class="flex items-center gap-3">
                       <div class="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 shrink-0 flex items-center justify-center shadow-xs">
-                        <c:set var="imgUrl" value="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=80&auto=format&fit=crop&q=60"/>
                         <c:choose>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Aquafina')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1608885898957-a599fb18de3e?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Pocari')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Revive') or fn:containsIgnoreCase(sp.tenSanPham, 'Redbull') or fn:containsIgnoreCase(sp.tenSanPham, 'Nước')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Yonex') or fn:containsIgnoreCase(sp.tenSanPham, 'Vợt')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Giày')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Tất') or fn:containsIgnoreCase(sp.tenSanPham, 'Vớ')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1582966772680-860e372bb558?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'Cầu lông') or fn:containsIgnoreCase(sp.tenSanPham, 'Quả cầu')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1613918431201-496522c04e4e?w=80&auto=format&fit=crop&q=60"/></c:when>
-                          <c:when test="${fn:containsIgnoreCase(sp.tenSanPham, 'VS') or fn:containsIgnoreCase(sp.tenSanPham, 'Quấn')}"><c:set var="imgUrl" value="https://images.unsplash.com/photo-1595257841889-ecea6a1d0543?w=80&auto=format&fit=crop&q=60"/></c:when>
+                          <c:when test="${not empty sp.hinhAnh}">
+                            <img src="${pageContext.request.contextPath}${sp.hinhAnh}" alt="${fn:escapeXml(sp.tenSanPham)}" class="w-full h-full object-cover">
+                          </c:when>
+                          <c:otherwise>
+                            <span class="material-symbols-outlined text-[20px] text-slate-300">image</span>
+                          </c:otherwise>
                         </c:choose>
-                        <img src="${imgUrl}" alt="${sp.tenSanPham}" class="w-full h-full object-cover">
                       </div>
                       <div>
                         <p class="font-bold text-slate-800 text-[13.5px]">${sp.tenSanPham}</p>
@@ -596,7 +592,7 @@
                               class="w-8 h-8 rounded-lg hover:bg-violet-50 text-violet-600 flex items-center justify-center transition-colors">
                         <span class="material-symbols-outlined text-[18px]">add_box</span>
                       </button>
-                      <button onclick="openEditModal(${sp.sanPhamID}, '${sp.skuCode}', '${sp.tenSanPham}', ${sp.danhMucID}, ${sp.donGia}, ${sp.giaNhap}, '${sp.donViTinh}', ${sp.soLuongTon}, '${sp.trangThai}', '${sp.moTa}')"
+                      <button onclick="openEditModal(${sp.sanPhamID}, '${sp.skuCode}', '${sp.tenSanPham}', ${sp.danhMucID}, ${sp.donGia}, ${sp.giaNhap}, '${sp.donViTinh}', ${sp.soLuongTon}, '${sp.trangThai}', '${sp.moTa}', '${sp.hinhAnh}')"
                               title="Chỉnh sửa"
                               class="w-8 h-8 rounded-lg hover:bg-indigo-50 text-indigo-600 flex items-center justify-center transition-colors">
                         <span class="material-symbols-outlined text-[18px]">edit</span>
@@ -637,7 +633,7 @@
       <button type="button" onclick="closeAddModal()" class="modal-close"><span class="material-symbols-outlined text-[20px]">close</span></button>
     </div>
 
-    <form action="${pageContext.request.contextPath}/manager/kho-dich-vu" method="POST" class="px-8 py-6 flex flex-col gap-6">
+    <form action="${pageContext.request.contextPath}/manager/kho-dich-vu" method="POST" enctype="multipart/form-data" class="px-8 py-6 flex flex-col gap-6">
       <input type="hidden" name="action" value="add">
 
       <%-- Group 1: Thông tin cơ bản --%>
@@ -700,10 +696,15 @@
         </div>
       </div>
 
-      <%-- Group 3: Mô tả --%>
+      <%-- Group 3: Mô tả & Ảnh --%>
       <div>
         <label class="field-label">Mô tả mặt hàng</label>
         <input type="text" name="moTa" placeholder="Thông tin tóm tắt về mặt hàng..." class="form-input">
+      </div>
+      <div>
+        <label class="field-label">Ảnh sản phẩm</label>
+        <input type="file" name="hinhAnhFile" accept="image/jpeg,image/png,image/webp,image/gif" class="form-input">
+        <p class="text-[11px] text-slate-400 mt-1">JPG, PNG, WEBP hoặc GIF, tối đa 5MB. Để trống nếu chưa có ảnh — Customer sẽ thấy ảnh mặc định.</p>
       </div>
 
       <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-2">
@@ -797,7 +798,7 @@
       <button type="button" onclick="closeEditModal()" class="modal-close"><span class="material-symbols-outlined text-[20px]">close</span></button>
     </div>
 
-    <form action="${pageContext.request.contextPath}/manager/kho-dich-vu" method="POST" class="px-8 py-6 flex flex-col gap-6">
+    <form action="${pageContext.request.contextPath}/manager/kho-dich-vu" method="POST" enctype="multipart/form-data" class="px-8 py-6 flex flex-col gap-6">
       <input type="hidden" name="action" value="update">
       <input type="hidden" id="editSanPhamID" name="sanPhamID">
 
@@ -856,6 +857,19 @@
       <div>
         <label class="field-label">Mô tả mặt hàng</label>
         <input type="text" id="editMoTa" name="moTa" class="form-input">
+      </div>
+      <div>
+        <label class="field-label">Ảnh sản phẩm</label>
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 shrink-0 flex items-center justify-center">
+            <img id="editHinhAnhPreview" src="" alt="" class="w-full h-full object-cover" style="display:none;">
+            <span id="editHinhAnhPlaceholder" class="material-symbols-outlined text-[22px] text-slate-300">image</span>
+          </div>
+          <div class="flex-1">
+            <input type="file" name="hinhAnhFile" accept="image/jpeg,image/png,image/webp,image/gif" class="form-input">
+            <p class="text-[11px] text-slate-400 mt-1">Chọn ảnh mới để thay thế. Để trống nếu giữ ảnh hiện tại.</p>
+          </div>
+        </div>
       </div>
 
       <div class="flex justify-end gap-2.5 pt-4 border-t border-slate-100 mt-2">
@@ -1289,7 +1303,7 @@
   }
 
   // ── Edit Modal ──
-  function openEditModal(id, sku, name, catId, donGia, giaNhap, unit, stock, status, desc) {
+  function openEditModal(id, sku, name, catId, donGia, giaNhap, unit, stock, status, desc, hinhAnh) {
     document.getElementById('editSanPhamID').value = id;
     document.getElementById('editSkuCode').value = sku;
     document.getElementById('editTenSanPham').value = name;
@@ -1300,6 +1314,19 @@
     document.getElementById('editSoLuongTon').value = stock;
     document.getElementById('editTrangThai').value = status;
     document.getElementById('editMoTa').value = desc === 'null' ? '' : desc;
+
+    var preview = document.getElementById('editHinhAnhPreview');
+    var placeholder = document.getElementById('editHinhAnhPlaceholder');
+    if (hinhAnh && hinhAnh !== 'null' && hinhAnh.trim() !== '') {
+      preview.src = '${pageContext.request.contextPath}' + hinhAnh;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+    } else {
+      preview.src = '';
+      preview.style.display = 'none';
+      placeholder.style.display = 'block';
+    }
+
     document.getElementById('editModal').classList.remove('hidden');
     document.getElementById('editModal').classList.add('flex');
   }

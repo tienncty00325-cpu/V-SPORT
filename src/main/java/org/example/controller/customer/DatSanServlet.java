@@ -789,8 +789,8 @@ public class DatSanServlet extends HttpServlet {
                         }
                     } else {
                         session.setAttribute("message",
-                                "Đặt sân thành công! Lịch đặt bằng tiền mặt chỉ được giữ chỗ tạm thời. Vui lòng đến sớm 15 phút để làm thủ tục nhận sân.");
-                        resp.sendRedirect(req.getContextPath() + "/customer/lich-su-dat-san");
+                                "Đặt sân thành công! Sân đã được thêm vào giỏ hàng. Vui lòng chờ cơ sở xác nhận.");
+                        resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
                     }
                     return;
 
@@ -876,7 +876,12 @@ public class DatSanServlet extends HttpServlet {
             session.setAttribute("error", "Yêu cầu không hợp lệ.");
         }
 
-        resp.sendRedirect(req.getContextPath() + "/customer/dat-san?openHistory=true");
+        String source = req.getParameter("source");
+        if ("gio-hang".equals(source)) {
+            resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
+        } else {
+        resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
+        }
     }
 
     // =========================================================================
@@ -918,7 +923,7 @@ public class DatSanServlet extends HttpServlet {
         String redirectUrl = null;
         if (Constants.TRANG_THAI_DAT_SAN_DA_XAC_NHAN.equals(trangThai)) {
             status = "paid";
-            redirectUrl = ctx + "/customer/dat-san?openHistory=true";
+            redirectUrl = ctx + "/customer/gio-hang";
         } else if (Constants.TRANG_THAI_DAT_SAN_DA_HUY.equals(trangThai)) {
             status = "cancelled";
         } else if (Constants.TRANG_THAI_DAT_SAN_QUA_HAN.equals(trangThai)
@@ -954,7 +959,7 @@ public class DatSanServlet extends HttpServlet {
             HttpSession session) throws IOException {
         session.setAttribute("message",
                 "Hệ thống đang kiểm tra thanh toán. Vui lòng chờ xác nhận.");
-        resp.sendRedirect(req.getContextPath() + "/customer/dat-san?openHistory=true");
+        resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
     }
 
     private void handlePayOSCancel(HttpServletRequest req, HttpServletResponse resp,
@@ -962,7 +967,7 @@ public class DatSanServlet extends HttpServlet {
         Integer datSanId = parseIntParam(req.getParameter("datSanId"));
         if (datSanId == null) datSanId = parseIntParam(req.getParameter("orderCode"));
         if (datSanId == null) {
-            resp.sendRedirect(req.getContextPath() + "/customer/dat-san?openHistory=true");
+            resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
             return;
         }
 
@@ -985,7 +990,7 @@ public class DatSanServlet extends HttpServlet {
 
             if (trangThai == null || ownerAccountId != user.getAccountId()) {
                 session.setAttribute("error", "Không tìm thấy đơn đặt sân của bạn.");
-                resp.sendRedirect(req.getContextPath() + "/customer/dat-san?openHistory=true");
+                resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
                 return;
             }
 
@@ -1009,7 +1014,7 @@ public class DatSanServlet extends HttpServlet {
         session.setAttribute("message", cancelled
                 ? "Bạn đã hủy thanh toán. Khung giờ đã được giải phóng."
                 : "Đơn không còn ở trạng thái có thể hủy.");
-        resp.sendRedirect(req.getContextPath() + "/customer/dat-san?openHistory=true");
+        resp.sendRedirect(req.getContextPath() + "/customer/gio-hang");
     }
 
     /** Hủy payment link PayOS (best-effort) cho một booking; không ném lỗi ra ngoài. */

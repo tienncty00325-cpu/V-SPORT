@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -74,6 +75,44 @@ body { font-family: 'Inter', sans-serif; }
     display:inline-flex;align-items:center;gap:5px;padding:6px 14px;
     border-radius:99px;font-size:12px;font-weight:600;
   }
+
+  /* Tab pills */
+  .tab-pill {
+    display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
+    border-radius:12px;font-size:13px;font-weight:600;
+    border:1px solid #e4e4e7;background:#fff;color:#71717a;
+    cursor:pointer;transition:all .18s;
+  }
+  .tab-pill:hover { background:#f4f4f5;color:#3f3f46; }
+  .tab-pill.active { background:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.25); }
+
+  /* Request card */
+  .req-card {
+    background:#fff;border:1px solid #e4e4e7;border-radius:16px;
+    padding:18px;cursor:pointer;transition:all .18s;
+  }
+  .req-card:hover { box-shadow:0 4px 20px -4px rgba(0,0,0,.12);border-color:#cbd5e1; }
+  .req-card.selected { border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.15); }
+
+  /* Drawer */
+  #detailDrawer {
+    position:fixed;top:64px;right:0;bottom:0;width:420px;
+    background:#fff;border-left:1px solid #e4e4e7;
+    box-shadow:-8px 0 32px rgba(0,0,0,.08);
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+    z-index:60;display:flex;flex-direction:column;overflow:hidden;
+  }
+  #detailDrawer.open { transform:translateX(0); }
+
+  /* Capability chip */
+  .cap-chip {
+    display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+    border-radius:8px;font-size:11px;font-weight:600;
+    background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;
+  }
+  .cap-chip.pending { background:#fffbeb;color:#92400e;border-color:#fde68a; }
+  .cap-chip.approved { background:#f0fdf4;color:#166534;border-color:#bbf7d0; }
+  .cap-chip.rejected { background:#fef2f2;color:#991b1b;border-color:#fecaca; }
 </style>
 </head>
 <body class="bg-zinc-50 text-zinc-900 min-h-screen">
@@ -111,26 +150,14 @@ body { font-family: 'Inter', sans-serif; }
     <% session.removeAttribute("message"); %>
   </c:if>
 
-  <!-- ── Tiêu đề & thống kê ── -->
+  <!-- ── Tiêu đề ── -->
   <section class="reveal d0">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-xl font-black text-zinc-900 tracking-tight">Danh sách Cơ Sở
-          <span class="ml-2 text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-lg font-semibold">${dsChiNhanh.size()}</span>
-        </h2>
-        <p class="text-xs text-zinc-500 mt-0.5">Quản lý tất cả chi nhánh và cơ sở thể thao</p>
+        <h2 class="text-xl font-black text-zinc-900 tracking-tight">Quản lý Cơ Sở</h2>
+        <p class="text-xs text-zinc-500 mt-0.5">Quản lý tất cả cơ sở thể thao, duyệt yêu cầu đăng ký đối tác.</p>
       </div>
       <div class="flex items-center gap-2">
-        <!-- Quick stats -->
-        <c:set var="activeCount" value="0"/>
-        <c:forEach var="cn" items="${dsChiNhanh}">
-          <c:if test="${cn.trangThai == 'Đang hoạt động'}">
-            <c:set var="activeCount" value="${activeCount + 1}"/>
-          </c:if>
-        </c:forEach>
-        <div class="stat-chip bg-green-50 text-green-700 border border-green-200">
-          <i class="ti ti-circle-check text-sm"></i> ${activeCount} hoạt động
-        </div>
         <button onclick="document.getElementById('modalThem').classList.remove('hidden')"
                 class="flex items-center gap-2 h-10 px-5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
           <i class="ti ti-map-pin-plus text-base"></i>Thêm Cơ Sở
@@ -139,6 +166,38 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </section>
 
+  <!-- ── Tab bar ── -->
+  <section class="reveal d1 flex items-center gap-2 flex-wrap">
+    <button id="tab-btn-all" onclick="switchTab('all')"
+            class="tab-pill active">
+      <i class="ti ti-building-stadium text-sm"></i>
+      Tất cả cơ sở
+      <span class="ml-1 bg-blue-100 text-blue-700 rounded-md px-2 py-0.5 text-[10px] font-bold">${dsChiNhanh.size()}</span>
+    </button>
+    <button id="tab-btn-pending" onclick="switchTab('pending')"
+            class="tab-pill relative">
+      <i class="ti ti-clock-hour-4 text-sm"></i>
+      Chờ duyệt
+      <c:if test="${pendingCount > 0}">
+        <span class="ml-1 bg-amber-100 text-amber-700 rounded-md px-2 py-0.5 text-[10px] font-bold">${pendingCount}</span>
+      </c:if>
+    </button>
+    <button id="tab-btn-rejected" onclick="switchTab('rejected')"
+            class="tab-pill">
+      <i class="ti ti-circle-x text-sm"></i>
+      Đã từ chối
+      <c:if test="${not empty rejectedRequests}">
+        <span class="ml-1 bg-zinc-100 text-zinc-600 rounded-md px-2 py-0.5 text-[10px] font-bold">${rejectedRequests.size()}</span>
+      </c:if>
+    </button>
+    <a href="${pageContext.request.contextPath}/admin/thung-rac?loai=OwnerRequest"
+       class="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 transition-all">
+      <i class="ti ti-trash text-sm"></i>Thùng rác đăng ký
+    </a>
+  </section>
+
+  <!-- ══ TAB: Tất cả cơ sở ══ -->
+  <div id="tab-all">
   <!-- ── Grid Cards ── -->
   <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
     <c:forEach var="cn" items="${dsChiNhanh}" varStatus="st">
@@ -228,10 +287,6 @@ body { font-family: 'Inter', sans-serif; }
 
         <!-- Action buttons -->
         <div class="flex items-center justify-end gap-2 pt-1 border-t border-zinc-100 mt-auto">
-          <button type="button" onclick="openModalSua(${cn.coSoID})"
-             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all cursor-pointer">
-            <i class="ti ti-edit text-sm"></i>Chỉnh sửa
-          </button>
           <button onclick="confirmDelete(${cn.coSoID}, '${cn.tenCoSo}')"
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 transition-all">
             <i class="ti ti-trash text-sm"></i>Xóa
@@ -250,8 +305,163 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </c:if>
   </section>
+  </div><!-- /tab-all -->
+
+  <!-- ══ TAB: Yêu cầu chờ duyệt ══ -->
+  <div id="tab-pending" style="display:none">
+    <c:choose>
+      <c:when test="${empty pendingRequests}">
+        <div class="flex flex-col items-center justify-center py-24 text-zinc-400">
+          <i class="ti ti-clock-check text-6xl mb-4 opacity-30"></i>
+          <p class="text-base font-semibold">Không có yêu cầu chờ duyệt</p>
+          <p class="text-sm mt-1">Tất cả yêu cầu đăng ký đối tác đã được xử lý</p>
+        </div>
+      </c:when>
+      <c:otherwise>
+        <div class="flex flex-col gap-3">
+          <c:forEach var="row" items="${pendingRequests}" varStatus="st">
+            <c:set var="cs" value="${row.coSo}"/>
+            <c:set var="mgr" value="${row.manager}"/>
+            <div class="req-card" id="req-pending-${cs.coSoID}"
+                 onclick="openDrawer(${cs.coSoID}, 'pending')">
+              <div class="flex items-start gap-4">
+                <!-- Avatar -->
+                <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                  <i class="ti ti-user-circle text-amber-500 text-2xl"></i>
+                </div>
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="font-bold text-zinc-900 text-sm truncate">${cs.tenCoSo}</p>
+                    <span class="badge badge-amber">Chờ duyệt</span>
+                  </div>
+                  <p class="text-xs text-zinc-500 mt-0.5 truncate">
+                    <i class="ti ti-user text-zinc-400 mr-1"></i>${mgr.fullName} &bull; ${mgr.email}
+                  </p>
+                  <p class="text-xs text-zinc-500 mt-0.5 truncate">
+                    <i class="ti ti-map-pin text-zinc-400 mr-1"></i>${cs.diaChi}
+                  </p>
+                  <div class="flex flex-wrap gap-1 mt-2">
+                    <c:forEach var="cap" items="${row.capabilities}">
+                      <span class="cap-chip ${cap.trangThai == 'APPROVED' ? 'approved' : cap.trangThai == 'REJECTED' ? 'rejected' : 'pending'}">
+                        <i class="ti ti-check-circle text-[10px]"></i>${cap.capabilityType}
+                      </span>
+                    </c:forEach>
+                  </div>
+                </div>
+                <!-- Arrow -->
+                <i class="ti ti-chevron-right text-zinc-300 text-xl shrink-0 mt-1"></i>
+              </div>
+            </div>
+          </c:forEach>
+        </div>
+      </c:otherwise>
+    </c:choose>
+  </div><!-- /tab-pending -->
+
+  <!-- ══ TAB: Đã từ chối ══ -->
+  <div id="tab-rejected" style="display:none">
+    <c:choose>
+      <c:when test="${empty rejectedRequests}">
+        <div class="flex flex-col items-center justify-center py-24 text-zinc-400">
+          <i class="ti ti-circle-x text-6xl mb-4 opacity-30"></i>
+          <p class="text-base font-semibold">Chưa có yêu cầu bị từ chối</p>
+        </div>
+      </c:when>
+      <c:otherwise>
+        <div class="flex flex-col gap-3">
+          <c:forEach var="row" items="${rejectedRequests}">
+            <c:set var="cs" value="${row.coSo}"/>
+            <c:set var="mgr" value="${row.manager}"/>
+            <div class="req-card" id="req-rejected-${cs.coSoID}"
+                 onclick="openDrawer(${cs.coSoID}, 'rejected')">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                  <i class="ti ti-circle-x text-red-400 text-2xl"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="font-bold text-zinc-900 text-sm truncate">${cs.tenCoSo}</p>
+                    <span class="badge badge-red">Từ chối</span>
+                  </div>
+                  <p class="text-xs text-zinc-500 mt-0.5 truncate">
+                    <i class="ti ti-user text-zinc-400 mr-1"></i>${mgr.fullName} &bull; ${mgr.email}
+                  </p>
+                  <p class="text-xs text-zinc-500 mt-0.5 truncate">
+                    <i class="ti ti-map-pin text-zinc-400 mr-1"></i>${cs.diaChi}
+                  </p>
+                </div>
+                <i class="ti ti-chevron-right text-zinc-300 text-xl shrink-0 mt-1"></i>
+              </div>
+            </div>
+          </c:forEach>
+        </div>
+      </c:otherwise>
+    </c:choose>
+  </div><!-- /tab-rejected -->
 
 </main>
+
+<!-- ═══ Detail Drawer ═══ -->
+<div id="detailDrawer">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
+    <h3 class="font-bold text-zinc-900 text-sm" id="drawerTitle">Chi tiết yêu cầu</h3>
+    <button onclick="closeDrawer()" class="w-8 h-8 rounded-lg hover:bg-zinc-100 flex items-center justify-center transition-all">
+      <i class="ti ti-x text-zinc-500"></i>
+    </button>
+  </div>
+
+  <!-- Body (scrollable) -->
+  <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5" id="drawerBody">
+    <!-- Populated by JS from hidden data -->
+  </div>
+
+  <!-- Actions (fixed bottom) -->
+  <div class="shrink-0 px-5 py-4 border-t border-zinc-100 flex gap-3" id="drawerActions">
+  </div>
+</div>
+
+<!-- Hidden data store for drawer (JSTL renders all rows, JS reads on click) -->
+<script>
+var DRAWER_DATA = {};
+</script>
+<c:forEach var="row" items="${pendingRequests}">
+  <c:set var="cs" value="${row.coSo}"/>
+  <c:set var="mgr" value="${row.manager}"/>
+  <script>
+  DRAWER_DATA[${cs.coSoID}] = {
+    coSoId: ${cs.coSoID},
+    status: "pending",
+    tenCoSo: "${fn:escapeXml(cs.tenCoSo)}",
+    diaChi: "${fn:escapeXml(cs.diaChi)}",
+    sdtCoSo: "${fn:escapeXml(cs.soDienThoai)}",
+    mgrId: ${mgr.accountId},
+    mgrName: "${fn:escapeXml(mgr.fullName)}",
+    mgrEmail: "${fn:escapeXml(mgr.email)}",
+    mgrSdt: "${fn:escapeXml(mgr.phoneNumber)}",
+    capabilities: [<c:forEach var="cap" items="${row.capabilities}" varStatus="cs2">"${cap.capabilityType}"<c:if test="${!cs2.last}">,</c:if></c:forEach>]
+  };
+  </script>
+</c:forEach>
+<c:forEach var="row" items="${rejectedRequests}">
+  <c:set var="cs" value="${row.coSo}"/>
+  <c:set var="mgr" value="${row.manager}"/>
+  <script>
+  DRAWER_DATA[${cs.coSoID}] = {
+    coSoId: ${cs.coSoID},
+    status: "rejected",
+    tenCoSo: "${fn:escapeXml(cs.tenCoSo)}",
+    diaChi: "${fn:escapeXml(cs.diaChi)}",
+    sdtCoSo: "${fn:escapeXml(cs.soDienThoai)}",
+    mgrId: ${mgr.accountId},
+    mgrName: "${fn:escapeXml(mgr.fullName)}",
+    mgrEmail: "${fn:escapeXml(mgr.email)}",
+    mgrSdt: "${fn:escapeXml(mgr.phoneNumber)}",
+    capabilities: [<c:forEach var="cap" items="${row.capabilities}" varStatus="cs2">"${cap.capabilityType}"<c:if test="${!cs2.last}">,</c:if></c:forEach>]
+  };
+  </script>
+</c:forEach>
 
 <!-- ═══ Modal Xác nhận Xóa ═══ -->
 <div id="modalDelete" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4">
@@ -783,8 +993,7 @@ body { font-family: 'Inter', sans-serif; }
   // Mỗi form (Thêm/Sửa) có bộ 3 field riêng: input địa chỉ hiển thị, hidden viDo/kinhDo,
   // và dòng trạng thái. Tra theo id input địa chỉ đang active để biết ghi vào đâu.
   const GEO_FIELD_MAP = {
-    adminDiaChi: { viDo: 'adminViDo', kinhDo: 'adminKinhDo', status: 'adminGeoStatus' },
-    suaDiaChi:   { viDo: 'suaViDo',   kinhDo: 'suaKinhDo',   status: 'suaGeoStatus' }
+    adminDiaChi: { viDo: 'adminViDo', kinhDo: 'adminKinhDo', status: 'adminGeoStatus' }
   };
 
   function autoFillAddress(targetId) {
@@ -951,53 +1160,8 @@ body { font-family: 'Inter', sans-serif; }
   }
 
   // ==========================================
-  // EDIT MODAL ACTIONS
+  // EDIT: đã khóa — Admin không còn quyền chỉnh sửa cơ sở (chỉ Duyệt/Từ chối/Xóa).
   // ==========================================
-  function openModalSua(id) {
-    fetch('${pageContext.request.contextPath}/admin/chi-nhanh/sua?format=json&id=' + id)
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('suaCoSoID').value = data.coSoID;
-        document.getElementById('suaTenCoSo').value = data.tenCoSo;
-        document.getElementById('suaTrangThai').value = data.trangThai;
-        document.getElementById('suaPhone').value = data.soDienThoai;
-        document.getElementById('suaDiaChi').value = data.diaChi;
-
-        const gioMoInput = document.getElementById('suaGioMoCua');
-        const gioDongInput = document.getElementById('suaGioDongCua');
-        gioMoInput.value = data.gioMoCua ? data.gioMoCua.substring(0, 5) : '';
-        gioDongInput.value = data.gioDongCua ? data.gioDongCua.substring(0, 5) : '';
-        document.getElementById('suaGioWarning').classList.toggle('hidden', !!(data.gioMoCua && data.gioDongCua));
-
-        document.getElementById('suaViDo').value = data.viDo || '';
-        document.getElementById('suaKinhDo').value = data.kinhDo || '';
-        if (data.viDo && data.kinhDo) {
-          setGeoStatus('suaGeoStatus', 'ok', parseFloat(data.viDo), parseFloat(data.kinhDo));
-        } else {
-          setGeoStatus('suaGeoStatus', 'none');
-        }
-
-        document.getElementById('modalSua').classList.remove('hidden');
-      })
-      .catch(err => {
-        alert('Lỗi tải thông tin chi nhánh: ' + err);
-      });
-  }
-
-  function closeModalSua() {
-    document.getElementById('modalSua').classList.add('hidden');
-    document.getElementById('formSuaCoSo').reset();
-  }
-
-  function finalValidateEdit() {
-    const viDo = document.getElementById('suaViDo').value;
-    const kinhDo = document.getElementById('suaKinhDo').value;
-    if (!viDo || !kinhDo) {
-      alert('Vị trí cơ sở chưa hợp lệ. Vui lòng chọn lại vị trí trên bản đồ hoặc nhập đầy đủ tọa độ.');
-      return false;
-    }
-    return true;
-  }
 
   // ═══════════ PAYOS CONFIG MODAL ═══════════
   let payosCurrentCoSoId = null;
@@ -1273,102 +1437,6 @@ body { font-family: 'Inter', sans-serif; }
   }
 </script>
 
-<!-- ═══ Modal Sửa Cơ Sở ═══ -->
-<div id="modalSua" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModalSua()"></div>
-  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-[560px] max-h-[92vh] flex flex-col geo-animate-scale">
-
-    <!-- Header cố định -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 shrink-0">
-      <div class="flex items-center gap-3">
-        <i class="ti ti-edit text-blue-600 text-lg"></i>
-        <h3 class="text-base font-bold text-zinc-900">Chỉnh sửa Cơ Sở</h3>
-      </div>
-      <button onclick="closeModalSua()" class="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400">
-        <i class="ti ti-x text-lg"></i>
-      </button>
-    </div>
-
-    <!-- Body cuộn được -->
-    <div class="overflow-y-auto p-6">
-      <form id="formSuaCoSo" action="${pageContext.request.contextPath}/admin/chi-nhanh/sua" method="post" class="flex flex-col gap-4">
-        <input type="hidden" name="id" id="suaCoSoID">
-
-        <!-- Tên cơ sở & Trạng thái -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-zinc-700">Tên Cơ Sở <span class="text-red-500">*</span></label>
-            <input type="text" name="tenCoSo" id="suaTenCoSo" required
-                   class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-zinc-700">Trạng thái <span class="text-red-500">*</span></label>
-            <select name="trangThai" id="suaTrangThai" class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-              <option value="Đang hoạt động">Đang hoạt động</option>
-              <option value="Tạm nghỉ">Tạm nghỉ</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50/60 border border-blue-100 text-xs text-blue-700">
-          <i class="ti ti-info-circle text-sm shrink-0"></i>
-          <span>Môn thể thao và số sân do Quản lý cơ sở cấu hình tại trang "Quản lý Sân" của chi nhánh — Admin không chỉnh tại đây.</span>
-        </div>
-
-        <!-- Địa chỉ định vị GPS -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-zinc-700 flex items-center justify-between">
-            <span>Địa chỉ <span class="text-red-500">*</span></span>
-            <button type="button" onclick="autoFillAddress('suaDiaChi')" class="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 border border-blue-150 px-2 py-0.5 rounded-lg transition-all normal-case">
-              <i class="ti ti-map-pin text-[11px]"></i> Định vị địa chỉ / Tọa độ GG Map
-            </button>
-          </label>
-          <input type="text" name="diaChi" id="suaDiaChi" required placeholder="Số nhà, tên đường..."
-                 class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-          <input type="hidden" name="viDo" id="suaViDo">
-          <input type="hidden" name="kinhDo" id="suaKinhDo">
-          <p id="suaGeoStatus" class="text-[11px] font-semibold mt-0.5 text-amber-600">
-            <i class="ti ti-map-pin-off text-sm align-[-2px]"></i> Chưa xác định tọa độ — nhấn "Định vị địa chỉ / Tọa độ GG Map"
-          </p>
-        </div>
-
-        <!-- Số điện thoại -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-zinc-700">Số điện thoại <span class="text-red-500">*</span></label>
-          <input type="tel" name="soDienThoai" id="suaPhone" required placeholder="0912..."
-                 class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-        </div>
-
-        <!-- Giờ mở / đóng cửa -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-zinc-700">Giờ mở cửa <span class="text-red-500">*</span></label>
-            <input type="time" name="gioMoCua" id="suaGioMoCua" required
-                   class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-semibold text-zinc-700">Giờ đóng cửa <span class="text-red-500">*</span></label>
-            <input type="time" name="gioDongCua" id="suaGioDongCua" required
-                   class="h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:border-blue-450 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium">
-          </div>
-        </div>
-        <p id="suaGioWarning" class="hidden text-[11px] font-semibold text-amber-600 -mt-2">
-          <i class="ti ti-clock-exclamation text-sm align-[-2px]"></i> Giờ hoạt động chưa được thiết lập cho cơ sở này — vui lòng nhập giờ thực tế trước khi lưu.
-        </p>
-
-        <div class="flex justify-end gap-3 pt-3 border-t border-zinc-50">
-          <button type="button" onclick="closeModalSua()" class="h-10 px-5 rounded-xl border border-zinc-200 text-sm font-bold text-zinc-600 hover:bg-zinc-50 transition-all">Hủy</button>
-          <button type="submit" onclick="return finalValidateEdit()"
-                  class="h-10 px-7 rounded-xl bg-zinc-900 text-white text-sm font-bold hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-900/10 flex items-center gap-2">
-            <i class="ti ti-device-floppy text-sm"></i> Cập nhật Cơ Sở
-          </button>
-        </div>
-      </form>
-    </div>
-
-  </div>
-</div>
-
 <!-- ═══ Modal Cấu hình PayOS ═══ -->
 <div id="modalPayOS" class="hidden fixed inset-0 z-[95] flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closePayOSModal()"></div>
@@ -1525,6 +1593,198 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
+
+<!-- ═══ Modal Từ chối yêu cầu ═══ -->
+<div id="modalTuChoi" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeTuChoiModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-[420px] p-6">
+    <div class="w-12 h-12 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center mb-4">
+      <i class="ti ti-circle-x text-red-500 text-2xl"></i>
+    </div>
+    <h3 class="text-base font-bold text-zinc-900 mb-1">Từ chối yêu cầu</h3>
+    <p class="text-sm text-zinc-500 mb-4">Nhập lý do từ chối để thông báo cho chủ cơ sở.</p>
+    <input type="hidden" id="tuChoiCoSoId" value="">
+    <div class="mb-4">
+      <label class="text-xs font-semibold text-zinc-700 mb-1 block">Lý do từ chối <span class="text-red-500">*</span></label>
+      <textarea id="tuChoiReason" rows="3" placeholder="Ví dụ: Thiếu giấy tờ pháp lý, thông tin không hợp lệ..."
+                class="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-400 resize-none"></textarea>
+      <p class="text-xs text-red-500 mt-1 hidden" id="tuChoiReasonErr">Vui lòng nhập lý do từ chối.</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeTuChoiModal()" class="flex-1 h-10 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-all">Hủy</button>
+      <button onclick="submitTuChoi()" class="flex-1 h-10 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-all shadow-md shadow-red-100">
+        <i class="ti ti-circle-x mr-1"></i>Xác nhận từ chối
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────
+function switchTab(tab) {
+  ['all','pending','rejected'].forEach(function(t) {
+    var panel = document.getElementById('tab-' + t);
+    var btn   = document.getElementById('tab-btn-' + t);
+    if (!panel || !btn) return;
+    panel.style.display = (t === tab) ? '' : 'none';
+    if (t === tab) { btn.classList.add('active'); }
+    else           { btn.classList.remove('active'); }
+  });
+  closeDrawer();
+}
+
+// Auto-switch if ?tab= param present
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var tab = params.get('tab');
+  if (tab === 'pending' || tab === 'rejected') {
+    switchTab(tab);
+  }
+})();
+
+// ── Drawer ─────────────────────────────────────────────────────
+var currentDrawerCoSoId = null;
+
+function openDrawer(coSoId, status) {
+  var data = DRAWER_DATA[coSoId];
+  if (!data) return;
+
+  currentDrawerCoSoId = coSoId;
+
+  // Mark selected card
+  document.querySelectorAll('.req-card').forEach(function(c) { c.classList.remove('selected'); });
+  var card = document.getElementById('req-' + status + '-' + coSoId);
+  if (card) card.classList.add('selected');
+
+  // Title
+  document.getElementById('drawerTitle').textContent = data.tenCoSo;
+
+  // Build body HTML
+  var capHtml = '';
+  if (data.capabilities && data.capabilities.length > 0) {
+    data.capabilities.forEach(function(c) { capHtml += '<span class="cap-chip">' + escHtml(c) + '</span> '; });
+  } else {
+    capHtml = '<span class="text-xs text-zinc-400">Chưa đăng ký</span>';
+  }
+
+  document.getElementById('drawerBody').innerHTML = [
+    '<div class="p-4 bg-zinc-50 rounded-xl border border-zinc-100">',
+      '<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Thông tin cơ sở</p>',
+      infoRow('ti-building-stadium', 'Tên cơ sở', data.tenCoSo),
+      infoRow('ti-map-pin', 'Địa chỉ', data.diaChi),
+      infoRow('ti-phone', 'Điện thoại', data.sdtCoSo || '—'),
+    '</div>',
+    '<div class="p-4 bg-zinc-50 rounded-xl border border-zinc-100">',
+      '<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Thông tin quản lý</p>',
+      infoRow('ti-user', 'Họ tên', data.mgrName),
+      infoRow('ti-mail', 'Email', data.mgrEmail),
+      infoRow('ti-phone', 'SĐT', data.mgrSdt || '—'),
+    '</div>',
+    '<div class="p-4 bg-zinc-50 rounded-xl border border-zinc-100">',
+      '<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Loại dịch vụ đăng ký</p>',
+      '<div class="flex flex-wrap gap-1.5 mt-1">' + capHtml + '</div>',
+    '</div>'
+  ].join('');
+
+  // Build action buttons
+  var actionsEl = document.getElementById('drawerActions');
+  if (status === 'pending') {
+    actionsEl.innerHTML = [
+      '<button onclick="submitDuyet(' + coSoId + ')"',
+        ' class="flex-1 h-10 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all shadow-md shadow-green-100 flex items-center justify-center gap-1.5">',
+        '<i class="ti ti-circle-check"></i>Duyệt yêu cầu',
+      '</button>',
+      '<button onclick="openTuChoiModal(' + coSoId + ')"',
+        ' class="flex-1 h-10 rounded-xl border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-1.5">',
+        '<i class="ti ti-circle-x"></i>Từ chối',
+      '</button>'
+    ].join('');
+  } else {
+    actionsEl.innerHTML = [
+      '<p class="text-xs text-zinc-500 flex-1">Yêu cầu đã bị từ chối.</p>',
+      '<button onclick="submitDuyet(' + coSoId + ')"',
+        ' class="h-10 px-5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-1.5">',
+        '<i class="ti ti-circle-check"></i>Duyệt lại',
+      '</button>'
+    ].join('');
+  }
+
+  document.getElementById('detailDrawer').classList.add('open');
+  // Shift main content slightly to accommodate drawer
+  document.querySelector('main').style.paddingRight = '436px';
+}
+
+function closeDrawer() {
+  document.getElementById('detailDrawer').classList.remove('open');
+  document.querySelector('main').style.paddingRight = '';
+  document.querySelectorAll('.req-card').forEach(function(c) { c.classList.remove('selected'); });
+  currentDrawerCoSoId = null;
+}
+
+function infoRow(icon, label, value) {
+  return '<div class="flex items-start gap-2 py-1.5">' +
+    '<i class="ti ' + icon + ' text-zinc-400 text-sm mt-0.5 w-4 shrink-0"></i>' +
+    '<div><p class="text-[10px] text-zinc-400 leading-none">' + escHtml(label) + '</p>' +
+    '<p class="text-xs font-semibold text-zinc-800 mt-0.5">' + escHtml(value || '—') + '</p></div>' +
+    '</div>';
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Approve ────────────────────────────────────────────────────
+function submitDuyet(coSoId) {
+  if (!confirm('Xác nhận duyệt yêu cầu này? Cơ sở sẽ được kích hoạt và quản lý có thể đăng nhập.')) return;
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = contextPath + '/admin/chi-nhanh';
+  addField(form, 'action', 'duyet');
+  addField(form, 'id', coSoId);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+// ── Reject ─────────────────────────────────────────────────────
+function openTuChoiModal(coSoId) {
+  document.getElementById('tuChoiCoSoId').value = coSoId;
+  document.getElementById('tuChoiReason').value = '';
+  document.getElementById('tuChoiReasonErr').classList.add('hidden');
+  document.getElementById('modalTuChoi').classList.remove('hidden');
+}
+
+function closeTuChoiModal() {
+  document.getElementById('modalTuChoi').classList.add('hidden');
+}
+
+function submitTuChoi() {
+  var reason = document.getElementById('tuChoiReason').value.trim();
+  if (!reason) {
+    document.getElementById('tuChoiReasonErr').classList.remove('hidden');
+    return;
+  }
+  var coSoId = document.getElementById('tuChoiCoSoId').value;
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = contextPath + '/admin/chi-nhanh';
+  addField(form, 'action', 'tu-choi');
+  addField(form, 'id', coSoId);
+  addField(form, 'reason', reason);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function addField(form, name, value) {
+  var el = document.createElement('input');
+  el.type = 'hidden';
+  el.name = name;
+  el.value = value;
+  form.appendChild(el);
+}
+
+var contextPath = '${pageContext.request.contextPath}';
+</script>
 
 </body>
 </html>

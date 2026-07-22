@@ -5,6 +5,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.dao.CoSoCapabilityDAO;
+import org.example.dao.impl.CoSoCapabilityDAOImpl;
+import org.example.util.Constants;
 
 import java.io.IOException;
 import java.time.LocalTime;
@@ -25,6 +28,8 @@ import java.util.Set;
  */
 @WebServlet("/api/customer/facilities/detail")
 public class FacilityDetailApiServlet extends HttpServlet {
+
+    private final CoSoCapabilityDAO capabilityDAO = new CoSoCapabilityDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -115,6 +120,12 @@ public class FacilityDetailApiServlet extends HttpServlet {
                         }
                     }
                     facility.put("sports", sportsList);
+
+                    // Tab "Cửa hàng" chỉ tồn tại khi capability bán hàng đã được duyệt
+                    // (isApprovedAny tự kiểm tra CoSo còn hoạt động/chưa xóa). Danh sách
+                    // sản phẩm thật được lazy-load riêng qua FacilityShopApiServlet khi
+                    // Customer bấm vào tab - không tải kèm ở đây.
+                    facility.put("shopAvailable", capabilityDAO.isApprovedAny(coSoId, Constants.SHOP_MODULE_CAPABILITIES));
                 }
             }
 

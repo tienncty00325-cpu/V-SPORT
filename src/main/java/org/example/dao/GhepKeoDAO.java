@@ -42,6 +42,8 @@ public interface GhepKeoDAO {
         public String tenLoaiSan;
         // Người tham gia đã xác nhận (không đếm chờ duyệt/từ chối/rời)
         public int soNguoiThamGia;
+        // Điểm uy tín tối thiểu mà chủ kèo yêu cầu (0 = không yêu cầu)
+        public int minReputation;
     }
 
     class ChiTietGhepKeoView {

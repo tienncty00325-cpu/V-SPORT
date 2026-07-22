@@ -10,15 +10,21 @@ import org.apache.logging.log4j.Logger;
 import org.example.service.AuditLogService;
 import org.example.dao.AdminTrashDAO;
 import org.example.dao.CoSoDAO;
+import org.example.dao.CoSoCapabilityDAO;
 import org.example.dao.PayOSConfigDAO;
 import org.example.dao.impl.AdminTrashDAOImpl;
+import org.example.dao.impl.CoSoCapabilityDAOImpl;
 import org.example.dao.impl.CoSoDAOImpl;
 import org.example.dao.impl.PayOSConfigDAOImpl;
+import org.example.dao.impl.TaiKhoanDAOImpl;
 import org.example.dto.payment.PayOSConfigState;
 import org.example.model.CoSo;
+import org.example.model.CoSoCapability;
 import org.example.model.TaiKhoan;
+import org.example.service.admin.CapabilityApprovalService;
 import org.example.service.admin.FacilityTrashService;
 import org.example.service.admin.OwnerApprovalService;
+import org.example.util.Constants;
 import org.example.util.DBUtil;
 import org.example.util.EmailUtil;
 import org.example.util.SessionUtil;
@@ -31,7 +37,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +52,9 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
     private final PayOSConfigDAO payOSConfigDAO = new PayOSConfigDAOImpl();
     private final AdminTrashDAO adminTrashDAO = new AdminTrashDAOImpl();
     private final OwnerApprovalService ownerApprovalService = new OwnerApprovalService();
+    private final CapabilityApprovalService capabilityApprovalService = new CapabilityApprovalService();
+    private final CoSoCapabilityDAO capabilityDAO = new CoSoCapabilityDAOImpl();
+    private final TaiKhoanDAOImpl taiKhoanDAO = new TaiKhoanDAOImpl();
     private final FacilityTrashService facilityTrashService = new FacilityTrashService();
 
     @Override
@@ -52,145 +63,15 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
 
         if (path.equals("/admin/chi-nhanh")) {
             String action = req.getParameter("action");
-            if ("duyet".equals(action)) {
-                int id = Integer.parseInt(req.getParameter("id"));
-                TaiKhoan admin = (TaiKhoan) req.getSession().getAttribute("user");
-                OwnerApprovalService.ApprovalResult result = ownerApprovalService.approve(id, admin.getAccountId());
-                if (result.success) {
-                    Map<String, Integer> sportCounts = buildSportCounts(
-                            result.coSo.getLoaiHinhKinhDoanh(), result.coSo.getSoLuongSanDuKien());
-                    syncCourtsForBranch(id, sportCounts);
-                    if (result.account != null) {
-                        sendApprovalEmail(result.account);
-                    }
-                    req.getSession().setAttribute("message", "Duyệt cơ sở thành công và tài khoản quản lý đã được kích hoạt!");
-                } else {
-                    req.getSession().setAttribute("error", result.errorMessage);
-                }
-                String from = req.getParameter("from");
-                if ("nhan-su".equals(from)) {
-                    resp.sendRedirect(req.getContextPath() + "/admin/nhan-su");
-                } else {
-                    resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh");
-                }
-                return;
-            } else if ("khong-duyet".equals(action)) {
-                int id = Integer.parseInt(req.getParameter("id"));
-                TaiKhoan admin = (TaiKhoan) req.getSession().getAttribute("user");
-                CoSo chiNhanhBeforeReject = chiNhanhDAO.getCoSoById(id);
-                String coSoName = chiNhanhBeforeReject != null ? chiNhanhBeforeReject.getTenCoSo() : null;
-                OwnerApprovalService.ApprovalResult result = ownerApprovalService.reject(id);
-                if (result.success) {
-                    adminTrashDAO.log("OwnerRequest", id, coSoName, "CoSo", "Chờ duyệt",
-                            admin.getAccountId(), null);
-                    req.getSession().setAttribute("message", "Đã từ chối duyệt cơ sở.");
-                    req.getSession().setAttribute("trashMessage", "Đã chuyển vào thùng rác.");
-                    req.getSession().setAttribute("trashUrl", req.getContextPath() + "/admin/thung-rac");
-                    req.getSession().setAttribute("trashCountdownSeconds", 10);
-                } else {
-                    req.getSession().setAttribute("error", result.errorMessage);
-                }
-                String from = req.getParameter("from");
-                if ("nhan-su".equals(from)) {
-                    resp.sendRedirect(req.getContextPath() + "/admin/nhan-su");
-                } else {
-                    resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh");
-                }
-                return;
-            }
 
-            List<CoSo> dsChiNhanh = chiNhanhDAO.getAllCoSo();
-            Map<Integer, PayOSConfigState> payosStatusMap = payOSConfigDAO.findStatusForAllCoSo();
-            req.setAttribute("dsChiNhanh", dsChiNhanh);
-            req.setAttribute("payosStatusMap", payosStatusMap);
-            req.getRequestDispatcher("/admin/QuanLyChiNhanh.jsp").forward(req, resp);
+            if ("duyet".equals(action)) { handleApprove(req, resp); return; }
+            if ("khong-duyet".equals(action) || "tu-choi".equals(action)) { handleReject(req, resp); return; }
+
+            loadMainPage(req, resp);
         } else if (path.equals("/admin/chi-nhanh/sua")) {
-            int id = Integer.parseInt(req.getParameter("id"));
-            CoSo chiNhanh = chiNhanhDAO.getCoSoById(id);
-
-            int countBongDa = 0;
-            int countCauLong = 0;
-            int countTennis = 0;
-            int countPickleball = 0;
-
-            try (Connection conn = DBUtil.getConnection()) {
-                if (conn != null) {
-                    String sql = "SELECT m.TenMon, COUNT(s.SanID) " +
-                            "FROM San s " +
-                            "JOIN LoaiSan l ON s.LoaiSanID = l.LoaiSanID " +
-                            "JOIN MonTheThao m ON l.MonTheThaoID = m.MonTheThaoID " +
-                            "WHERE s.CoSoID = ? " +
-                            "GROUP BY m.TenMon";
-                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                        ps.setInt(1, id);
-                        try (ResultSet rs = ps.executeQuery()) {
-                            while (rs.next()) {
-                                String tenMon = rs.getNString(1);
-                                int count = rs.getInt(2);
-                                if ("Bóng đá".equals(tenMon))
-                                    countBongDa = count;
-                                else if ("Cầu lông".equals(tenMon))
-                                    countCauLong = count;
-                                else if ("Tennis".equals(tenMon))
-                                    countTennis = count;
-                                else if ("Pickleball".equals(tenMon))
-                                    countPickleball = count;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                logger.error("Lỗi khi tải dữ liệu chi nhánh", e);
-            }
-
-            req.setAttribute("chiNhanh", chiNhanh);
-            req.setAttribute("countBongDa", countBongDa);
-            req.setAttribute("countCauLong", countCauLong);
-            req.setAttribute("countTennis", countTennis);
-            req.setAttribute("countPickleball", countPickleball);
-
-            if ("json".equals(req.getParameter("format"))) {
-                resp.setContentType("application/json;charset=UTF-8");
-                PrintWriter out = resp.getWriter();
-                try {
-                    if (chiNhanh == null) {
-                        out.print("{\"success\":false,\"error\":\"Chi nhánh không tồn tại với ID " + id + "\"}");
-                        return;
-                    }
-                    String ten = chiNhanh.getTenCoSo() != null ? chiNhanh.getTenCoSo().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") : "";
-                    String diaChi = chiNhanh.getDiaChi() != null ? chiNhanh.getDiaChi().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") : "";
-                    String sdt = chiNhanh.getSoDienThoai() != null ? chiNhanh.getSoDienThoai().replace("\"", "\\\"") : "";
-                    String trangThai = chiNhanh.getTrangThai() != null ? chiNhanh.getTrangThai().replace("\"", "\\\"") : "";
-                    String gioMo = chiNhanh.getGioMoCua() != null ? chiNhanh.getGioMoCua().toString() : null;
-                    String gioDong = chiNhanh.getGioDongCua() != null ? chiNhanh.getGioDongCua().toString() : null;
-                    String viDo = chiNhanh.getViDo() != null ? chiNhanh.getViDo().toPlainString() : "";
-                    String kinhDo = chiNhanh.getKinhDo() != null ? chiNhanh.getKinhDo().toPlainString() : "";
-
-                    out.print("{"
-                        + "\"success\":true,"
-                        + "\"coSoID\":" + chiNhanh.getCoSoID() + ","
-                        + "\"tenCoSo\":\"" + ten + "\","
-                        + "\"diaChi\":\"" + diaChi + "\","
-                        + "\"soDienThoai\":\"" + sdt + "\","
-                        + "\"trangThai\":\"" + trangThai + "\","
-                        + "\"gioMoCua\":" + (gioMo != null ? "\"" + gioMo + "\"" : "null") + ","
-                        + "\"gioDongCua\":" + (gioDong != null ? "\"" + gioDong + "\"" : "null") + ","
-                        + "\"soLuongSanDuKien\":" + chiNhanh.getSoLuongSanDuKien() + ","
-                        + "\"viDo\":\"" + viDo + "\","
-                        + "\"kinhDo\":\"" + kinhDo + "\","
-                        + "\"countBongDa\":" + countBongDa + ","
-                        + "\"countCauLong\":" + countCauLong + ","
-                        + "\"countTennis\":" + countTennis + ","
-                        + "\"countPickleball\":" + countPickleball
-                        + "}");
-                } catch (Exception ex) {
-                    logger.error("Error generating JSON for branch", ex);
-                    out.print("{\"success\":false,\"error\":\"" + (ex.getMessage() != null ? ex.getMessage().replace("\"", "\\\"") : "NullPointerException") + "\"}");
-                }
-                return;
-            }
-
-            req.getRequestDispatcher("/admin/SuaChiNhanh.jsp").forward(req, resp);
+            // Admin không còn quyền chỉnh sửa cơ sở (chỉ Duyệt/Từ chối/Xóa).
+            // Thông tin cơ sở do chính Owner/Quản lý cơ sở tự cập nhật.
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin không có quyền chỉnh sửa cơ sở.");
         } else if (path.equals("/admin/chi-nhanh/xoa")) {
             int id = Integer.parseInt(req.getParameter("id"));
             HttpSession session = req.getSession();
@@ -225,6 +106,12 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getServletPath();
+
+        if (path.equals("/admin/chi-nhanh")) {
+            String action = req.getParameter("action");
+            if ("duyet".equals(action)) { handleApprove(req, resp); return; }
+            if ("khong-duyet".equals(action) || "tu-choi".equals(action)) { handleReject(req, resp); return; }
+        }
 
         String tenCoSo = req.getParameter("tenCoSo");
         String diaChi = req.getParameter("diaChi");
@@ -313,51 +200,73 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
                     "Admin tạo chi nhánh mới");
             }
         } else if (path.equals("/admin/chi-nhanh/sua")) {
-            int id = Integer.parseInt(req.getParameter("id"));
-
-            // Nạp bản ghi hiện có rồi chỉnh sửa tại chỗ — KHÔNG merge() một entity rỗng
-            // mới tạo, vì merge() sẽ ghi đè mọi field không được set (bao gồm ViDo/KinhDo,
-            // AccountID_QuanLy, HinhAnh, IsDeleted...) thành NULL trên bản ghi DB.
-            CoSo chiNhanh = chiNhanhDAO.getCoSoById(id);
-            if (chiNhanh == null) {
-                req.getSession().setAttribute("error", "Chi nhánh không tồn tại.");
-                resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh");
-                return;
-            }
-            chiNhanh.setTenCoSo(tenCoSo);
-            chiNhanh.setDiaChi(diaChi);
-            chiNhanh.setSoDienThoai(soDienThoai);
-            chiNhanh.setTrangThai(trangThai);
-            // Chỉ ghi đè giờ hoạt động khi form thực sự gửi giá trị — không tự gán
-            // mặc định 8:00/22:00 (đó chỉ dùng cho "Thêm Cơ Sở"). Nếu form để trống,
-            // giữ nguyên giá trị đã nạp từ DB ở trên (kể cả khi giá trị đó là NULL).
-            if (gioMoStr != null && !gioMoStr.isEmpty()) {
-                chiNhanh.setGioMoCua(LocalTime.parse(gioMoStr));
-            }
-            if (gioDongStr != null && !gioDongStr.isEmpty()) {
-                chiNhanh.setGioDongCua(LocalTime.parse(gioDongStr));
-            }
-            chiNhanh.setMoTa(moTa);
-            // Môn thể thao / số sân KHÔNG được chỉnh ở form sửa cơ sở (Admin) — thuộc
-            // quyền Quản lý cơ sở tại trang "Quản lý Sân". Không gọi setLoaiHinhKinhDoanh/
-            // setSoLuongSanDuKien/syncCourtsForBranch ở đây để tránh xóa nhầm sân/lịch đặt.
-            // Chỉ cập nhật vị trí khi form gửi tọa độ mới; nếu không đổi vị trí thì
-            // giữ nguyên ViDo/KinhDo cũ đã nạp từ DB ở trên.
-            if (viDo != null && kinhDo != null) {
-                chiNhanh.setViDo(viDo);
-                chiNhanh.setKinhDo(kinhDo);
-            }
-
-            chiNhanhDAO.updateCoSo(chiNhanh);
-            if (user != null) {
-                AuditLogService.log(req, user,
-                    AuditLogService.ACTION_UPDATE, AuditLogService.ENTITY_CO_SO,
-                    String.valueOf(chiNhanh.getCoSoID()), chiNhanh.getTenCoSo(),
-                    "Admin cập nhật thông tin chi nhánh");
-            }
+            // Admin không còn quyền chỉnh sửa cơ sở (chỉ Duyệt/Từ chối/Xóa).
+            // Thông tin cơ sở do chính Owner/Quản lý cơ sở tự cập nhật.
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin không có quyền chỉnh sửa cơ sở.");
+            return;
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh");
+    }
+
+    // ── Duyệt yêu cầu đăng ký (từ tab Chờ duyệt) ──
+    private void handleApprove(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        TaiKhoan admin = (TaiKhoan) req.getSession().getAttribute("user");
+        int id = parseIdSafe(req.getParameter("id"), -1);
+        if (id < 0 || admin == null) { resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending"); return; }
+        OwnerApprovalService.ApprovalResult result = ownerApprovalService.approve(id, admin.getAccountId());
+        if (result.success) {
+            Map<String, Integer> sportCounts = buildSportCounts(
+                    result.coSo.getLoaiHinhKinhDoanh(), result.coSo.getSoLuongSanDuKien());
+            syncCourtsForBranch(id, sportCounts);
+            // Kích hoạt capability SAN tự động khi duyệt cơ sở
+            capabilityApprovalService.activateCourtCapability(id, admin.getAccountId());
+            if (result.account != null) {
+                sendApprovalEmail(result.account);
+            }
+            AuditLogService.log(req, admin, id, AuditLogService.ACTION_APPROVE,
+                    AuditLogService.ENTITY_CO_SO, String.valueOf(id),
+                    result.coSo.getTenCoSo(), "Duyệt yêu cầu đăng ký cơ sở, kích hoạt tài khoản quản lý.");
+            req.getSession().setAttribute("message", "Đã duyệt cơ sở \"" + result.coSo.getTenCoSo() + "\" và kích hoạt tài khoản quản lý!");
+        } else {
+            req.getSession().setAttribute("error", result.errorMessage);
+        }
+        String from = req.getParameter("from");
+        if ("nhan-su".equals(from)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/nhan-su");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
+        }
+    }
+
+    // ── Từ chối yêu cầu đăng ký ──
+    private void handleReject(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        TaiKhoan admin = (TaiKhoan) req.getSession().getAttribute("user");
+        int id = parseIdSafe(req.getParameter("id"), -1);
+        if (id < 0 || admin == null) { resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending"); return; }
+        CoSo chiNhanhBeforeReject = chiNhanhDAO.getCoSoById(id);
+        String coSoName = chiNhanhBeforeReject != null ? chiNhanhBeforeReject.getTenCoSo() : "Không rõ";
+        String reason = req.getParameter("reason");
+        OwnerApprovalService.ApprovalResult result = ownerApprovalService.reject(id);
+        if (result.success) {
+            adminTrashDAO.log("OwnerRequest", id, coSoName, "CoSo", "Chờ duyệt",
+                    admin.getAccountId(), null);
+            AuditLogService.log(req, admin, id, AuditLogService.ACTION_REJECT,
+                    AuditLogService.ENTITY_CO_SO, String.valueOf(id), coSoName,
+                    "Từ chối yêu cầu đăng ký cơ sở." + (reason != null && !reason.isBlank() ? " Lý do: " + reason : ""));
+            req.getSession().setAttribute("message", "Đã từ chối yêu cầu đăng ký cơ sở.");
+            req.getSession().setAttribute("trashMessage", "Đã chuyển vào thùng rác.");
+            req.getSession().setAttribute("trashUrl", req.getContextPath() + "/admin/thung-rac");
+            req.getSession().setAttribute("trashCountdownSeconds", 10);
+        } else {
+            req.getSession().setAttribute("error", result.errorMessage);
+        }
+        String from = req.getParameter("from");
+        if ("nhan-su".equals(from)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/nhan-su");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/chi-nhanh?tab=pending");
+        }
     }
 
     private void syncCourtsForBranch(int coSoId, Map<String, Integer> sportCounts) {
@@ -499,6 +408,57 @@ public class QuanLyChiNhanhServlet extends HttpServlet {
             }
         }
         return sportCounts;
+    }
+
+    // ── Load main page: load all facility data including pending/rejected ──
+    private void loadMainPage(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            List<CoSo> dsChiNhanh = chiNhanhDAO.getAllCoSo();
+            Map<Integer, PayOSConfigState> payosStatusMap = payOSConfigDAO.findStatusForAllCoSo();
+            req.setAttribute("dsChiNhanh", dsChiNhanh != null ? dsChiNhanh : new ArrayList<>());
+            req.setAttribute("payosStatusMap", payosStatusMap);
+
+            // Load pending and rejected registrations (từ Owner tự đăng ký)
+            List<CoSo> allCoSo = chiNhanhDAO.getAllCoSoIncludingPending();
+            List<TaiKhoan> allAccounts = taiKhoanDAO.getAllAccounts();
+            Map<Integer, TaiKhoan> accountMap = new HashMap<>();
+            if (allAccounts != null) {
+                for (TaiKhoan tk : allAccounts) accountMap.put(tk.getAccountId(), tk);
+            }
+
+            List<Map<String, Object>> pendingRequests  = new ArrayList<>();
+            List<Map<String, Object>> rejectedRequests = new ArrayList<>();
+
+            for (CoSo cs : allCoSo) {
+                if (cs.getAccountID_QuanLy() == null) continue;
+                TaiKhoan mgr = accountMap.get(cs.getAccountID_QuanLy());
+                if (mgr == null) continue;
+                String trangThai = cs.getTrangThai();
+                if (!"Chờ duyệt".equals(trangThai) && !"Từ chối".equals(trangThai)) continue;
+
+                Map<String, Object> row = new HashMap<>();
+                row.put("coSo", cs);
+                row.put("manager", mgr);
+                row.put("capabilities", capabilityDAO.findByCoSoId(cs.getCoSoID()));
+                if ("Chờ duyệt".equals(trangThai)) pendingRequests.add(row);
+                else rejectedRequests.add(row);
+            }
+
+            req.setAttribute("pendingRequests", pendingRequests);
+            req.setAttribute("rejectedRequests", rejectedRequests);
+            req.setAttribute("pendingCount", pendingRequests.size());
+            req.getSession().setAttribute("adminPendingCount", pendingRequests.size());
+        } catch (Exception e) {
+            logger.error("Lỗi loadMainPage: {}", e.getMessage(), e);
+            req.setAttribute("pendingRequests", new ArrayList<>());
+            req.setAttribute("rejectedRequests", new ArrayList<>());
+            req.setAttribute("pendingCount", 0);
+        }
+        req.getRequestDispatcher("/admin/QuanLyChiNhanh.jsp").forward(req, resp);
+    }
+
+    private int parseIdSafe(String s, int defaultVal) {
+        try { return Integer.parseInt(s); } catch (Exception e) { return defaultVal; }
     }
 
     private void sendApprovalEmail(TaiKhoan account) {
